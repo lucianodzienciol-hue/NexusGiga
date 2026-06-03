@@ -11,7 +11,7 @@ import { Product, Client, Sale, Provider, Purchase, PaymentMethod, CompanyConfig
 const DB_FILE = path.join(process.cwd(), 'database.db');
 const SEC_DB_FILE = path.join(process.cwd(), 'database.json');
 const BACKUP_DIR = path.join(process.cwd(), 'backups');
-const WEB_MAIN_DIR = path.join(process.cwd(), 'Web-main', 'Web-main');
+const WEB_MAIN_DIR = path.join(process.cwd(), 'web');
 const MAX_BACKUPS = 5;
 const BACKUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
@@ -827,7 +827,6 @@ async function startServer() {
     try {
       const data = {
         products: db.prepare('SELECT * FROM products WHERE source = ?').all('web'),
-        clients: db.prepare('SELECT * FROM clients').all(),
         repairs: db.prepare('SELECT * FROM repairs ORDER BY date DESC').all(),
         services: db.prepare('SELECT * FROM web_services ORDER BY name').all(),
         config: getConfig<any>('webConfig', {}),
@@ -865,18 +864,22 @@ async function startServer() {
       const config = getConfig<CompanyConfig | null>('companyConfig', null);
       const token = config?.gitToken;
       if (!token) { console.warn('[WebGit] No hay token, no se puede hacer push'); return; }
-      const repoUrl = `https://${token}@github.com/gigacomputers2025-bot/Web.git`;
-      if (!fs.existsSync(path.join(WEB_MAIN_DIR, '.git'))) {
-        execSync('git init', { cwd: WEB_MAIN_DIR });
-        try { execSync(`git remote add origin ${repoUrl}`, { cwd: WEB_MAIN_DIR }); } catch {}
-      }
-      execSync(`git remote set-url origin ${repoUrl}`, { cwd: WEB_MAIN_DIR });
-      execSync('git config user.name "Nexus AutoSync"', { cwd: WEB_MAIN_DIR });
-      execSync('git config user.email "autosync@nexuspos.local"', { cwd: WEB_MAIN_DIR });
-      try { execSync('git branch -M main', { cwd: WEB_MAIN_DIR }); } catch {}
-      execSync('git add .', { cwd: WEB_MAIN_DIR });
-      try { execSync(`git commit -m "AutoSync ${new Date().toISOString()}"`, { cwd: WEB_MAIN_DIR }); } catch {}
-      execSync('git push -u origin main --force', { cwd: WEB_MAIN_DIR, stdio: 'pipe' });
+      const repoUrl = `https://${token}@github.com/gigacomputers2025-bot/Nexus.git`;
+      try { execSync('git remote get-url origin', { cwd: process.cwd() }); }
+      catch { execSync(`git remote add origin ${repoUrl}`, { cwd: process.cwd() }); }
+      execSync(`git remote set-url origin ${repoUrl}`, { cwd: process.cwd() });
+      execSync('git config user.name "Nexus AutoSync"', { cwd: process.cwd() });
+      execSync('git config user.email "autosync@nexuspos.local"', { cwd: process.cwd() });
+      try { execSync('git branch -M master', { cwd: process.cwd() }); } catch {}
+      execSync('git add web/data.json web/catalog.csv', { cwd: process.cwd() });
+      try { execSync('git diff --cached --quiet', { cwd: process.cwd() }); return; } catch {}
+      try {
+        const lastMsg = execSync('git log -1 --format=%s', { cwd: process.cwd() }).toString().trim();
+        if (lastMsg.startsWith('AutoSync ')) execSync('git reset --soft HEAD~1', { cwd: process.cwd() });
+      } catch {}
+      const now = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
+      execSync(`git commit -m "AutoSync ${now}"`, { cwd: process.cwd() });
+      execSync('git push -u origin master --force', { cwd: process.cwd(), stdio: 'pipe' });
       console.log('[WebGit] Push completado');
     } catch (e: any) {
       console.error('[WebGit] Error:', String(e.stderr || e.message || e));
@@ -989,21 +992,7 @@ async function startServer() {
   });
 
   app.post('/api/web-sync-full', (req, res) => {
-    try {
-      const repoUrl = "https://github.com/gigacomputers2025-bot/Web.git";
-      if (!fs.existsSync(path.join(WEB_MAIN_DIR, '.git'))) {
-        execSync('git init', { cwd: WEB_MAIN_DIR });
-        try { execSync(`git remote add origin ${repoUrl}`, { cwd: WEB_MAIN_DIR }); } catch {}
-      }
-      execSync('git config user.name "TechStore Admin"', { cwd: WEB_MAIN_DIR });
-      execSync('git config user.email "admin@techstore.local"', { cwd: WEB_MAIN_DIR });
-      try { execSync('git branch -M main', { cwd: WEB_MAIN_DIR }); } catch {}
-      execSync('git add .', { cwd: WEB_MAIN_DIR });
-      try { execSync('git commit -m "Sync from unified POS"', { cwd: WEB_MAIN_DIR }); } catch {}
-      try { execSync('git branch -M main', { cwd: WEB_MAIN_DIR }); } catch {}
-      execSync('git push -u origin main --force', { cwd: WEB_MAIN_DIR });
-      res.json({ success: true });
-    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+    doFullSync().then(() => res.json({ success: !lastSyncError, error: lastSyncError })).catch((e: any) => res.status(500).json({ success: false, error: e.message }));
   });
 
   app.post('/api/generate-catalog-csv', (req, res) => {

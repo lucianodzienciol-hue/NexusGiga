@@ -2,6 +2,8 @@ node_modules/
 dist/
 Exe/
 database.db
+database.db-shm
+database.db-wal
 database.json
 *.log
 .env
