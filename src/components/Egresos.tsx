@@ -99,7 +99,7 @@ export default function Egresos({ expenses, cashRegister, onRefresh }: EgresosPr
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
           <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">Total Egresos (Filtro)</span>
           <div className="text-3xl font-extrabold font-display text-red-400 mt-2">
@@ -113,13 +113,6 @@ export default function Egresos({ expenses, cashRegister, onRefresh }: EgresosPr
             {expenses.length}
           </div>
           <span className="text-[10px] text-slate-500 font-mono mt-1">Egresos registrados</span>
-        </div>
-        <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
-          <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">Promedio por Egreso</span>
-          <div className="text-3xl font-extrabold font-display text-amber-400 mt-2">
-            ${filtered.length > 0 ? (totalEgresos / filtered.length).toFixed(2) : '0.00'}
-          </div>
-          <span className="text-[10px] text-slate-500 font-mono mt-1">Monto promedio</span>
         </div>
       </div>
 

@@ -64,7 +64,7 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
   return (
     <div className="space-y-6">
       {/* Banner / KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
           <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">Ingresos Totales (Caja)</span>
           <div className="text-3xl font-extrabold font-display text-emerald-400 mt-2">
@@ -79,14 +79,6 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
             {filtered.length}
           </div>
           <span className="text-[10px] text-slate-500 font-mono mt-1">Tickets de venta guardados en base local</span>
-        </div>
-
-        <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
-          <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">Ticket Promedio</span>
-          <div className="text-3xl font-extrabold font-display text-blue-400 mt-2">
-            ${filtered.length > 0 ? (totalRevenue / filtered.length).toFixed(2) : '0.00'}
-          </div>
-          <span className="text-[10px] text-slate-500 font-mono mt-1">Promedio ponderado por ticket</span>
         </div>
       </div>
 

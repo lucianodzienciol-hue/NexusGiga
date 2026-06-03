@@ -5,14 +5,20 @@ import { execSync } from 'child_process';
 import https from 'https';
 import AdmZip from 'adm-zip';
 import { createServer as createViteServer } from 'vite';
+import Database from 'better-sqlite3';
 import { Product, Client, Sale, Provider, Purchase, PaymentMethod, CompanyConfig, Expense, CashRegister } from './src/types';
 
-// Let's establish our local database file (.db)
 const DB_FILE = path.join(process.cwd(), 'database.db');
 const SEC_DB_FILE = path.join(process.cwd(), 'database.json');
+const BACKUP_DIR = path.join(process.cwd(), 'backups');
 const WEB_MAIN_DIR = path.join(process.cwd(), 'Web-main', 'Web-main');
+const MAX_BACKUPS = 30;
+const BACKUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
-// Interface for database structure
+interface WebDataConfig {
+  [key: string]: any;
+}
+
 interface DatabaseSchema {
   products: Product[];
   clients: Client[];
@@ -24,6 +30,25 @@ interface DatabaseSchema {
   stockWarningEnabled: boolean;
   expenses: Expense[];
   cashRegister: CashRegister | null;
+  categories?: { id: string; name: string }[];
+  services?: { id: string; name: string; desc?: string; icon?: string; price?: number }[];
+  webConfig?: WebDataConfig;
+}
+
+interface WebProduct {
+  name: string;
+  category: string;
+  price: number;
+  desc?: string;
+  image?: string;
+  id: string;
+  oferta?: boolean;
+  nuevo?: boolean;
+  webDesc?: string;
+  ofertaPrice?: number;
+  fichaTecnica?: string;
+  fichaTecnicaFile?: string;
+  source?: string;
 }
 
 const INITIAL_DB: DatabaseSchema = {
@@ -61,72 +86,402 @@ const INITIAL_DB: DatabaseSchema = {
   cashRegister: null
 };
 
-// Helper functions to read and write database.db safely
-function readDB(): DatabaseSchema {
+const SCHEMA_SQL = `
+CREATE TABLE IF NOT EXISTS products (
+  id TEXT PRIMARY KEY,
+  code TEXT NOT NULL DEFAULT '',
+  name TEXT NOT NULL DEFAULT '',
+  price REAL NOT NULL DEFAULT 0,
+  cost REAL NOT NULL DEFAULT 0,
+  stock REAL NOT NULL DEFAULT 0,
+  category TEXT NOT NULL DEFAULT 'Varios',
+  source TEXT DEFAULT 'local',
+  description TEXT DEFAULT '',
+  image TEXT DEFAULT '',
+  oferta INTEGER DEFAULT 0,
+  nuevo INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS clients (
+  id TEXT PRIMARY KEY,
+  document TEXT NOT NULL DEFAULT '',
+  name TEXT NOT NULL DEFAULT '',
+  phone TEXT DEFAULT '-',
+  email TEXT DEFAULT '-'
+);
+
+CREATE TABLE IF NOT EXISTS providers (
+  id TEXT PRIMARY KEY,
+  ruc TEXT NOT NULL DEFAULT '',
+  name TEXT NOT NULL DEFAULT '',
+  phone TEXT DEFAULT '-',
+  email TEXT DEFAULT '-'
+);
+
+CREATE TABLE IF NOT EXISTS payment_methods (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL DEFAULT '',
+  requiresCash INTEGER DEFAULT 0,
+  icon TEXT DEFAULT '',
+  adjustment REAL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS sales (
+  id TEXT PRIMARY KEY,
+  date TEXT NOT NULL,
+  total REAL NOT NULL DEFAULT 0,
+  paymentMethod TEXT NOT NULL DEFAULT 'Efectivo',
+  clientId TEXT DEFAULT '',
+  clientName TEXT DEFAULT 'Cliente General',
+  cashReceived REAL DEFAULT 0,
+  change REAL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS sale_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  saleId TEXT NOT NULL,
+  productId TEXT DEFAULT '',
+  productName TEXT DEFAULT '',
+  quantity REAL NOT NULL DEFAULT 0,
+  price REAL NOT NULL DEFAULT 0,
+  FOREIGN KEY (saleId) REFERENCES sales(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS purchases (
+  id TEXT PRIMARY KEY,
+  date TEXT NOT NULL,
+  providerId TEXT DEFAULT '',
+  providerName TEXT DEFAULT '',
+  total REAL NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS purchase_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  purchaseId TEXT NOT NULL,
+  productId TEXT DEFAULT '',
+  productName TEXT DEFAULT '',
+  quantity REAL NOT NULL DEFAULT 0,
+  cost REAL NOT NULL DEFAULT 0,
+  FOREIGN KEY (purchaseId) REFERENCES purchases(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS expenses (
+  id TEXT PRIMARY KEY,
+  date TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'efectivo',
+  descriptionText TEXT DEFAULT '',
+  amount REAL NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS app_config (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS repairs (
+  id TEXT PRIMARY KEY,
+  code TEXT NOT NULL,
+  clientId TEXT NOT NULL,
+  clientName TEXT DEFAULT '',
+  clientPhone TEXT DEFAULT '',
+  equipment TEXT NOT NULL,
+  marca TEXT DEFAULT '',
+  modelo TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'Recibida',
+  problem TEXT DEFAULT '',
+  notes TEXT DEFAULT '',
+  price REAL DEFAULT 0,
+  date TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS site_visits (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  date TEXT UNIQUE NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS web_categories (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS web_services (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL DEFAULT '',
+  desc TEXT DEFAULT '',
+  icon TEXT DEFAULT '',
+  price REAL DEFAULT 0
+);
+`;
+
+let db: Database.Database;
+
+function isSqliteFile(filePath: string): boolean {
   try {
-    // If the new DB_FILE doesn't exist, check if an old database.json exists to migrate
-    if (!fs.existsSync(DB_FILE)) {
-      if (fs.existsSync(SEC_DB_FILE)) {
-        console.log(`[INFO] Migrando datos desde database.json a database.db...`);
-        try {
-          const content = fs.readFileSync(SEC_DB_FILE, 'utf-8');
-          fs.writeFileSync(DB_FILE, content, 'utf-8');
-          // Optionally delete the old one or keep as backup
-          fs.renameSync(SEC_DB_FILE, SEC_DB_FILE + '.backup');
-          console.log(`[INFO] Migración completada. database.json respaldado a database.json.backup`);
-        } catch (migrationError) {
-          console.error('[ERROR] Error durante la migración de datos:', migrationError);
-        }
-      } else {
-        fs.writeFileSync(DB_FILE, JSON.stringify(INITIAL_DB, null, 2), 'utf-8');
-        return INITIAL_DB;
+    if (!fs.existsSync(filePath)) return false;
+    const fd = fs.openSync(filePath, 'r');
+    const buffer = Buffer.alloc(16);
+    fs.readSync(fd, buffer, 0, 16, 0);
+    fs.closeSync(fd);
+    return buffer.toString('utf8') === 'SQLite format 3\u0000';
+  } catch {
+    return false;
+  }
+}
+
+function setupSchema(database: Database.Database): void {
+  database.exec(SCHEMA_SQL);
+  // Add web-specific product columns if missing (safe to re-run)
+  for (const col of ['webDesc', 'ofertaPrice', 'fichaTecnica', 'fichaTecnicaFile']) {
+    try { database.exec(`ALTER TABLE products ADD COLUMN ${col} TEXT DEFAULT ''`); } catch {}
+  }
+  database.pragma('journal_mode = WAL');
+  database.pragma('synchronous = NORMAL');
+  database.pragma('foreign_keys = ON');
+}
+
+function rowToProduct(row: any): Product {
+  return {
+    id: row.id,
+    code: row.code,
+    name: row.name,
+    price: row.price,
+    cost: row.cost,
+    stock: row.stock,
+    category: row.category,
+    source: row.source || 'local',
+    desc: row.description || '',
+    image: row.image || '',
+    oferta: row.oferta === 1,
+    nuevo: row.nuevo === 1,
+    webDesc: row.webDesc || '',
+    ofertaPrice: row.ofertaPrice || 0,
+    fichaTecnica: row.fichaTecnica || '',
+    fichaTecnicaFile: row.fichaTecnicaFile || '',
+  };
+}
+
+function productToRow(p: Partial<Product>): any {
+  return {
+    id: p.id,
+    code: p.code || '',
+    name: p.name || '',
+    price: Number(p.price) || 0,
+    cost: Number(p.cost) || 0,
+    stock: Number(p.stock) || 0,
+    category: p.category || 'Varios',
+    source: p.source || 'local',
+    description: p.desc || '',
+    image: p.image || '',
+    oferta: p.oferta === true ? 1 : 0,
+    nuevo: p.nuevo === true ? 1 : 0,
+    webDesc: p.webDesc || '',
+    ofertaPrice: p.ofertaPrice || 0,
+    fichaTecnica: p.fichaTecnica || '',
+    fichaTecnicaFile: p.fichaTecnicaFile || '',
+  };
+}
+
+function rowToPaymentMethod(row: any): PaymentMethod {
+  return {
+    id: row.id,
+    name: row.name,
+    requiresCash: row.requiresCash === 1,
+    icon: row.icon || '',
+    adjustment: row.adjustment || 0,
+  };
+}
+
+function getConfig<T>(key: string, defaultValue: T): T {
+  try {
+    const row = db.prepare('SELECT value FROM app_config WHERE key = ?').get(key) as any;
+    if (row) return JSON.parse(row.value);
+  } catch {}
+  return defaultValue;
+}
+
+function setConfig(key: string, value: any): void {
+  db.prepare('INSERT OR REPLACE INTO app_config (key, value) VALUES (?, ?)').run(key, JSON.stringify(value));
+}
+
+function getSalesWithItems(): Sale[] {
+  const sales = db.prepare('SELECT * FROM sales ORDER BY date DESC').all() as any[];
+  const getItems = db.prepare('SELECT * FROM sale_items WHERE saleId = ?');
+  for (const s of sales) {
+    s.items = getItems.all(s.id);
+  }
+  return sales;
+}
+
+function getPurchasesWithItems(): Purchase[] {
+  const purchases = db.prepare('SELECT * FROM purchases ORDER BY date DESC').all() as any[];
+  const getItems = db.prepare('SELECT * FROM purchase_items WHERE purchaseId = ?');
+  for (const p of purchases) {
+    p.items = getItems.all(p.id);
+  }
+  return purchases;
+}
+
+function getFullDatabaseSchema(): DatabaseSchema {
+  return {
+    products: (db.prepare('SELECT * FROM products').all() as any[]).map(rowToProduct),
+    clients: db.prepare('SELECT * FROM clients').all() as Client[],
+    providers: db.prepare('SELECT * FROM providers').all() as Provider[],
+    sales: getSalesWithItems(),
+    purchases: getPurchasesWithItems(),
+    paymentMethods: (db.prepare('SELECT * FROM payment_methods').all() as any[]).map(rowToPaymentMethod),
+    companyConfig: getConfig<CompanyConfig | null>('companyConfig', null),
+    stockWarningEnabled: getConfig<boolean>('stockWarningEnabled', true),
+    expenses: db.prepare('SELECT * FROM expenses').all() as Expense[],
+    cashRegister: getConfig<CashRegister | null>('cashRegister', null),
+    categories: db.prepare('SELECT * FROM web_categories ORDER BY name').all() as { id: string; name: string }[],
+    services: db.prepare('SELECT * FROM web_services ORDER BY name').all() as { id: string; name: string; desc: string; icon: string; price: number }[],
+    webConfig: getConfig<WebDataConfig | null>('webConfig', null),
+  };
+}
+
+function migrateData(database: Database.Database, data: DatabaseSchema): void {
+  const insProduct = database.prepare(`INSERT OR REPLACE INTO products (id, code, name, price, cost, stock, category, source, description, image, oferta, nuevo, webDesc, ofertaPrice, fichaTecnica, fichaTecnicaFile) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+  const insClient = database.prepare(`INSERT OR REPLACE INTO clients (id, document, name, phone, email) VALUES (?,?,?,?,?)`);
+  const insProvider = database.prepare(`INSERT OR REPLACE INTO providers (id, ruc, name, phone, email) VALUES (?,?,?,?,?)`);
+  const insPayment = database.prepare(`INSERT OR REPLACE INTO payment_methods (id, name, requiresCash, icon, adjustment) VALUES (?,?,?,?,?)`);
+  const insExpense = database.prepare(`INSERT OR REPLACE INTO expenses (id, date, type, descriptionText, amount) VALUES (?,?,?,?,?)`);
+  const insSale = database.prepare(`INSERT OR REPLACE INTO sales (id, date, total, paymentMethod, clientId, clientName, cashReceived, change) VALUES (?,?,?,?,?,?,?,?)`);
+  const insSaleItem = database.prepare(`INSERT INTO sale_items (saleId, productId, productName, quantity, price) VALUES (?,?,?,?,?)`);
+  const insPurchase = database.prepare(`INSERT OR REPLACE INTO purchases (id, date, providerId, providerName, total) VALUES (?,?,?,?,?)`);
+  const insPurchaseItem = database.prepare(`INSERT INTO purchase_items (purchaseId, productId, productName, quantity, cost) VALUES (?,?,?,?,?)`);
+  const insWebCat = database.prepare(`INSERT OR REPLACE INTO web_categories (id, name) VALUES (?,?)`);
+  const insWebSvc = database.prepare(`INSERT OR REPLACE INTO web_services (id, name, desc, icon, price) VALUES (?,?,?,?,?)`);
+
+  const migrate = database.transaction(() => {
+    for (const p of data.products) {
+      insProduct.run(p.id, p.code || '', p.name || '', p.price || 0, p.cost || 0, p.stock || 0, p.category || 'Varios', p.source || 'local', p.desc || '', p.image || '', p.oferta ? 1 : 0, p.nuevo ? 1 : 0, p.webDesc || p.desc || '', Number(p.ofertaPrice) || 0, p.fichaTecnica || '', p.fichaTecnicaFile || '');
+    }
+    for (const c of (data.categories || [])) {
+      insWebCat.run(c.id, c.name || '');
+    }
+    for (const s of (data.services || [])) {
+      insWebSvc.run(s.id, s.name || '', s.desc || '', s.icon || '', Number(s.price) || 0);
+    }
+    for (const c of data.clients) {
+      insClient.run(c.id, c.document || '', c.name || '', c.phone || '-', c.email || '-');
+    }
+    for (const p of data.providers) {
+      insProvider.run(p.id, p.ruc || '', p.name || '', p.phone || '-', p.email || '-');
+    }
+    for (const pm of (data.paymentMethods || [])) {
+      insPayment.run(pm.id, pm.name || '', pm.requiresCash ? 1 : 0, pm.icon || '', pm.adjustment || 0);
+    }
+    for (const e of (data.expenses || [])) {
+      insExpense.run(e.id, e.date || new Date().toISOString(), e.type || 'efectivo', e.description || '', e.amount || 0);
+    }
+    for (const s of (data.sales || [])) {
+      insSale.run(s.id, s.date, s.total || 0, s.paymentMethod || 'Efectivo', s.clientId || '', s.clientName || 'Cliente General', s.cashReceived || s.total, s.change || 0);
+      for (const item of (s.items || [])) {
+        insSaleItem.run(s.id, item.productId || '', item.productName || '', item.quantity || 0, item.price || 0);
       }
     }
-    const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8')) as DatabaseSchema;
-    // Ensure all fields exist (migration for old databases)
-    if (!data.paymentMethods) data.paymentMethods = INITIAL_DB.paymentMethods;
-    if (!data.purchases) data.purchases = [];
-    if (!data.expenses) data.expenses = [];
-    if (!data.cashRegister) data.cashRegister = null;
-    if (!data.companyConfig) data.companyConfig = null;
-    if (data.stockWarningEnabled === undefined) data.stockWarningEnabled = true;
-    return data;
-  } catch (error) {
-    console.error('Error reading database file, returning initial schema:', error);
-    return INITIAL_DB;
+    for (const p of (data.purchases || [])) {
+      insPurchase.run(p.id, p.date, p.providerId || '', p.providerName || '', p.total || 0);
+      for (const item of (p.items || [])) {
+        insPurchaseItem.run(p.id, item.productId || '', item.productName || '', item.quantity || 0, item.cost || 0);
+      }
+    }
+    const insConfig = database.prepare('INSERT OR REPLACE INTO app_config (key, value) VALUES (?, ?)');
+    if (data.companyConfig) insConfig.run('companyConfig', JSON.stringify(data.companyConfig));
+    insConfig.run('stockWarningEnabled', JSON.stringify(data.stockWarningEnabled !== false));
+    if (data.cashRegister) insConfig.run('cashRegister', JSON.stringify(data.cashRegister));
+    if (data.webConfig) insConfig.run('webConfig', JSON.stringify(data.webConfig));
+  });
+  migrate();
+}
+
+function initDatabase(): Database.Database {
+  if (!fs.existsSync(BACKUP_DIR)) {
+    fs.mkdirSync(BACKUP_DIR, { recursive: true });
+  }
+
+  const dbPath = DB_FILE;
+
+  if (!fs.existsSync(dbPath)) {
+    if (fs.existsSync(SEC_DB_FILE)) {
+      console.log('[DB] Migrando desde database.json a SQLite...');
+      const jsonData = JSON.parse(fs.readFileSync(SEC_DB_FILE, 'utf-8'));
+      const newDb = new Database(dbPath);
+      setupSchema(newDb);
+      migrateData(newDb, jsonData);
+      const integrity = newDb.pragma('integrity_check') as string[];
+      console.log('[DB] Integrity check:', integrity.join(', '));
+      fs.renameSync(SEC_DB_FILE, SEC_DB_FILE + '.migrated');
+      console.log('[DB] Migración completada. database.json → database.json.migrated');
+      return newDb;
+    }
+    console.log('[DB] Creando nueva base de datos SQLite con datos iniciales...');
+    const newDb = new Database(dbPath);
+    setupSchema(newDb);
+    migrateData(newDb, INITIAL_DB);
+    return newDb;
+  }
+
+  if (!isSqliteFile(dbPath)) {
+    console.log('[DB] database.db es JSON. Migrando a SQLite...');
+    const jsonData = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
+    const backupPath = dbPath + '.pre-sqlite-backup';
+    fs.copyFileSync(dbPath, backupPath);
+    console.log('[DB] Backup pre-migración guardado:', backupPath);
+    fs.unlinkSync(dbPath);
+    const newDb = new Database(dbPath);
+    setupSchema(newDb);
+    migrateData(newDb, jsonData);
+    const integrity = newDb.pragma('integrity_check') as string[];
+    console.log('[DB] Integrity check:', integrity.join(', '));
+    console.log('[DB] Migración completada exitosamente.');
+    return newDb;
+  }
+
+  console.log('[DB] Abriendo base de datos SQLite existente...');
+  const existingDb = new Database(dbPath);
+  setupSchema(existingDb);
+  const integrity = existingDb.pragma('integrity_check') as string[];
+  console.log('[DB] Integrity check:', integrity.join(', '));
+  return existingDb;
+}
+
+function createBackup(): void {
+  try {
+    const ts = new Date().toISOString().slice(0, 19).replace(/[:]/g, '-');
+    const data = getFullDatabaseSchema();
+    fs.writeFileSync(path.join(BACKUP_DIR, `nexus-${ts}.json`), JSON.stringify(data, null, 2), 'utf-8');
+    fs.copyFileSync(DB_FILE, path.join(BACKUP_DIR, `nexus-${ts}.db`));
+    const files = fs.readdirSync(BACKUP_DIR)
+      .filter(f => f.startsWith('nexus-'))
+      .sort();
+    const seen = new Set<string>();
+    const unique: string[] = [];
+    for (const f of files) {
+      const base = f.replace(/\.(json|db)$/, '');
+      if (!seen.has(base)) { seen.add(base); unique.push(base); }
+    }
+    while (unique.length > MAX_BACKUPS) {
+      const old = unique.shift()!;
+      for (const ext of ['.json', '.db']) {
+        const p = path.join(BACKUP_DIR, old + ext);
+        if (fs.existsSync(p)) fs.unlinkSync(p);
+      }
+    }
+    console.log(`[BACKUP] Backup creado: nexus-${ts}`);
+  } catch (err) {
+    console.error('[BACKUP] Error:', err);
   }
 }
 
 let lastPOSWrite = Date.now();
-
-// Auto-sync a GitHub
 let pendingSync = false;
 let syncing = false;
 let lastSyncTime: string | null = null;
 let lastSyncError: string | null = null;
+let lastBackupTime = 0;
 const NEXUS_REPO_URL = 'https://github.com/gigacomputers2025-bot/Nexus.git';
-
-function writeDB(data: DatabaseSchema): void {
-  try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
-    lastPOSWrite = Date.now();
-    pendingSync = true;
-  } catch (error) {
-    console.error('Error writing to database file:', error);
-  }
-}
-
-// Interface for Web-main product format
-interface WebProduct {
-  name: string;
-  category: string;
-  price: number;
-  desc?: string;
-  image?: string;
-  id: string;
-  oferta?: boolean;
-  nuevo?: boolean;
-}
 
 async function importCompanyConfig(silent = false): Promise<boolean> {
   const WEB_URL = 'http://localhost:3000/api/config';
@@ -141,9 +496,7 @@ async function importCompanyConfig(silent = false): Promise<boolean> {
       if (!silent) console.log('[CONFIG] Web-main no tiene configuración de empresa');
       return false;
     }
-    const db = readDB();
-    db.companyConfig = config;
-    writeDB(db);
+    setConfig('companyConfig', config);
     if (!silent) console.log(`[CONFIG] Configuración de empresa importada: ${config.companyName}`);
     return true;
   } catch (err: any) {
@@ -165,228 +518,290 @@ async function importFromWeb(silent = false): Promise<{ imported: number; update
       if (!silent) console.log('[IMPORT] Web-main no tiene productos para importar');
       return { imported: 0, updated: 0 };
     }
-
-    const db = readDB();
     let imported = 0;
     let updated = 0;
 
-    for (const wp of webProducts) {
-      const existingIndex = db.products.findIndex(
-        p => (p.source !== 'local' || !p.source) && p.name.toLowerCase().trim() === wp.name.toLowerCase().trim()
-      );
+    const existingProducts = db.prepare('SELECT * FROM products').all() as any[];
+    const findRow = db.prepare('UPDATE products SET source=?, code=?, price=?, cost=?, category=? WHERE id=?');
+    const insertRow = db.prepare('INSERT INTO products (id, code, name, price, cost, stock, category, source) VALUES (?,?,?,?,?,?,?,?)');
+    const updateWebRow = db.prepare('UPDATE products SET image=?, oferta=?, nuevo=?, webDesc=?, ofertaPrice=?, fichaTecnica=?, fichaTecnicaFile=? WHERE id=?');
 
-      if (existingIndex !== -1) {
-        db.products[existingIndex] = {
-          ...db.products[existingIndex],
-          source: 'web',
-          code: wp.id,
-          price: Number(wp.price) || 0,
-          cost: 0,
-          category: wp.category || 'Varios'
-        };
-        updated++;
-      } else {
-        const newProduct: Product = {
-          id: Date.now().toString() + Math.random().toString(36).substring(2, 6),
-          code: wp.id,
-          name: wp.name,
-          price: Number(wp.price) || 0,
-          cost: 0,
-          stock: 0,
-          category: wp.category || 'Varios',
-          source: 'web'
-        };
-        db.products.push(newProduct);
-        imported++;
+    const doImport = db.transaction(() => {
+      for (const wp of webProducts) {
+        if (wp.source === 'local') continue; // no importar productos POS
+        const existingIndex = existingProducts.findIndex(
+          (p: any) => (p.source !== 'local' || !p.source) && p.name.toLowerCase().trim() === wp.name.toLowerCase().trim()
+        );
+        if (existingIndex !== -1) {
+          const existing = existingProducts[existingIndex];
+          findRow.run('web', wp.id, Number(wp.price) || 0, 0, wp.category || 'Varios', existing.id);
+          // También actualizar campos web (image, oferta, etc.) si el producto origen los tiene
+          if (wp.image || wp.oferta || wp.webDesc || wp.ofertaPrice) {
+            updateWebRow.run(
+              wp.image || existing.image || '', wp.oferta ? 1 : 0, wp.nuevo ? 1 : 0,
+              wp.webDesc || wp.desc || '', Number(wp.ofertaPrice) || 0, wp.fichaTecnica || '', wp.fichaTecnicaFile || '',
+              existing.id
+            );
+          }
+          existingProducts[existingIndex] = { ...existing, source: 'web', code: wp.id, price: Number(wp.price) || 0, category: wp.category || 'Varios' };
+          updated++;
+        } else {
+          const id = Date.now().toString() + Math.random().toString(36).substring(2, 6);
+          insertRow.run(id, wp.id, wp.name, Number(wp.price) || 0, 0, 0, wp.category || 'Varios', 'web');
+          existingProducts.push({ id, code: wp.id, name: wp.name, price: Number(wp.price) || 0, stock: 0, category: wp.category || 'Varios', source: 'web' });
+          imported++;
+        }
       }
-    }
+    });
+    doImport();
 
-    writeDB(db);
-    if (!silent) {
-      console.log(`[IMPORT] Importación completada: ${imported} nuevos, ${updated} actualizados`);
-    }
+    if (!silent) console.log(`[IMPORT] Importación completada: ${imported} nuevos, ${updated} actualizados`);
     return { imported, updated };
   } catch (err: any) {
-    if (!silent) {
-      console.warn(`[IMPORT] No se pudo conectar con Web-main (${err?.message || err})`);
-    }
+    if (!silent) console.warn(`[IMPORT] No se pudo conectar con Web-main (${err?.message || err})`);
     return { imported: 0, updated: 0 };
   }
 }
 
 async function startServer() {
-  // Initialize and migrate database on start
-  const initialData = readDB();
-  console.log(`[DATABASE] Base de datos persistente inicializada con ${initialData.products.length} productos.`);
+  db = initDatabase();
+  console.log(`[DATABASE] Base de datos SQLite inicializada.`);
 
-  // Auto-importar artículos y configuración desde Web-main al iniciar
-  importCompanyConfig(true).then(result => {
-    if (result) console.log('[IMPORT] Configuración de empresa importada al inicio');
+  createBackup();
+  lastBackupTime = Date.now();
+
+  importCompanyConfig(true).then(r => { if (r) console.log('[IMPORT] Configuración de empresa importada al inicio'); });
+  importFromWeb(true).then(r => {
+    if (r.imported > 0 || r.updated > 0) console.log(`[IMPORT] Auto-importación al inicio: ${r.imported} nuevos, ${r.updated} actualizados`);
   });
-  importFromWeb(true).then(result => {
-    if (result.imported > 0 || result.updated > 0) {
-      console.log(`[IMPORT] Auto-importación al inicio: ${result.imported} nuevos, ${result.updated} actualizados`);
+
+  // Migrar reparaciones desde data.json a SQLite
+  try {
+    const webDataPath = path.join(WEB_MAIN_DIR, 'data.json');
+    if (fs.existsSync(webDataPath)) {
+      const webData = JSON.parse(fs.readFileSync(webDataPath, 'utf8'));
+      const repairsCount = (db.prepare('SELECT COUNT(*) as c FROM repairs').get() as any).c;
+      if (repairsCount === 0 && webData.repairs && webData.repairs.length > 0) {
+        const manualRepairs = webData.repairs.filter((r: any) => !r.id.startsWith('REP-SGT-'));
+        if (manualRepairs.length > 0) {
+          console.log(`[MIGRATE] Migrando ${manualRepairs.length} reparaciones desde data.json a SQLite...`);
+          const ins = db.prepare(`INSERT OR REPLACE INTO repairs (id, code, clientId, clientName, clientPhone, equipment, marca, modelo, status, problem, notes, price, date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+          const doMigrate = db.transaction(() => {
+            for (const r of manualRepairs) {
+              const client = (webData.clients || []).find((c: any) => c.id === r.clientId);
+              ins.run(
+                r.id, r.code || '', r.clientId || '', client?.name || '', client?.phone || '',
+                r.equipment || '', r.marca || '', r.modelo || '',
+                r.status || 'Recibida', r.problem || '', r.notes || '', Number(r.price) || 0, r.date || ''
+              );
+            }
+          });
+          doMigrate();
+          console.log(`[MIGRATE] Migración completada: ${manualRepairs.length} reparaciones importadas.`);
+        }
+      }
     }
-  });
+  } catch (e) { console.warn('[MIGRATE] No se pudieron migrar reparaciones:', e); }
+
+  // Migrar web data (categorías, servicios, config) desde data.json a SQLite
+  try {
+    const webDataPath = path.join(WEB_MAIN_DIR, 'data.json');
+    if (fs.existsSync(webDataPath)) {
+      const webData = JSON.parse(fs.readFileSync(webDataPath, 'utf8'));
+      const catsCount = (db.prepare('SELECT COUNT(*) as c FROM web_categories').get() as any).c;
+      // Migrar categorías, servicios y config solo una vez
+      if (catsCount === 0) {
+        const cats = webData.categories || [];
+        const svcs = webData.services || [];
+        if (cats.length > 0 || svcs.length > 0 || webData.config) {
+          console.log(`[MIGRATE] Migrando web data desde data.json a SQLite...`);
+          const insCat = db.prepare('INSERT OR REPLACE INTO web_categories (id, name) VALUES (?,?)');
+          const insSvc = db.prepare('INSERT OR REPLACE INTO web_services (id, name, desc, icon, price) VALUES (?,?,?,?,?)');
+          const doMigrate = db.transaction(() => {
+            for (const c of cats) insCat.run(c.id, c.name || '');
+            for (const s of svcs) insSvc.run(s.id, s.name || '', s.desc || '', s.icon || '', Number(s.price) || 0);
+            if (webData.config) setConfig('webConfig', webData.config);
+          });
+          doMigrate();
+          console.log(`[MIGRATE] Web data migrada: ${cats.length} categorías, ${svcs.length} servicios`);
+        }
+      }
+      // Migrar/actualizar imágenes de productos web (una sola vez, controlado por flag en config)
+      const webImgMigrated = getConfig<boolean>('webImgMigrated', false);
+      if (!webImgMigrated && webData.products && webData.products.length > 0) {
+        let imgUpdated = 0; let imgInserted = 0;
+        const updImg = db.prepare('UPDATE products SET image=?, webDesc=?, oferta=?, nuevo=?, ofertaPrice=?, fichaTecnica=?, fichaTecnicaFile=? WHERE id=?');
+        const insProd = db.prepare(`INSERT OR REPLACE INTO products (id, code, name, price, cost, stock, category, source, description, image, oferta, nuevo, webDesc, ofertaPrice, fichaTecnica, fichaTecnicaFile) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+        const doImgMigrate = db.transaction(() => {
+          for (const wp of webData.products) {
+            if (!wp.image) continue;
+            const existing = db.prepare('SELECT id, image FROM products WHERE id=?').get(wp.id) as any;
+            if (existing) {
+              if (!existing.image || existing.image === '') {
+                updImg.run(wp.image || '', wp.desc || '', wp.oferta ? 1 : 0, wp.nuevo ? 1 : 0, Number(wp.ofertaPrice) || 0, wp.fichaTecnica || '', wp.fichaTecnicaFile || '', wp.id);
+                imgUpdated++;
+              }
+            } else {
+              insProd.run(wp.id, wp.id, wp.name || '', Number(wp.price) || 0, 0, 0, wp.category || 'Varios', 'web', wp.desc || '', wp.image || '', wp.oferta ? 1 : 0, wp.nuevo ? 1 : 0, wp.desc || '', Number(wp.ofertaPrice) || 0, wp.fichaTecnica || '', wp.fichaTecnicaFile || '');
+              imgInserted++;
+            }
+          }
+        });
+        doImgMigrate();
+        setConfig('webImgMigrated', true);
+        if (imgUpdated > 0 || imgInserted > 0) console.log(`[MIGRATE] Imágenes web: ${imgInserted} insertadas, ${imgUpdated} actualizadas`);
+      }
+    }
+  } catch (e) { console.warn('[MIGRATE] No se pudo migrar web data:', e); }
 
   const app = express();
-  app.use(express.json());
+  app.use(express.json({ limit: '50mb' }));
 
-  // API Endpoints for POS Module
-  
   // PRODUCTS
   app.get('/api/products', (req, res) => {
-    const db = readDB();
-    res.json(db.products);
+    const rows = db.prepare('SELECT * FROM products ORDER BY name').all() as any[];
+    res.json(rows.map(rowToProduct));
   });
 
   app.post('/api/products', (req, res) => {
-    const db = readDB();
-    const newProduct: Product = {
-      id: Date.now().toString(),
-      code: req.body.code || '',
-      name: req.body.name || '',
-      price: Number(req.body.price) || 0,
-      cost: Number(req.body.cost) || 0,
-      stock: Number(req.body.stock) || 0,
-      category: req.body.category || 'Varios',
-      source: 'local',
-      desc: req.body.desc || '',
-      image: req.body.image || '',
-      oferta: req.body.oferta === true,
-      nuevo: req.body.nuevo === true,
-    };
-    db.products.push(newProduct);
-    writeDB(db);
-    res.status(201).json(newProduct);
+    const { code, name, price, cost, stock, category, desc, image, oferta, nuevo, source, webDesc, ofertaPrice, fichaTecnica, fichaTecnicaFile } = req.body;
+    const id = Date.now().toString();
+    db.prepare(`INSERT INTO products (id, code, name, price, cost, stock, category, source, description, image, oferta, nuevo, webDesc, ofertaPrice, fichaTecnica, fichaTecnicaFile) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+      id, code || '', name || '', Number(price) || 0, Number(cost) || 0, Number(stock) || 0, category || 'Varios', source === 'web' ? 'web' : 'local', desc || '', image || '', oferta === true ? 1 : 0, nuevo === true ? 1 : 0, webDesc || desc || '', Number(ofertaPrice) || 0, fichaTecnica || '', fichaTecnicaFile || ''
+    );
+    lastPOSWrite = Date.now(); pendingSync = true;
+    const row = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+    res.status(201).json(rowToProduct(row));
   });
 
   app.put('/api/products/:id', (req, res) => {
-    const db = readDB();
-    const index = db.products.findIndex(p => p.id === req.params.id);
-    if (index !== -1) {
-      db.products[index] = {
-        ...db.products[index],
-        code: req.body.code !== undefined ? req.body.code : db.products[index].code,
-        name: req.body.name !== undefined ? req.body.name : db.products[index].name,
-        price: req.body.price !== undefined ? Number(req.body.price) : db.products[index].price,
-        cost: req.body.cost !== undefined ? Number(req.body.cost) : db.products[index].cost,
-        stock: req.body.stock !== undefined ? Number(req.body.stock) : db.products[index].stock,
-        category: req.body.category !== undefined ? req.body.category : db.products[index].category,
-        desc: req.body.desc !== undefined ? req.body.desc : db.products[index].desc,
-        image: req.body.image !== undefined ? req.body.image : db.products[index].image,
-        oferta: req.body.oferta !== undefined ? req.body.oferta === true : db.products[index].oferta,
-        nuevo: req.body.nuevo !== undefined ? req.body.nuevo === true : db.products[index].nuevo,
-      };
-      writeDB(db);
-      res.json(db.products[index]);
-    } else {
-      res.status(404).json({ error: 'Product not found' });
-    }
+    const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id) as any;
+    if (!existing) return res.status(404).json({ error: 'Product not found' });
+    const { code, name, price, cost, stock, category, desc, image, oferta, nuevo, source, webDesc, ofertaPrice, fichaTecnica, fichaTecnicaFile } = req.body;
+    const updated = {
+      code: code !== undefined ? code : existing.code,
+      name: name !== undefined ? name : existing.name,
+      price: price !== undefined ? Number(price) : existing.price,
+      cost: cost !== undefined ? Number(cost) : existing.cost,
+      stock: stock !== undefined ? Number(stock) : existing.stock,
+      category: category !== undefined ? category : existing.category,
+      source: source !== undefined ? (source === 'web' ? 'web' : 'local') : existing.source,
+      description: desc !== undefined ? desc : existing.description,
+      image: image !== undefined ? image : existing.image,
+      oferta: oferta !== undefined ? (oferta === true ? 1 : 0) : existing.oferta,
+      nuevo: nuevo !== undefined ? (nuevo === true ? 1 : 0) : existing.nuevo,
+      webDesc: webDesc !== undefined ? webDesc : (existing.webDesc || existing.description || ''),
+      ofertaPrice: ofertaPrice !== undefined ? Number(ofertaPrice) : (existing.ofertaPrice || 0),
+      fichaTecnica: fichaTecnica !== undefined ? fichaTecnica : (existing.fichaTecnica || ''),
+      fichaTecnicaFile: fichaTecnicaFile !== undefined ? fichaTecnicaFile : (existing.fichaTecnicaFile || ''),
+    };
+    db.prepare(`UPDATE products SET code=?, name=?, price=?, cost=?, stock=?, category=?, source=?, description=?, image=?, oferta=?, nuevo=?, webDesc=?, ofertaPrice=?, fichaTecnica=?, fichaTecnicaFile=? WHERE id=?`).run(
+      updated.code, updated.name, updated.price, updated.cost, updated.stock, updated.category, updated.source, updated.description, updated.image, updated.oferta, updated.nuevo, updated.webDesc, updated.ofertaPrice, updated.fichaTecnica, updated.fichaTecnicaFile, req.params.id
+    );
+    lastPOSWrite = Date.now(); pendingSync = true;
+    const row = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
+    res.json(rowToProduct(row));
   });
 
   app.delete('/api/products/:id', (req, res) => {
-    const db = readDB();
-    const originalLength = db.products.length;
-    db.products = db.products.filter(p => p.id !== req.params.id);
-    if (db.products.length < originalLength) {
-      writeDB(db);
-      res.json({ success: true });
-    } else {
-      res.status(404).json({ error: 'Product not found' });
-    }
+    const r = db.prepare('DELETE FROM products WHERE id = ?').run(req.params.id);
+    if (r.changes > 0) { lastPOSWrite = Date.now(); pendingSync = true; res.json({ success: true }); }
+    else res.status(404).json({ error: 'Product not found' });
   });
 
-  // Stock warning setting
   app.get('/api/stock-warning', (req, res) => {
-    const db = readDB();
-    res.json({ enabled: db.stockWarningEnabled });
+    res.json({ enabled: getConfig<boolean>('stockWarningEnabled', true) });
   });
 
   app.post('/api/stock-warning', (req, res) => {
-    const db = readDB();
-    db.stockWarningEnabled = req.body.enabled === true;
-    writeDB(db);
-    res.json({ enabled: db.stockWarningEnabled });
+    const enabled = req.body.enabled === true;
+    setConfig('stockWarningEnabled', enabled);
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.json({ enabled });
   });
 
-  // Company config
   app.get('/api/company-config', (req, res) => {
-    const db = readDB();
-    res.json(db.companyConfig || {});
+    res.json(getConfig<CompanyConfig | null>('companyConfig', null) || {});
   });
 
   app.put('/api/company-config', (req, res) => {
     try {
-      const db = readDB();
-      db.companyConfig = { ...(db.companyConfig || {}), ...req.body };
-      writeDB(db);
-      res.json(db.companyConfig);
+      const existing = getConfig<CompanyConfig | null>('companyConfig', null) || {} as CompanyConfig;
+      const updated = { ...existing, ...req.body };
+      setConfig('companyConfig', updated);
+      lastPOSWrite = Date.now(); pendingSync = true;
+      res.json(updated);
     } catch { res.status(500).json({ error: 'Error al guardar configuración' }); }
   });
 
-  // Importar configuración de empresa desde Web-main
   app.post('/api/import-company-config', async (req, res) => {
     const result = await importCompanyConfig(false);
-    if (result) {
-      res.json({ success: true, message: 'Configuración de empresa importada correctamente' });
-    } else {
-      res.json({ success: false, message: 'No se pudo importar la configuración. Verifique que Web-main esté corriendo en localhost:3000.' });
-    }
+    res.json({ success: result, message: result ? 'Configuración de empresa importada correctamente' : 'No se pudo importar la configuración. Verifique que Web-main esté corriendo en localhost:3000.' });
   });
 
-  // Cash Register
   app.get('/api/cash-register', (req, res) => {
-    const db = readDB();
-    res.json(db.cashRegister || { cash: 0, bank: 0 });
+    res.json(getConfig<CashRegister | null>('cashRegister', null) || { cash: 0, bank: 0 });
   });
 
   app.put('/api/cash-register', (req, res) => {
-    const db = readDB();
-    db.cashRegister = {
-      cash: Number(req.body.cash) || 0,
-      bank: Number(req.body.bank) || 0
-    };
-    writeDB(db);
-    res.json(db.cashRegister);
+    const cr: CashRegister = { cash: Number(req.body.cash) || 0, bank: Number(req.body.bank) || 0 };
+    setConfig('cashRegister', cr);
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.json(cr);
   });
 
-  // Importar artículos desde Web-main (TechStore)
   app.post('/api/import-from-web', async (req, res) => {
     const result = await importFromWeb(false);
-    if (result.imported === 0 && result.updated === 0) {
-      res.json({ success: true, imported: 0, updated: 0, message: 'No se encontraron productos nuevos en Web-main. Verifique que el servidor esté corriendo en localhost:3000.' });
-    } else {
-      res.json({ success: true, ...result, message: `Importación completada: ${result.imported} nuevos, ${result.updated} actualizados` });
-    }
+    res.json({ success: true, ...result, message: `Importación completada: ${result.imported} nuevos, ${result.updated} actualizados` });
   });
 
-  // ========== WEB-MAIN MERGED ROUTES ==========
-
-  // Serve Web-main static files under /web/
+  // ========== WEB-MAIN ROUTES (unchanged) ==========
+  app.use('/assets', express.static(path.join(WEB_MAIN_DIR, 'assets')));
   app.use('/web', express.static(WEB_MAIN_DIR));
-  // Catch-all for Web-main SPA routes
   app.get('/web/*', (req, res) => {
     res.sendFile(path.join(WEB_MAIN_DIR, 'index.html'));
   });
 
-  // API de Web-main: leer data.json
   app.get('/api/web-data', (req, res) => {
     try {
-      const data = JSON.parse(fs.readFileSync(path.join(WEB_MAIN_DIR, 'data.json'), 'utf8'));
-      res.json(data);
+      const dbProducts = db.prepare('SELECT * FROM products WHERE source = ?').all('web') as any[];
+      const webData = {
+        products: dbProducts,
+        clients: db.prepare('SELECT * FROM clients').all(),
+        repairs: db.prepare('SELECT * FROM repairs ORDER BY date DESC').all(),
+        services: db.prepare('SELECT * FROM web_services ORDER BY name').all(),
+        config: getConfig<any>('webConfig', {}),
+        categories: db.prepare('SELECT * FROM web_categories ORDER BY name').all(),
+      };
+      res.json(webData);
     } catch { res.json({ products: [], clients: [], repairs: [], services: [], config: {}, categories: [] }); }
   });
 
-  // API de Web-main: guardar data.json
   app.post('/api/web-save', (req, res) => {
     try {
-      fs.writeFileSync(path.join(WEB_MAIN_DIR, 'data.json'), JSON.stringify(req.body, null, 2));
-      lastPOSWrite = Date.now();
-      pendingSync = true;
-      // Regenerar catalog.csv
+      const data = req.body;
+      const upsertProduct = db.prepare(`INSERT OR REPLACE INTO products (id, code, name, price, cost, stock, category, source, description, image, oferta, nuevo, webDesc, ofertaPrice, fichaTecnica, fichaTecnicaFile) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+      const delCats = db.prepare('DELETE FROM web_categories');
+      const insCat = db.prepare('INSERT INTO web_categories (id, name) VALUES (?,?)');
+      const delSvcs = db.prepare('DELETE FROM web_services');
+      const insSvc = db.prepare('INSERT INTO web_services (id, name, desc, icon, price) VALUES (?,?,?,?,?)');
+
+      const save = db.transaction(() => {
+        for (const p of (data.products || [])) {
+          upsertProduct.run(p.id, p.code || '', p.name || '', Number(p.price) || 0, Number(p.cost) || 0, Number(p.stock) || 0, p.category || 'Varios', 'web', p.desc || p.webDesc || '', p.image || '', p.oferta ? 1 : 0, p.nuevo ? 1 : 0, p.webDesc || p.desc || '', Number(p.ofertaPrice) || 0, p.fichaTecnica || '', p.fichaTecnicaFile || '');
+        }
+        delCats.run();
+        for (const c of (data.categories || [])) { insCat.run(c.id, c.name || ''); }
+        delSvcs.run();
+        for (const s of (data.services || [])) { insSvc.run(s.id, s.name || '', s.desc || '', s.icon || '', Number(s.price) || 0); }
+        if (data.config) setConfig('webConfig', data.config);
+      });
+      save();
+
+      lastPOSWrite = Date.now(); pendingSync = true;
+      // Keep writing data.json + catalog.csv for backward compat with Web-main static
       try {
-        const data = req.body;
+        fs.writeFileSync(path.join(WEB_MAIN_DIR, 'data.json'), JSON.stringify(data, null, 2));
         const products = data.products || [];
         const brand = (data.config && data.config.companyName) || 'GIGA Computers';
         const BASE_URL = 'https://gigacomputers.com.ar';
@@ -414,74 +829,37 @@ async function startServer() {
     } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
   });
 
-  // Detectar actualizaciones externas (SGTaller) — solo si el archivo es JSON v\u00e1lido (escritura completa)
-  app.get('/api/check-sgtaller-update', (req, res) => {
-    try {
-      const files = [
-        DB_FILE,
-        path.join(WEB_MAIN_DIR, 'data.json'),
-        SEC_DB_FILE,
-      ];
-      const updated = files.some(f => {
-        try {
-          if (fs.statSync(f).mtimeMs <= lastPOSWrite) return false;
-          const content = fs.readFileSync(f, 'utf8');
-          JSON.parse(content);
-          return true;
-        } catch { return false; }
-      });
-      res.json({ updated });
-    } catch { res.json({ updated: false }); }
+  // Alias for Web-main app.js sync — same logic as /api/web-save
+  app.post('/api/save', (req, res) => {
+    req.url = '/api/web-save';
+    app._router.handle(req, res, () => {});
   });
 
-  // Estado del auto-sync a Nexus
   app.get('/api/auto-sync-status', (req, res) => {
     res.json({ pending: pendingSync, syncing, lastSync: lastSyncTime, error: lastSyncError });
   });
 
-  // Auto-sync a Nexus (GitHub)
   async function doAutoSync() {
     if (syncing || !pendingSync) return;
-    syncing = true;
-    pendingSync = false;
+    syncing = true; pendingSync = false;
     try {
-      const db = readDB();
-      if (!db.companyConfig?.gitToken) {
-        lastSyncError = 'Token de GitHub no configurado';
-        syncing = false;
-        return;
-      }
-      const token = db.companyConfig.gitToken;
-      // Verificar si hay cambios para commitear
+      const config = getConfig<CompanyConfig | null>('companyConfig', null);
+      if (!config?.gitToken) { lastSyncError = 'Token de GitHub no configurado'; syncing = false; return; }
+      const token = config.gitToken;
       execSync('git add -A', { cwd: process.cwd() });
-      try {
-        execSync('git diff --cached --quiet', { cwd: process.cwd() });
-        syncing = false;
-        return;
-      } catch {}
-      // Configurar git
+      try { execSync('git diff --cached --quiet', { cwd: process.cwd() }); syncing = false; return; } catch {}
       execSync('git config user.name "Nexus AutoSync"', { cwd: process.cwd() });
       execSync('git config user.email "autosync@nexuspos.local"', { cwd: process.cwd() });
-      // URL autenticada con token
       const authedUrl = `https://${token}@github.com/gigacomputers2025-bot/Nexus.git`;
-      // Agregar remote si no existe
-      try {
-        execSync('git remote get-url origin', { cwd: process.cwd() });
-      } catch {
-        execSync(`git remote add origin ${authedUrl}`, { cwd: process.cwd() });
-      }
-      // Actualizar remote URL con token
+      try { execSync('git remote get-url origin', { cwd: process.cwd() }); }
+      catch { execSync(`git remote add origin ${authedUrl}`, { cwd: process.cwd() }); }
       execSync(`git remote set-url origin ${authedUrl}`, { cwd: process.cwd() });
-      // Reemplazar commit anterior si es AutoSync
       try {
         const lastMsg = execSync('git log -1 --format=%s', { cwd: process.cwd() }).toString().trim();
-        if (lastMsg.startsWith('AutoSync ')) {
-          execSync('git reset --soft HEAD~1', { cwd: process.cwd() });
-        }
+        if (lastMsg.startsWith('AutoSync ')) execSync('git reset --soft HEAD~1', { cwd: process.cwd() });
       } catch {}
       const now = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
       execSync(`git commit -m "AutoSync ${now}"`, { cwd: process.cwd() });
-      // Intentar push; si falla con 404, crear repo primero
       try {
         execSync('git push -u origin master --force', { cwd: process.cwd(), stdio: 'pipe' });
       } catch (pushErr: any) {
@@ -490,31 +868,15 @@ async function startServer() {
           await new Promise<void>((resolve, reject) => {
             const postData = JSON.stringify({ name: 'Nexus', private: false, auto_init: false });
             const req = https.request({
-              hostname: 'api.github.com',
-              path: '/user/repos',
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'User-Agent': 'NexusPOS',
-                'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(postData),
-              },
-            }, (resp: any) => {
-              let body = '';
-              resp.on('data', (chunk: string) => body += chunk);
-              resp.on('end', () => resolve());
-            });
-            req.on('error', reject);
-            req.write(postData);
-            req.end();
+              hostname: 'api.github.com', path: '/user/repos', method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}`, 'User-Agent': 'NexusPOS', 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) },
+            }, (resp: any) => { let body = ''; resp.on('data', (chunk: string) => body += chunk); resp.on('end', () => resolve()); });
+            req.on('error', reject); req.write(postData); req.end();
           });
           execSync('git push -u origin master --force', { cwd: process.cwd(), stdio: 'pipe' });
-        } else {
-          throw pushErr;
-        }
+        } else throw pushErr;
       }
-      lastSyncTime = now;
-      lastSyncError = null;
+      lastSyncTime = now; lastSyncError = null;
     } catch (e: any) {
       lastSyncError = String(Buffer.isBuffer(e.stderr) ? e.stderr.toString() : (e.stderr || e.message || e));
       pendingSync = true;
@@ -523,7 +885,55 @@ async function startServer() {
     syncing = false;
   }
 
-  // Sync completo a GitHub (Web-main)
+  async function doFullSync() {
+    if (syncing) return;
+    syncing = true;
+    try {
+      const config = getConfig<CompanyConfig | null>('companyConfig', null);
+      if (!config?.gitToken) { lastSyncError = 'Token de GitHub no configurado'; syncing = false; return; }
+      const token = config.gitToken;
+      execSync('git add -A', { cwd: process.cwd() });
+      execSync('git config user.name "Nexus FullSync"', { cwd: process.cwd() });
+      execSync('git config user.email "fullsync@nexuspos.local"', { cwd: process.cwd() });
+      const authedUrl = `https://${token}@github.com/gigacomputers2025-bot/Nexus.git`;
+      try { execSync('git remote get-url origin', { cwd: process.cwd() }); }
+      catch { execSync(`git remote add origin ${authedUrl}`, { cwd: process.cwd() }); }
+      execSync(`git remote set-url origin ${authedUrl}`, { cwd: process.cwd() });
+      try {
+        const lastMsg = execSync('git log -1 --format=%s', { cwd: process.cwd() }).toString().trim();
+        if (lastMsg.startsWith('AutoSync ') || lastMsg.startsWith('ManualSync ')) execSync('git reset --soft HEAD~1', { cwd: process.cwd() });
+      } catch {}
+      const now = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
+      execSync(`git commit -m "ManualSync ${now}"`, { cwd: process.cwd() });
+      try {
+        execSync('git push -u origin master --force', { cwd: process.cwd(), stdio: 'pipe' });
+      } catch (pushErr: any) {
+        const errMsg = String(pushErr.stderr || '') + String(pushErr.message || '');
+        if (errMsg.includes('Repository not found') || errMsg.includes('not found') || errMsg.includes('404')) {
+          await new Promise<void>((resolve, reject) => {
+            const postData = JSON.stringify({ name: 'Nexus', private: false, auto_init: false });
+            const req = https.request({
+              hostname: 'api.github.com', path: '/user/repos', method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}`, 'User-Agent': 'NexusPOS', 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) },
+            }, (resp: any) => { let body = ''; resp.on('data', (chunk: string) => body += chunk); resp.on('end', () => resolve()); });
+            req.on('error', reject); req.write(postData); req.end();
+          });
+          execSync('git push -u origin master --force', { cwd: process.cwd(), stdio: 'pipe' });
+        } else throw pushErr;
+      }
+      lastSyncTime = now; lastSyncError = null; pendingSync = false;
+    } catch (e: any) {
+      lastSyncError = String(Buffer.isBuffer(e.stderr) ? e.stderr.toString() : (e.stderr || e.message || e));
+      console.error('[FullSync] Error:', lastSyncError);
+    }
+    syncing = false;
+  }
+
+  app.post('/api/sync-full', async (req, res) => {
+    await doFullSync();
+    res.json({ success: !lastSyncError, error: lastSyncError });
+  });
+
   app.post('/api/web-sync-full', (req, res) => {
     try {
       const repoUrl = "https://github.com/gigacomputers2025-bot/Web.git";
@@ -542,7 +952,6 @@ async function startServer() {
     } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
   });
 
-  // Generate catalog.csv for WhatsApp
   app.post('/api/generate-catalog-csv', (req, res) => {
     try {
       const data = JSON.parse(fs.readFileSync(path.join(WEB_MAIN_DIR, 'data.json'), 'utf8'));
@@ -557,9 +966,7 @@ async function startServer() {
       };
       const header = 'id,title,description,availability,condition,price,link,image_link,brand,inventory,quantity_to_sell_on_facebook';
       const rows = products.map((p: any) => [
-        csvEsc(p.id || ''),
-        csvEsc((p.name || '').trim()),
-        csvEsc((p.desc || p.name || '').trim()),
+        csvEsc(p.id || ''), csvEsc((p.name || '').trim()), csvEsc((p.desc || p.name || '').trim()),
         'in stock', 'new',
         (p.price != null ? Number(p.price).toFixed(2) : '0.00') + ' ARS',
         csvEsc(BASE_URL + '/index.html?id=' + encodeURIComponent(p.id || '')),
@@ -571,186 +978,134 @@ async function startServer() {
       res.json({ success: true, count: products.length });
     } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
   });
-
   // ========== END WEB-MAIN ROUTES ==========
 
   // CLIENTS
   app.get('/api/clients', (req, res) => {
-    const db = readDB();
-    res.json(db.clients);
+    res.json(db.prepare('SELECT * FROM clients ORDER BY name').all());
   });
 
   app.post('/api/clients', (req, res) => {
-    const db = readDB();
-    const newClient: Client = {
-      id: Date.now().toString(),
-      document: req.body.document || '',
-      name: req.body.name || '',
-      phone: req.body.phone || '-',
-      email: req.body.email || '-'
-    };
-    db.clients.push(newClient);
-    writeDB(db);
-    res.status(201).json(newClient);
+    const { document, name, phone, email } = req.body;
+    const id = Date.now().toString();
+    db.prepare('INSERT INTO clients (id, document, name, phone, email) VALUES (?,?,?,?,?)').run(id, document || '', name || '', phone || '-', email || '-');
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.status(201).json(db.prepare('SELECT * FROM clients WHERE id = ?').get(id));
   });
 
   app.put('/api/clients/:id', (req, res) => {
-    const db = readDB();
-    const index = db.clients.findIndex(c => c.id === req.params.id);
-    if (index !== -1) {
-      db.clients[index] = {
-        ...db.clients[index],
-        document: req.body.document !== undefined ? req.body.document : db.clients[index].document,
-        name: req.body.name !== undefined ? req.body.name : db.clients[index].name,
-        phone: req.body.phone !== undefined ? req.body.phone : db.clients[index].phone,
-        email: req.body.email !== undefined ? req.body.email : db.clients[index].email
-      };
-      writeDB(db);
-      res.json(db.clients[index]);
-    } else {
-      res.status(404).json({ error: 'Client not found' });
-    }
+    const existing = db.prepare('SELECT * FROM clients WHERE id = ?').get(req.params.id) as any;
+    if (!existing) return res.status(404).json({ error: 'Client not found' });
+    const { document, name, phone, email } = req.body;
+    db.prepare('UPDATE clients SET document=?, name=?, phone=?, email=? WHERE id=?').run(
+      document !== undefined ? document : existing.document,
+      name !== undefined ? name : existing.name,
+      phone !== undefined ? phone : existing.phone,
+      email !== undefined ? email : existing.email,
+      req.params.id
+    );
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.json(db.prepare('SELECT * FROM clients WHERE id = ?').get(req.params.id));
   });
 
   app.delete('/api/clients/:id', (req, res) => {
-    const db = readDB();
-    db.clients = db.clients.filter(c => c.id !== req.params.id);
-    writeDB(db);
-    res.json({ success: true });
+    const r = db.prepare('DELETE FROM clients WHERE id = ?').run(req.params.id);
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.json({ success: r.changes > 0 });
   });
 
-  // Importar clientes desde Web-main
   app.post('/api/import-web-clients', (req, res) => {
     try {
       const webData = JSON.parse(fs.readFileSync(path.join(WEB_MAIN_DIR, 'data.json'), 'utf8'));
       const webClients = webData.clients || [];
-      const db = readDB();
+      const existingClients = db.prepare('SELECT name, phone FROM clients').all() as any[];
       let imported = 0;
+      const ins = db.prepare('INSERT INTO clients (id, document, name, phone, email) VALUES (?,?,?,?,?)');
       for (const wc of webClients) {
-        const name = wc.name || '';
-        const phone = wc.phone || '';
+        const name = wc.name || ''; const phone = wc.phone || '';
         if (!name || !phone) continue;
-        const exists = db.clients.some((c: Client) =>
-          c.name.toLowerCase() === name.toLowerCase() && c.phone === phone
-        );
-        if (exists) continue;
-        db.clients.push({
-          id: Date.now().toString() + Math.random().toString(36).slice(2, 6),
-          document: phone.replace(/[^0-9]/g, '').slice(0, 11) || '00000000',
-          name,
-          phone,
-          email: wc.email || '-'
-        });
+        if (existingClients.some((c: any) => c.name.toLowerCase() === name.toLowerCase() && c.phone === phone)) continue;
+        const id = Date.now().toString() + Math.random().toString(36).slice(2, 6);
+        const doc = phone.replace(/[^0-9]/g, '').slice(0, 11) || '00000000';
+        ins.run(id, doc, name, phone, wc.email || '-');
         imported++;
       }
-      if (imported > 0) writeDB(db);
+      if (imported > 0) { lastPOSWrite = Date.now(); pendingSync = true; }
       res.json({ imported, total: webClients.length });
-    } catch (e) {
-      res.status(500).json({ error: String(e) });
-    }
+    } catch (e) { res.status(500).json({ error: String(e) }); }
   });
 
   // PROVIDERS
   app.get('/api/providers', (req, res) => {
-    const db = readDB();
-    res.json(db.providers);
+    res.json(db.prepare('SELECT * FROM providers ORDER BY name').all());
   });
 
   app.post('/api/providers', (req, res) => {
-    const db = readDB();
-    const newProvider: Provider = {
-      id: Date.now().toString(),
-      ruc: req.body.ruc || '',
-      name: req.body.name || '',
-      phone: req.body.phone || '-',
-      email: req.body.email || '-'
-    };
-    db.providers.push(newProvider);
-    writeDB(db);
-    res.status(201).json(newProvider);
+    const { ruc, name, phone, email } = req.body;
+    const id = Date.now().toString();
+    db.prepare('INSERT INTO providers (id, ruc, name, phone, email) VALUES (?,?,?,?,?)').run(id, ruc || '', name || '', phone || '-', email || '-');
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.status(201).json(db.prepare('SELECT * FROM providers WHERE id = ?').get(id));
   });
 
   // PAYMENT METHODS
   app.get('/api/payment-methods', (req, res) => {
-    const db = readDB();
-    res.json(db.paymentMethods);
+    const rows = db.prepare('SELECT * FROM payment_methods').all() as any[];
+    res.json(rows.map(rowToPaymentMethod));
   });
 
   app.post('/api/payment-methods', (req, res) => {
-    const db = readDB();
-    const newMethod: PaymentMethod = {
-      id: Date.now().toString(),
-      name: req.body.name || '',
-      requiresCash: req.body.requiresCash === true,
-      icon: req.body.icon || '',
-      adjustment: req.body.adjustment !== undefined ? Number(req.body.adjustment) : 0
-    };
-    db.paymentMethods.push(newMethod);
-    writeDB(db);
-    res.status(201).json(newMethod);
+    const { name, requiresCash, icon, adjustment } = req.body;
+    const id = Date.now().toString();
+    db.prepare('INSERT INTO payment_methods (id, name, requiresCash, icon, adjustment) VALUES (?,?,?,?,?)').run(
+      id, name || '', requiresCash === true ? 1 : 0, icon || '', Number(adjustment) || 0
+    );
+    lastPOSWrite = Date.now(); pendingSync = true;
+    const row = db.prepare('SELECT * FROM payment_methods WHERE id = ?').get(id);
+    res.status(201).json(rowToPaymentMethod(row));
   });
 
   app.put('/api/payment-methods/:id', (req, res) => {
-    const db = readDB();
-    const index = db.paymentMethods.findIndex(p => p.id === req.params.id);
-    if (index !== -1) {
-      db.paymentMethods[index] = {
-        ...db.paymentMethods[index],
-        name: req.body.name !== undefined ? req.body.name : db.paymentMethods[index].name,
-        requiresCash: req.body.requiresCash !== undefined ? req.body.requiresCash === true : db.paymentMethods[index].requiresCash,
-        icon: req.body.icon !== undefined ? req.body.icon : db.paymentMethods[index].icon,
-        adjustment: req.body.adjustment !== undefined ? Number(req.body.adjustment) : db.paymentMethods[index].adjustment
-      };
-      writeDB(db);
-      res.json(db.paymentMethods[index]);
-    } else {
-      res.status(404).json({ error: 'Payment method not found' });
-    }
+    const existing = db.prepare('SELECT * FROM payment_methods WHERE id = ?').get(req.params.id) as any;
+    if (!existing) return res.status(404).json({ error: 'Payment method not found' });
+    const { name, requiresCash, icon, adjustment } = req.body;
+    db.prepare('UPDATE payment_methods SET name=?, requiresCash=?, icon=?, adjustment=? WHERE id=?').run(
+      name !== undefined ? name : existing.name,
+      requiresCash !== undefined ? (requiresCash === true ? 1 : 0) : existing.requiresCash,
+      icon !== undefined ? icon : existing.icon,
+      adjustment !== undefined ? Number(adjustment) : existing.adjustment,
+      req.params.id
+    );
+    lastPOSWrite = Date.now(); pendingSync = true;
+    const row = db.prepare('SELECT * FROM payment_methods WHERE id = ?').get(req.params.id);
+    res.json(rowToPaymentMethod(row));
   });
 
   app.delete('/api/payment-methods/:id', (req, res) => {
-    const db = readDB();
-    const originalLength = db.paymentMethods.length;
-    db.paymentMethods = db.paymentMethods.filter(p => p.id !== req.params.id);
-    if (db.paymentMethods.length < originalLength) {
-      writeDB(db);
-      res.json({ success: true });
-    } else {
-      res.status(404).json({ error: 'Payment method not found' });
-    }
+    const r = db.prepare('DELETE FROM payment_methods WHERE id = ?').run(req.params.id);
+    if (r.changes > 0) { lastPOSWrite = Date.now(); pendingSync = true; res.json({ success: true }); }
+    else res.status(404).json({ error: 'Payment method not found' });
   });
 
-  // SALES (including stock reduction)
+  // SALES
   app.get('/api/sales', (req, res) => {
-    const db = readDB();
-    res.json(db.sales);
+    res.json(getSalesWithItems());
   });
 
-  // Export sales to CSV — formato: CODIGO TICKET | FECHA Y HORA | CLIENTE | Producto | Importe | metodo de Pago
   app.get('/api/sales/export', (req, res) => {
-    const db = readDB();
-    const sales = db.sales;
-
+    const sales = getSalesWithItems();
     const esc = (v: any) => {
       const s = String(v ?? '');
-      if (s.includes(';') || s.includes('"') || s.includes('\n') || s.includes('\r')) {
-        return '"' + s.replace(/"/g, '""') + '"';
-      }
+      if (s.includes(';') || s.includes('"') || s.includes('\n') || s.includes('\r')) return '"' + s.replace(/"/g, '""') + '"';
       return s;
     };
-
     const header = 'CODIGO TICKET;FECHA Y HORA;CLIENTE;Producto;Importe;metodo de Pago';
     const rows = sales.flatMap(s =>
       s.items.map(item => [
-        esc(s.id),
-        esc(new Date(s.date).toLocaleString()),
-        esc(s.clientName || 'Cliente General'),
-        esc(item.productName),
-        (item.price * item.quantity).toFixed(2),
-        esc(s.paymentMethod)
+        esc(s.id), esc(new Date(s.date).toLocaleString()), esc(s.clientName || 'Cliente General'),
+        esc(item.productName), (item.price * item.quantity).toFixed(2), esc(s.paymentMethod)
       ].join(';'))
     );
-
     const csv = '\uFEFF' + header + '\n' + rows.join('\n');
     const dateStr = new Date().toISOString().slice(0, 10);
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
@@ -759,238 +1114,308 @@ async function startServer() {
   });
 
   app.delete('/api/sales/:id', (req, res) => {
-    const db = readDB();
-    const { id } = req.params;
-    const index = db.sales.findIndex(s => s.id === id);
-    if (index === -1) {
-      return res.status(404).json({ error: 'Venta no encontrada' });
-    }
-    db.sales.splice(index, 1);
-    writeDB(db);
+    const r = db.prepare('DELETE FROM sales WHERE id = ?').run(req.params.id);
+    if (r.changes === 0) return res.status(404).json({ error: 'Venta no encontrada' });
+    lastPOSWrite = Date.now(); pendingSync = true;
     res.json({ success: true });
   });
 
   app.post('/api/sales', (req, res) => {
-    const db = readDB();
     const { items, total, paymentMethod, clientId, clientName, cashReceived, change } = req.body;
-    
-    // Decrement product stock
-    items.forEach((item: any) => {
-      const product = db.products.find(p => p.id === item.productId);
-      if (product) {
-        product.stock = Math.max(0, product.stock - item.quantity);
+    const saleId = 'VEN-' + Date.now().toString().slice(-6);
+
+    const doSale = db.transaction(() => {
+      db.prepare('INSERT INTO sales (id, date, total, paymentMethod, clientId, clientName, cashReceived, change) VALUES (?,?,?,?,?,?,?,?)').run(
+        saleId, new Date().toISOString(), Number(total) || 0, paymentMethod || 'Efectivo',
+        clientId || '', clientName || 'Cliente General', Number(cashReceived) || total, Number(change) || 0
+      );
+      for (const item of (items || [])) {
+        db.prepare('UPDATE products SET stock = MAX(0, stock - ?) WHERE id = ?').run(item.quantity, item.productId);
+        db.prepare('INSERT INTO sale_items (saleId, productId, productName, quantity, price) VALUES (?,?,?,?,?)').run(
+          saleId, item.productId || '', item.productName || '', item.quantity || 0, item.price || 0
+        );
       }
     });
+    doSale();
 
-    const newSale: Sale = {
-      id: 'VEN-' + Date.now().toString().slice(-6),
-      date: new Date().toISOString(),
-      items,
-      total: Number(total) || 0,
-      paymentMethod: paymentMethod || 'Efectivo',
-      clientId,
-      clientName: clientName || 'Cliente General',
-      cashReceived: Number(cashReceived) || total,
-      change: Number(change) || 0
-    };
-
-    db.sales.push(newSale);
-    writeDB(db);
-    res.status(201).json(newSale);
+    lastPOSWrite = Date.now(); pendingSync = true;
+    const sale = db.prepare('SELECT * FROM sales WHERE id = ?').get(saleId) as any;
+    sale.items = db.prepare('SELECT * FROM sale_items WHERE saleId = ?').all(saleId);
+    res.status(201).json(sale);
   });
 
-  // PURCHASES (stock increment)
+  // PURCHASES
   app.get('/api/purchases', (req, res) => {
-    const db = readDB();
-    res.json(db.purchases);
+    res.json(getPurchasesWithItems());
   });
 
   app.post('/api/purchases', (req, res) => {
-    const db = readDB();
     const { providerId, providerName, items, total } = req.body;
+    const purchaseId = 'COM-' + Date.now().toString().slice(-6);
 
-    // Increment stock
-    items.forEach((item: any) => {
-      const product = db.products.find(p => p.id === item.productId);
-      if (product) {
-        product.stock += item.quantity;
+    const doPurchase = db.transaction(() => {
+      db.prepare('INSERT INTO purchases (id, date, providerId, providerName, total) VALUES (?,?,?,?,?)').run(
+        purchaseId, new Date().toISOString(), providerId || '', providerName || '', Number(total) || 0
+      );
+      for (const item of (items || [])) {
+        db.prepare('UPDATE products SET stock = stock + ? WHERE id = ?').run(item.quantity, item.productId);
+        db.prepare('INSERT INTO purchase_items (purchaseId, productId, productName, quantity, cost) VALUES (?,?,?,?,?)').run(
+          purchaseId, item.productId || '', item.productName || '', item.quantity || 0, item.cost || 0
+        );
       }
     });
+    doPurchase();
 
-    const newPurchase: Purchase = {
-      id: 'COM-' + Date.now().toString().slice(-6),
-      date: new Date().toISOString(),
-      providerId,
-      providerName,
-      items,
-      total: Number(total) || 0
-    };
-
-    db.purchases.push(newPurchase);
-    writeDB(db);
-    res.status(201).json(newPurchase);
+    lastPOSWrite = Date.now(); pendingSync = true;
+    const purchase = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId) as any;
+    purchase.items = db.prepare('SELECT * FROM purchase_items WHERE purchaseId = ?').all(purchaseId);
+    res.status(201).json(purchase);
   });
 
-  // EXPENSES (egresos)
+  // ===== REPAIRS =====
+  app.get('/api/repairs', (req, res) => {
+    res.json(db.prepare('SELECT * FROM repairs ORDER BY date DESC').all());
+  });
+
+  app.post('/api/repairs', (req, res) => {
+    const { clientId, clientName, clientPhone, equipment, marca, modelo, status, problem, notes, price } = req.body;
+    const existingCodes = (db.prepare('SELECT code FROM repairs').all() as any[]).map(r => r.code);
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code: string;
+    do {
+      code = '';
+      for (let i = 0; i < 5; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    } while (existingCodes.includes(code));
+    const id = 'REP-' + Date.now().toString().slice(-6);
+    const date = new Date().toISOString().split('T')[0];
+    db.prepare(`INSERT INTO repairs (id, code, clientId, clientName, clientPhone, equipment, marca, modelo, status, problem, notes, price, date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+      id, code, clientId || '', clientName || '', clientPhone || '',
+      equipment || '', marca || '', modelo || '', status || 'Recibida',
+      problem || '', notes || '', Number(price) || 0, date
+    );
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.status(201).json(db.prepare('SELECT * FROM repairs WHERE id = ?').get(id));
+  });
+
+  app.put('/api/repairs/:id', (req, res) => {
+    const existing = db.prepare('SELECT * FROM repairs WHERE id = ?').get(req.params.id) as any;
+    if (!existing) return res.status(404).json({ error: 'Repair not found' });
+    const { equipment, marca, modelo, status, problem, notes, price } = req.body;
+    db.prepare('UPDATE repairs SET equipment=?, marca=?, modelo=?, status=?, problem=?, notes=?, price=? WHERE id=?').run(
+      equipment ?? existing.equipment, marca ?? existing.marca, modelo ?? existing.modelo,
+      status ?? existing.status, problem ?? existing.problem,
+      notes ?? existing.notes, price !== undefined ? Number(price) : existing.price,
+      req.params.id
+    );
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.json(db.prepare('SELECT * FROM repairs WHERE id = ?').get(req.params.id));
+  });
+
+  app.delete('/api/repairs/:id', (req, res) => {
+    const r = db.prepare('DELETE FROM repairs WHERE id = ?').run(req.params.id);
+    if (r.changes > 0) { lastPOSWrite = Date.now(); pendingSync = true; res.json({ success: true }); }
+    else res.status(404).json({ error: 'Repair not found' });
+  });
+
+  // Public lookup (CORS)
+  app.get('/api/repairs/lookup/:code', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    const repair = db.prepare('SELECT * FROM repairs WHERE code = ?').get(req.params.code.toUpperCase());
+    if (!repair) return res.status(404).json({ found: false, message: 'No se encontr\u00f3 ninguna orden con esa clave.' });
+    res.json({ found: true, repair });
+  });
+
+  // Web-main API compatibility
+  app.get('/api/web/config', (req, res) => {
+    const webConfig = getConfig<any>('webConfig', {});
+    res.json(webConfig);
+  });
+
+  app.get('/api/web/products', (req, res) => {
+    const products = db.prepare("SELECT * FROM products WHERE source = 'web'").all() as any[];
+    res.json(products);
+  });
+
+  // VISITS
+  app.get('/api/visits', (req, res) => {
+    const total = (db.prepare("SELECT COALESCE(SUM(count),0) as total FROM site_visits").get() as any).total;
+    const today = (db.prepare("SELECT COALESCE(count,0) as count FROM site_visits WHERE date = ?").get(new Date().toISOString().slice(0,10)) as any)?.count || 0;
+    const lastDays = db.prepare("SELECT date, count FROM site_visits ORDER BY date DESC LIMIT 7").all();
+    res.json({ total, today, lastDays });
+  });
+
+  app.post('/api/visits', (req, res) => {
+    const today = new Date().toISOString().slice(0, 10);
+    db.prepare("INSERT INTO site_visits (date, count) VALUES (?, 1) ON CONFLICT(date) DO UPDATE SET count = count + 1").run(today);
+    res.json({ success: true });
+  });
+
+  // EXPENSES
   app.get('/api/expenses', (req, res) => {
-    const db = readDB();
-    res.json(db.expenses || []);
+    res.json(db.prepare('SELECT * FROM expenses ORDER BY date DESC').all());
   });
 
   app.post('/api/expenses', (req, res) => {
-    const db = readDB();
-    const newExpense: Expense = {
-      id: 'EGR-' + Date.now().toString().slice(-6),
-      date: req.body.date || new Date().toISOString(),
-      type: req.body.type || 'efectivo',
-      description: req.body.description || '',
-      amount: Number(req.body.amount) || 0
-    };
-    db.expenses.push(newExpense);
-    writeDB(db);
-    res.status(201).json(newExpense);
+    const id = 'EGR-' + Date.now().toString().slice(-6);
+    db.prepare('INSERT INTO expenses (id, date, type, descriptionText, amount) VALUES (?,?,?,?,?)').run(
+      id, req.body.date || new Date().toISOString(), req.body.type || 'efectivo', req.body.description || '', Number(req.body.amount) || 0
+    );
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.status(201).json(db.prepare('SELECT * FROM expenses WHERE id = ?').get(id));
   });
 
   app.delete('/api/expenses/:id', (req, res) => {
-    const db = readDB();
-    const originalLength = db.expenses.length;
-    db.expenses = db.expenses.filter(e => e.id !== req.params.id);
-    if (db.expenses.length < originalLength) {
-      writeDB(db);
-      res.json({ success: true });
-    } else {
-      res.status(404).json({ error: 'Egreso no encontrado' });
-    }
+    const r = db.prepare('DELETE FROM expenses WHERE id = ?').run(req.params.id);
+    if (r.changes > 0) { lastPOSWrite = Date.now(); pendingSync = true; res.json({ success: true }); }
+    else res.status(404).json({ error: 'Egreso no encontrado' });
   });
 
-  // API Route to Zip and Download the Full App
+  // Download app ZIP
   app.get('/api/download-app', (req, res) => {
     try {
       const zip = new AdmZip();
-
-      // Add files from the root directory
-      const rootFiles = [
-        'package.json',
-        'tsconfig.json',
-        'vite.config.ts',
-        'index.html',
-        'server.ts',
-        'database.db',
-        'start-nexus-pos.bat',
-        '.env.example'
-      ];
-
-      rootFiles.forEach(file => {
-        const filePath = path.join(process.cwd(), file);
-        if (fs.existsSync(filePath)) {
-          zip.addLocalFile(filePath);
-        }
-      });
-
-      // Add the dist folder recursively if it exists
-      const distFolder = path.join(process.cwd(), 'dist');
-      if (fs.existsSync(distFolder)) {
-        zip.addLocalFolder(distFolder, 'dist');
-      }
-
-      // Add the src folder recursively
-      const srcFolder = path.join(process.cwd(), 'src');
-      if (fs.existsSync(srcFolder)) {
-        zip.addLocalFolder(srcFolder, 'src');
-      }
-
-      // Add the assets folder recursively if it exists and has content
-      const assetsFolder = path.join(process.cwd(), 'assets');
-      if (fs.existsSync(assetsFolder)) {
-        zip.addLocalFolder(assetsFolder, 'assets');
-      }
-
-      const zipBuffer = zip.toBuffer();
-
+      const rootFiles = ['package.json', 'tsconfig.json', 'vite.config.ts', 'index.html', 'server.ts', 'database.db', 'start-nexus-pos.bat', '.env.example'];
+      rootFiles.forEach(file => { const fp = path.join(process.cwd(), file); if (fs.existsSync(fp)) zip.addLocalFile(fp); });
+      if (fs.existsSync(path.join(process.cwd(), 'dist'))) zip.addLocalFolder(path.join(process.cwd(), 'dist'), 'dist');
+      if (fs.existsSync(path.join(process.cwd(), 'src'))) zip.addLocalFolder(path.join(process.cwd(), 'src'), 'src');
+      if (fs.existsSync(path.join(process.cwd(), 'assets'))) zip.addLocalFolder(path.join(process.cwd(), 'assets'), 'assets');
+      const buf = zip.toBuffer();
       res.setHeader('Content-Type', 'application/zip');
       res.setHeader('Content-Disposition', 'attachment; filename=nexus-pos-completo.zip');
-      res.setHeader('Content-Length', zipBuffer.length);
-      res.end(zipBuffer);
-    } catch (error: any) {
-      console.error('Error generating ZIP:', error);
-      res.status(500).json({ error: 'Hubo un error al generar el archivo de descarga: ' + error.message });
-    }
+      res.setHeader('Content-Length', buf.length);
+      res.end(buf);
+    } catch (error: any) { res.status(500).json({ error: 'Hubo un error al generar el archivo de descarga: ' + error.message }); }
   });
 
-  // Backup database
+  // BACKUP
   app.get('/api/backup', (req, res) => {
     try {
-      const data = readDB();
+      const data = getFullDatabaseSchema();
       const backupContent = JSON.stringify(data, null, 2);
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', 'attachment; filename=nexus-pos-backup-' + new Date().toISOString().slice(0, 10) + '.json');
       res.send(backupContent);
-    } catch (error: any) {
-      res.status(500).json({ error: 'Error al generar backup: ' + (error.message || error) });
-    }
+    } catch (error: any) { res.status(500).json({ error: 'Error al generar backup: ' + (error.message || error) }); }
   });
 
-  // Restore database from backup
+  // RESTORE from JSON backup
   app.post('/api/restore', (req, res) => {
     try {
-      const backupData = req.body;
+      const backupData = req.body as DatabaseSchema;
       if (!backupData || !backupData.products || !backupData.clients) {
         return res.status(400).json({ error: 'El archivo de backup no es válido' });
       }
-      writeDB(backupData as DatabaseSchema);
-      res.json({ success: true, message: 'Backup restaurado correctamente. Recargando datos...' });
-    } catch (error: any) {
-      res.status(500).json({ error: 'Error al restaurar backup: ' + (error.message || error) });
-    }
+      const doRestore = db.transaction(() => {
+        db.exec('DELETE FROM sale_items'); db.exec('DELETE FROM sales');
+        db.exec('DELETE FROM purchase_items'); db.exec('DELETE FROM purchases');
+        db.exec('DELETE FROM products'); db.exec('DELETE FROM clients');
+        db.exec('DELETE FROM providers'); db.exec('DELETE FROM payment_methods');
+        db.exec('DELETE FROM expenses'); db.exec('DELETE FROM app_config');
+        migrateData(db, backupData);
+      });
+      doRestore();
+      lastPOSWrite = Date.now(); pendingSync = true;
+      res.json({ success: true, message: 'Backup restaurado correctamente.' });
+    } catch (error: any) { res.status(500).json({ error: 'Error al restaurar backup: ' + (error.message || error) }); }
   });
 
-  // Clean data restart API for convenience
+  // RESTORE from SQLite .db file
+  app.post('/api/restore-db', (req, res) => {
+    try {
+      if (!req.body || !req.body.file) return res.status(400).json({ error: 'No se proporcionó archivo' });
+      // Expecting base64-encoded .db file in req.body.file
+      const buffer = Buffer.from(req.body.file, 'base64');
+      const tempPath = path.join(BACKUP_DIR, 'restore-temp.db');
+      fs.writeFileSync(tempPath, buffer);
+      const testDb = new Database(tempPath);
+      const integrity = testDb.pragma('integrity_check') as string[];
+      if (!integrity.every((r: string) => r === 'ok')) {
+        testDb.close(); fs.unlinkSync(tempPath);
+        return res.status(400).json({ error: 'El archivo de base de datos no es válido' });
+      }
+      testDb.close();
+      // Backup current DB
+      createBackup();
+      // Close current connection and replace file
+      db.close();
+      fs.copyFileSync(tempPath, DB_FILE);
+      fs.unlinkSync(tempPath);
+      // Reopen
+      db = new Database(DB_FILE);
+      setupSchema(db);
+      lastPOSWrite = Date.now(); pendingSync = true;
+      res.json({ success: true, message: 'Base de datos restaurada desde archivo SQLite.' });
+    } catch (error: any) { res.status(500).json({ error: 'Error al restaurar DB: ' + (error.message || error) }); }
+  });
+
+  // ROLLBACK to JSON (emergency recovery)
+  app.post('/api/rollback-json', (req, res) => {
+    try {
+      const jsonBackupPath = DB_FILE + '.pre-sqlite-backup';
+      const jsonMigratedPath = SEC_DB_FILE + '.migrated';
+      let sourcePath = '';
+      if (fs.existsSync(jsonBackupPath)) sourcePath = jsonBackupPath;
+      else if (fs.existsSync(jsonMigratedPath)) sourcePath = jsonMigratedPath;
+      if (!sourcePath) return res.status(404).json({ error: 'No hay backup JSON disponible para restaurar. Verifique que exista database.db.pre-sqlite-backup o database.json.migrated' });
+      createBackup();
+      db.close();
+      const jsonData = JSON.parse(fs.readFileSync(sourcePath, 'utf-8'));
+      fs.unlinkSync(DB_FILE);
+      fs.writeFileSync(DB_FILE, JSON.stringify(jsonData, null, 2), 'utf-8');
+      // Restart as JSON-mode server - better-sqlite3 will fail, so we re-init
+      db = initDatabase();
+      res.json({ success: true, message: 'Rollback completado. Datos restaurados desde backup JSON.' });
+    } catch (error: any) { res.status(500).json({ error: 'Error en rollback: ' + (error.message || error) }); }
+  });
+
+  // RESET
   app.post('/api/reset', (req, res) => {
-    writeDB(INITIAL_DB);
-    res.json({ success: true, message: 'Database reset to initial template state.' });
+    try {
+      const doReset = db.transaction(() => {
+        db.exec('DELETE FROM sale_items'); db.exec('DELETE FROM sales');
+        db.exec('DELETE FROM purchase_items'); db.exec('DELETE FROM purchases');
+        db.exec('DELETE FROM products'); db.exec('DELETE FROM clients');
+        db.exec('DELETE FROM providers'); db.exec('DELETE FROM payment_methods');
+        db.exec('DELETE FROM expenses'); db.exec('DELETE FROM app_config');
+        migrateData(db, INITIAL_DB);
+      });
+      doReset();
+      lastPOSWrite = Date.now(); pendingSync = true;
+      res.json({ success: true, message: 'Base de datos reiniciada al estado inicial.' });
+    } catch (error: any) { res.status(500).json({ error: 'Error al reiniciar: ' + (error.message || error) }); }
   });
 
-  // Vite preview integration
+  // Vite / static serving
   if (process.env.NODE_ENV !== 'production' && process.env.DISABLE_HMR !== 'true') {
-    // If not HMR disabled, can mount Vite
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
+    const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
     app.use(vite.middlewares);
   } else {
-    // Otherwise serve static files from dist
     const distPath = path.join(process.cwd(), 'dist');
     if (fs.existsSync(distPath)) {
       app.use(express.static(distPath));
-      app.get('*', (req, res) => {
-        res.sendFile(path.join(distPath, 'index.html'));
-      });
-    } else {
-      console.warn(`[WARN] dist folder not found at ${distPath}. Serving API routes only.`);
-    }
+      app.get('*', (req, res) => res.sendFile(path.join(distPath, 'index.html')));
+    } else console.warn(`[WARN] dist folder not found at ${distPath}. Serving API routes only.`);
   }
 
-  // PORT fallback to 3000 inside AI Studio development environment, but 3010 as user's request
-  // Let us check if we are in AI Studio (which runs development code inside containers requiring 3000)
-  // Or if we run via command-line where process.env.PORT can override it
   const isDevelopment = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV || process.env.DISABLE_HMR === 'true';
   const PORT = process.env.PORT ? parseInt(process.env.PORT) : (isDevelopment ? 3000 : 3010);
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`=========================================`);
-    console.log(`  Nexus POS Terminal Server successfully`);
+    console.log(`  Nexus POS Terminal Server`);
+    console.log(`  Base de datos: SQLite (WAL mode)`);
     console.log(`  Listening on http://localhost:${PORT}`);
     console.log(`  AutoSync a GitHub cada 30s`);
+    console.log(`  Backups automáticos cada 24h`);
     console.log(`=========================================`);
     setInterval(doAutoSync, 30000);
     setTimeout(doAutoSync, 5000);
+    setInterval(() => {
+      if (Date.now() - lastBackupTime > BACKUP_INTERVAL_MS) { createBackup(); lastBackupTime = Date.now(); }
+    }, 60000);
   }).on('error', (err: any) => {
-    if (err.code === 'EADDRINUSE') {
-      console.error(`[FATAL] Puerto ${PORT} ya esta en uso.`);
-    } else {
-      console.error('[FATAL] Error al iniciar servidor:', err);
-    }
+    if (err.code === 'EADDRINUSE') console.error(`[FATAL] Puerto ${PORT} ya esta en uso.`);
+    else console.error('[FATAL] Error al iniciar servidor:', err);
     process.exit(1);
   });
 }

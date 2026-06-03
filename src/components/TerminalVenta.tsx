@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, Printer, Trash2, Plus, Minus, X, CreditCard, DollarSign, ArrowRight, UserPlus, ShoppingCart, Eye } from 'lucide-react';
 import { Product, Client, CartItem, PaymentMethod, CompanyConfig } from '../types';
 import ticketTemplate from '../ticketTemplate';
-import { motion, AnimatePresence } from 'motion/react';
+
 
 interface TerminalVentaProps {
   products: Product[];
@@ -27,7 +27,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   
   // Checkout States
-  const defaultClientId = clients.length > 0 ? clients[0].id : '';
+  const defaultClientId = '';
   const [selectedClient, setSelectedClient] = useState<string>(defaultClientId);
   const [paymentMethod, setPaymentMethod] = useState<string>('Efectivo');
   const [cashReceived, setCashReceived] = useState<string>('');
@@ -334,61 +334,26 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                 </tr>
               </thead>
               <tbody>
-                <AnimatePresence initial={false}>
                   {cart.map(item => (
-                    <motion.tr
-                      key={item.product.id}
-                      initial={{ opacity: 0, y: 1 -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: -10 }}
-                      className="border-b border-[#1b1e26] hover:bg-[#14171e] text-sm group transition-all"
-                    >
+                    <tr key={item.product.id} className="border-b border-[#1b1e26] hover:bg-[#14171e] text-sm group transition-all">
                       <td className="py-3.5 px-4 font-mono text-xs text-slate-400">{item.product.code}</td>
                       <td className="py-3.5 px-4 font-medium text-white">{item.product.name}</td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center justify-center gap-1.5 bg-[#181a20] rounded-md border border-[#2d3444] p-1 w-28 mx-auto">
-                          <button
-                            onClick={() => updateQuantity(item.product.id, -1)}
-                            className="text-slate-400 hover:text-white hover:bg-[#242b38] rounded p-0.5"
-                          >
-                            <Minus size={13} />
-                          </button>
-                          <span className="font-mono text-white text-xs w-8 text-center select-none font-semibold">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(item.product.id, 1)}
-                            className="text-slate-400 hover:text-white hover:bg-[#242b38] rounded p-0.5"
-                          >
-                            <Plus size={13} />
-                          </button>
+                          <button onClick={() => updateQuantity(item.product.id, -1)} className="text-slate-400 hover:text-white hover:bg-[#242b38] rounded p-0.5"><Minus size={13} /></button>
+                          <span className="font-mono text-white text-xs w-8 text-center select-none font-semibold">{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item.product.id, 1)} className="text-slate-400 hover:text-white hover:bg-[#242b38] rounded p-0.5"><Plus size={13} /></button>
                         </div>
                       </td>
                       <td className="py-3.5 px-4 text-right font-mono">
-                        <input
-                          type="text"
-                          value={customPrices[item.product.id] !== undefined ? customPrices[item.product.id] : item.product.price.toFixed(2)}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setCustomPrices(prev => ({ ...prev, [item.product.id]: val }));
-                          }}
-                          className="w-24 bg-[#181a20] border border-[#2d3444] rounded py-1 px-2 text-xs text-right text-slate-300 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                        />
+                        <input type="text" value={customPrices[item.product.id] !== undefined ? customPrices[item.product.id] : item.product.price.toFixed(2)} onChange={(e) => { const val = e.target.value; setCustomPrices(prev => ({ ...prev, [item.product.id]: val })); }} className="w-24 bg-[#181a20] border border-[#2d3444] rounded py-1 px-2 text-xs text-right text-slate-300 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" />
                       </td>
-                      <td className="py-3.5 px-4 text-right font-mono font-semibold text-blue-400">
-                        ${(getEffectivePrice(item) * item.quantity).toFixed(2)}
-                      </td>
+                      <td className="py-3.5 px-4 text-right font-mono font-semibold text-blue-400">${(getEffectivePrice(item) * item.quantity).toFixed(2)}</td>
                       <td className="py-3.5 px-4 text-center">
-                        <button
-                          onClick={() => removeFromCart(item.product.id)}
-                          className="text-slate-500 hover:text-red-400 p-1 rounded hover:bg-[#211417] transition-all"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                        <button onClick={() => removeFromCart(item.product.id)} className="text-slate-500 hover:text-red-400 p-1 rounded hover:bg-[#211417] transition-all"><Trash2 size={14} /></button>
                       </td>
-                    </motion.tr>
+                    </tr>
                   ))}
-                </AnimatePresence>
               </tbody>
             </table>
           )}
@@ -471,14 +436,9 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
       </div>
 
       {/* CHECKOUT FLOW MODAL (REALIZAR VENTA) */}
-      <AnimatePresence>
         {checkoutOpen && (
           <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#111318] border border-[#2d3444] rounded-xl max-w-lg w-full overflow-hidden shadow-2xl relative"
+            <div className="bg-[#111318] border border-[#2d3444] rounded-xl max-w-lg w-full overflow-hidden shadow-2xl relative"
             >
               {/* Header */}
               <div className="bg-[#181a20] px-6 py-4 border-b border-[#2d3444] flex items-center justify-between">
@@ -534,6 +494,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                         onChange={(e) => setSelectedClient(e.target.value)}
                         className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                       >
+                        <option value="">Cliente General</option>
                         {clients.map(c => (
                           <option key={c.id} value={c.id}>{c.name} ({c.document})</option>
                         ))}
@@ -669,21 +630,14 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                   </div>
                 )}
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
 
       {/* PREVIEW SALE MODAL */}
-      <AnimatePresence>
         {showPreview && (
           <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#111318] border border-[#2d3444] rounded-xl max-w-md w-full overflow-hidden shadow-2xl"
-            >
+            <div className="bg-[#111318] border border-[#2d3444] rounded-xl max-w-md w-full overflow-hidden shadow-2xl">
               <div className="bg-[#181a20] px-6 py-4 border-b border-[#2d3444] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Eye size={18} className="text-[#5aa6ec]" />
@@ -738,10 +692,9 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                   </button>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
     </div>
   );
 }

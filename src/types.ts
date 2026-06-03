@@ -11,6 +11,10 @@ export interface Product {
   image?: string;
   oferta?: boolean;
   nuevo?: boolean;
+  webDesc?: string;
+  ofertaPrice?: number;
+  fichaTecnica?: string;
+  fichaTecnicaFile?: string;
 }
 
 export interface Client {
@@ -100,7 +104,11 @@ export interface WebRepair {
   id: string;
   code: string;
   clientId: string;
+  clientName?: string;
+  clientPhone?: string;
   equipment: string;
+  marca?: string;
+  modelo?: string;
   status: string;
   price: number;
   problem: string;

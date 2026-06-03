@@ -25,7 +25,6 @@ import PaymentMethods from './components/PaymentMethods';
 import Egresos from './components/Egresos';
 import Reparaciones from './components/Reparaciones';
 import PanelWeb from './components/PanelWeb';
-import { motion, AnimatePresence } from 'motion/react';
 
 type TabType = 'Vender' | 'Historiales' | 'Artículos' | 'Clientes' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web';
 
@@ -41,9 +40,6 @@ export default function App() {
   const [cashRegister, setCashRegister] = useState<CashRegister>({ cash: 0, bank: 0 });
   const [stockWarningEnabled, setStockWarningEnabled] = useState(true);
   const [webData, setWebData] = useState<any>(null);
-  
-  // SGTaller update notification
-  const [sgtallerTime, setSgtallerTime] = useState<string | null>(null);
 
   // Auto-sync GitHub
   const [gitToken, setGitToken] = useState('');
@@ -53,6 +49,8 @@ export default function App() {
   const [showHelp, setShowHelp] = useState(false);
   const [showCaja, setShowCaja] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [syncModalType, setSyncModalType] = useState<'syncing' | 'success' | 'error'>('syncing');
   
 
   const TAB_KEYS: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web'];
@@ -81,29 +79,29 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showHelp, showCaja, showSettings]);
 
-  // Poll for SGTaller updates
-  useEffect(() => {
-    const check = async () => {
-      try {
-        const res = await fetch('/api/check-sgtaller-update');
-        const data = await res.json();
-        if (data.updated) {
-          const now = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          setSgtallerTime(now);
-          setTimeout(() => setSgtallerTime(null), 8000);
-        }
-      } catch {}
-    };
-    const id = setInterval(check, 10000);
-    return () => clearInterval(id);
-  }, []);
-
   // Poll auto-sync status
   useEffect(() => {
     const check = async () => {
       try {
         const res = await fetch('/api/auto-sync-status');
-        if (res.ok) setSyncStatus(await res.json());
+        if (res.ok) {
+          const newStatus = await res.json();
+          setSyncStatus(prev => {
+            if (newStatus.syncing && !prev.syncing) {
+              setSyncModalType('syncing');
+              setShowSyncModal(true);
+            } else if (!newStatus.syncing && prev.syncing) {
+              if (newStatus.error) {
+                setSyncModalType('error');
+              } else if (newStatus.lastSync) {
+                setSyncModalType('success');
+              }
+              setShowSyncModal(true);
+              setTimeout(() => setShowSyncModal(false), 4000);
+            }
+            return newStatus;
+          });
+        }
       } catch {}
     };
     check();
@@ -259,11 +257,8 @@ export default function App() {
                 >
                   <span className="text-[10px] text-slate-500 mr-1.5 font-mono">Alt+{idx + 1}</span>
                   {tab}
-                  {isActive && (
-                    <motion.div 
-                      layoutId="activeTabUnderline" 
-                      className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#5aa6ec]" 
-                    />
+                    {isActive && (
+                    <div className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#5aa6ec]" />
                   )}
                 </button>
               );
@@ -279,8 +274,14 @@ export default function App() {
                 href="https://github.com/gigacomputers2025-bot/Nexus"
                 target="_blank"
                 rel="noopener noreferrer"
-                title="GitHub - Nexus POS"
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#1a1d24] transition-all cursor-pointer inline-flex items-center"
+                title={`GitHub - Nexus POS${syncStatus.error ? ' (Error)' : syncStatus.lastSync ? ' (Sincronizado)' : ''}`}
+                className={`p-2 rounded-lg transition-all cursor-pointer inline-flex items-center ${
+                  syncStatus.error
+                    ? 'text-red-400 hover:text-red-300 hover:bg-red-900/30'
+                    : syncStatus.lastSync
+                    ? 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/30'
+                    : 'text-slate-400 hover:text-white hover:bg-[#1a1d24]'
+                }`}
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
               </a>
@@ -352,7 +353,7 @@ export default function App() {
         )}
 
         {activeTab === 'Artículos' && (
-          <Articulos products={products} onRefresh={fetchAllData} />
+          <Articulos products={products} categories={webData?.categories || []} onRefresh={fetchAllData} />
         )}
 
         {activeTab === 'Clientes' && (
@@ -372,7 +373,7 @@ export default function App() {
         )}
 
         {activeTab === 'Reparaciones' && (
-          <Reparaciones repairs={webData?.repairs || []} clients={webData?.clients || []} companyName={webData?.config?.companyName} companyAddress={webData?.config?.address} companyPhone={webData?.config?.phone} companyEmail={webData?.config?.email} companyWhatsapp={webData?.config?.whatsapp} onRefresh={fetchAllData} />
+          <Reparaciones companyName={webData?.config?.companyName} companyAddress={webData?.config?.address} companyPhone={webData?.config?.phone} companyEmail={webData?.config?.email} companyWhatsapp={webData?.config?.whatsapp} onRefresh={fetchAllData} />
         )}
 
         {activeTab === 'Panel Web' && (
@@ -420,15 +421,9 @@ export default function App() {
       </footer>
 
       {/* POPUP: HELP & SHORTCUT OVERLAY */}
-      <AnimatePresence>
         {showHelp && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#111318] border border-[#2d3444] rounded-xl max-w-md w-full overflow-hidden shadow-2xl p-6"
-            >
+            <div className="bg-[#111318] border border-[#2d3444] rounded-xl max-w-md w-full overflow-hidden shadow-2xl p-6">
               <div className="flex justify-between items-center border-b border-[#2d3444] pb-3 mb-4">
                 <span className="font-semibold text-white font-display">Ayuda y Atajos del Sistema</span>
                 <button onClick={() => setShowHelp(false)} className="text-slate-400 hover:text-white text-xs">Cerrar</button>
@@ -472,21 +467,14 @@ export default function App() {
                   <span>Desarrollado en Node.js + Express + React SPA</span>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
 
       {/* POPUP: CERRAR CAJA / AUDIT REPORT */}
-      <AnimatePresence>
         {showCaja && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#111318] border border-[#2d3444] rounded-xl max-w-md w-full overflow-hidden shadow-2xl"
-            >
+            <div className="bg-[#111318] border border-[#2d3444] rounded-xl max-w-md w-full overflow-hidden shadow-2xl">
               <div className="bg-[#181a20] px-6 py-4 border-b border-[#2d3444] flex items-center justify-between">
                 <span className="font-bold text-amber-500 font-display flex items-center gap-1.5 uppercase tracking-wide text-sm">
                   <AlertTriangle size={16} />
@@ -530,7 +518,6 @@ export default function App() {
                     onClick={() => {
                       alert('¡Caja cerrada correctamente! Los datos del arqueo han sido archivados en el log del servidor local.');
                       setShowCaja(false);
-                      // Clear cash history simulated restart
                       setSales([]);
                     }}
                     className="flex-1 py-2 text-xs font-bold rounded-lg bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-1.5"
@@ -540,13 +527,11 @@ export default function App() {
                   </button>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
 
       {/* ADJUST SETTINGS SIDEDRAWER */}
-      <AnimatePresence>
         {showSettings && (
           <div className="fixed inset-y-0 right-0 w-80 bg-[#111318] border-l border-[#2d3444] z-40 shadow-2xl p-6 flex flex-col justify-between overflow-y-auto">
             <div>
@@ -698,6 +683,31 @@ export default function App() {
                       <><span className="h-2 w-2 rounded-full bg-slate-500" /><span className="text-slate-400">Esperando cambios</span></>
                     )}
                   </div>
+                  <button
+                    onClick={async () => {
+                      if (syncStatus.syncing) return;
+                      setShowSyncModal(true);
+                      setSyncModalType('syncing');
+                      try {
+                        const r = await fetch('/api/sync-full', { method: 'POST' });
+                        const d = await r.json();
+                        if (d.success) {
+                          setSyncModalType('success');
+                          const statusRes = await fetch('/api/auto-sync-status');
+                          if (statusRes.ok) setSyncStatus(await statusRes.json());
+                        } else {
+                          setSyncModalType('error');
+                        }
+                      } catch {
+                        setSyncModalType('error');
+                      }
+                    }}
+                    disabled={syncStatus.syncing}
+                    className="w-full flex items-center justify-center gap-2 bg-[#2d3444] hover:bg-[#3a4155] text-white font-semibold py-2 px-3 rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    {syncStatus.syncing ? 'Sincronizando...' : 'Sincronizar Ahora'}
+                  </button>
                 </div>
 
                 <div className="pt-4 border-t border-[#2d3444]/60 space-y-2">
@@ -738,25 +748,65 @@ export default function App() {
             </div>
           </div>
         )}
-      </AnimatePresence>
 
-      {/* SGTaller update toast */}
-      <AnimatePresence>
-        {sgtallerTime && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100]"
-          >
-            <div className="bg-slate-800/90 border border-slate-600/50 rounded-lg px-4 py-2.5 shadow-2xl flex items-center gap-2.5 text-xs cursor-pointer select-none" onClick={() => setSgtallerTime(null)}>
-              <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-              <span className="text-slate-200">SGTaller actualiz\u00f3 datos</span>
-              <span className="text-slate-500 font-mono">&mdash; {sgtallerTime}</span>
+      {/* GitHub Sync popup */}
+        {showSyncModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#111318] border border-[#2d3444] rounded-xl max-w-sm w-full overflow-hidden shadow-2xl p-6">
+              <div className="flex flex-col items-center text-center gap-3">
+                {syncModalType === 'syncing' && (
+                  <>
+                    <div className="h-10 w-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-amber-400 animate-spin" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-bold text-sm">Sincronizando con GitHub...</p>
+                      <p className="text-slate-400 text-xs mt-1">Subiendo cambios al repositorio remoto</p>
+                    </div>
+                  </>
+                )}
+                {syncModalType === 'success' && (
+                  <>
+                    <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-bold text-sm">Sincronizado</p>
+                      <p className="text-slate-400 text-xs mt-1">Repositorio actualizado correctamente</p>
+                      {syncStatus.lastSync && (
+                        <p className="text-slate-500 text-[10px] mt-1 font-mono">{syncStatus.lastSync}</p>
+                      )}
+                    </div>
+                  </>
+                )}
+                {syncModalType === 'error' && (
+                  <>
+                    <div className="h-10 w-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-white font-bold text-sm">Error de sincronización</p>
+                      <p className="text-slate-400 text-xs mt-1">{syncStatus.error || 'Error desconocido'}</p>
+                    </div>
+                  </>
+                )}
+                <button
+                  onClick={() => setShowSyncModal(false)}
+                  className="mt-2 text-[10px] text-slate-400 hover:text-white font-mono px-3 py-1 rounded border border-[#2d3444] hover:bg-[#1a1d24] transition-all"
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
     </div>
   );

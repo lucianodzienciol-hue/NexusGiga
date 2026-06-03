@@ -3,8 +3,6 @@ import { Plus, Trash2, Search, Printer, Wrench, CheckCircle, Pencil, X } from 'l
 import { WebRepair, WebClient } from '../types';
 
 interface ReparacionesProps {
-  repairs: WebRepair[];
-  clients: WebClient[];
   companyName?: string;
   companyAddress?: string;
   companyPhone?: string;
@@ -36,12 +34,16 @@ const SORT_OPTIONS = [
   { value: 'status-desc', label: 'Estado: Z - A' },
 ];
 
-export default function Reparaciones({ repairs, clients, companyName, companyAddress, companyPhone, companyEmail, companyWhatsapp, onRefresh }: ReparacionesProps) {
+export default function Reparaciones({ companyName, companyAddress, companyPhone, companyEmail, companyWhatsapp, onRefresh }: ReparacionesProps) {
+  const [repairs, setRepairs] = useState<WebRepair[]>([]);
+  const [clients, setClients] = useState<WebClient[]>([]);
+  const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState('date-desc');
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showHistorial, setShowHistorial] = useState(false);
   const [successData, setSuccessData] = useState<{ code: string; id: string; clientName?: string; clientPhone?: string; equipment?: string } | null>(null);
 
   // Form state
@@ -53,12 +55,28 @@ export default function Reparaciones({ repairs, clients, companyName, companyAdd
   const [newClientPhone, setNewClientPhone] = useState('');
   const [quickPhone, setQuickPhone] = useState('');
   const [equipment, setEquipment] = useState('');
+  const [marca, setMarca] = useState('');
+  const [modelo, setModelo] = useState('');
   const [status, setStatus] = useState('Recibida');
   const [price, setPrice] = useState('');
   const [problem, setProblem] = useState('');
   const [notes, setNotes] = useState('');
 
   const clientSearchRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchRepairsData = useCallback(async () => {
+    try {
+      const [repRes, cliRes] = await Promise.all([
+        fetch('/api/repairs'),
+        fetch('/api/clients')
+      ]);
+      if (repRes.ok) setRepairs(await repRes.json());
+      if (cliRes.ok) setClients(await cliRes.json());
+    } catch {} finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { fetchRepairsData(); }, [fetchRepairsData]);
 
   const filteredClients = clients.filter(c => {
     const q = clientSearch.toLowerCase();
@@ -107,10 +125,25 @@ export default function Reparaciones({ repairs, clients, companyName, companyAdd
   const allRepairs = repairs.filter(r => r.status !== 'Entregada');
   const finishedRepairs = sortRepairs(allRepairs.filter(r => r.status === 'Finalizada'));
   const activeRepairs = sortRepairs(allRepairs.filter(r => r.status !== 'Finalizada'));
+  const deliveredRepairs = sortRepairs(repairs.filter(r => r.status === 'Entregada'));
 
   const getClient = (clientId: string) => clients.find(c => c.id === clientId);
 
-  const openNew = () => {
+  const filterBySearch = (arr: WebRepair[]) => {
+    if (!search.trim()) return arr;
+    const q = search.toLowerCase();
+    return arr.filter(r => {
+      const client = getClient(r.clientId);
+      return r.id.toLowerCase().includes(q) ||
+             r.code.toLowerCase().includes(q) ||
+             r.equipment.toLowerCase().includes(q) ||
+             r.status.toLowerCase().includes(q) ||
+             (client?.name || '').toLowerCase().includes(q) ||
+             (client?.phone || '').includes(q);
+    });
+  };
+
+  const openNew = async () => {
     setEditingId(null);
     setClientMode('search');
     setClientSearch('');
@@ -119,22 +152,28 @@ export default function Reparaciones({ repairs, clients, companyName, companyAdd
     setNewClientPhone('');
     setQuickPhone('');
     setEquipment('');
+    setMarca('');
+    setModelo('');
     setStatus('Recibida');
     setPrice('');
     setProblem('');
     setNotes('');
     setShowModal(true);
+    // Refresh clients list from DB to match "Clientes" tab
+    try { const r = await fetch('/api/clients'); if (r.ok) setClients(await r.json()); } catch {}
   };
 
   const openEdit = (r: WebRepair) => {
     setEditingId(r.id);
     setClientMode('search');
     setClientSearch('');
-    const c = getClient(r.clientId);
+    const c = clients.find(c => c.id === r.clientId);
     setSelectedClient(c || null);
     setNewClientName('');
     setNewClientPhone('');
     setEquipment(r.equipment);
+    setMarca(r.marca || '');
+    setModelo(r.modelo || '');
     setStatus(r.status);
     setPrice(String(r.price || 0));
     setProblem(r.problem || '');
@@ -156,80 +195,67 @@ export default function Reparaciones({ repairs, clients, companyName, companyAdd
   };
 
   const handleSave = async () => {
-    if (editingId) {
-      if (!equipment.trim() || !problem.trim()) { alert('Equipo y problema son obligatorios'); return; }
-    } else {
-      if (!equipment.trim() || !problem.trim()) { alert('Equipo y problema son obligatorios'); return; }
+    if (!equipment.trim() || !problem.trim()) { alert('Equipo y problema son obligatorios'); return; }
+    if (!editingId) {
       if (!selectedClient && clientMode === 'search') { alert('Seleccione un cliente o cambie a modo Nuevo'); return; }
       if (clientMode === 'create' && (!newClientName.trim() || !newClientPhone.trim())) { alert('Complete nombre y tel\u00e9fono del nuevo cliente'); return; }
     }
     try {
-      const res = await fetch('/api/web-data');
-      const data = await res.json();
-      const allRepairs: WebRepair[] = data.repairs || [];
-      const allClients: WebClient[] = data.clients || [];
-
       if (editingId) {
-        const idx = allRepairs.findIndex((r: WebRepair) => r.id === editingId);
-        if (idx !== -1) {
-          allRepairs[idx] = {
-            ...allRepairs[idx],
-            equipment: equipment.trim(),
-            status,
-            price: Number(price) || 0,
-            problem: problem.trim(),
-            notes: notes.trim(),
-          };
-        }
-        data.repairs = allRepairs;
-        await fetch('/api/web-save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        const res = await fetch(`/api/repairs/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            equipment: equipment.trim(), marca: marca.trim(), modelo: modelo.trim(),
+            status, price: Number(price) || 0, problem: problem.trim(), notes: notes.trim()
+          })
+        });
+        if (!res.ok) { alert('Error al actualizar'); return; }
         setShowModal(false);
-        onRefresh();
+        fetchRepairsData();
       } else {
         let clientId = '';
+        let clientName = '';
+        let clientPhone = '';
         if (clientMode === 'create') {
-          const newClient: WebClient = {
-            id: 'CLI-' + Date.now(),
-            name: newClientName.trim(),
-            phone: newClientPhone.trim(),
-            email: '',
-            address: '',
-          };
-          allClients.push(newClient);
-          data.clients = allClients;
+          const cliRes = await fetch('/api/clients', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: newClientName.trim(), phone: newClientPhone.trim(),
+              email: '', document: newClientPhone.replace(/[^0-9]/g, '').slice(0, 11) || '00000000'
+            })
+          });
+          if (!cliRes.ok) { alert('Error al crear cliente'); return; }
+          const newClient = await cliRes.json();
           clientId = newClient.id;
+          clientName = newClient.name;
+          clientPhone = newClient.phone || '';
         } else if (selectedClient) {
           clientId = selectedClient.id;
+          clientName = selectedClient.name;
+          clientPhone = selectedClient.phone || '';
         }
 
-        const repairNum = (allRepairs.length + 1).toString().padStart(3, '0');
-        const newId = `REP-${repairNum}`;
-        const code = generateCode(allRepairs);
-
-        const newRepair: WebRepair = {
-          id: newId,
-          code,
-          clientId,
-          equipment: equipment.trim(),
-          status,
-          price: Number(price) || 0,
-          problem: problem.trim(),
-          notes: notes.trim(),
-          date: new Date().toISOString().split('T')[0],
-        };
-        allRepairs.push(newRepair);
-        data.repairs = allRepairs;
-        await fetch('/api/web-save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-
+        const res = await fetch('/api/repairs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientId, clientName, clientPhone,
+            equipment: equipment.trim(), marca: marca.trim(), modelo: modelo.trim(),
+            status, price: Number(price) || 0, problem: problem.trim(), notes: notes.trim()
+          })
+        });
+        if (!res.ok) { alert('Error al crear orden'); return; }
+        const newRepair = await res.json();
         setShowModal(false);
-        onRefresh();
+        fetchRepairsData();
 
-        const client = clientId ? allClients.find(c => c.id === clientId) : null;
         setSuccessData({
-          code,
-          id: newId,
-          clientName: client?.name,
-          clientPhone: client?.phone,
+          code: newRepair.code,
+          id: newRepair.id,
+          clientName,
+          clientPhone,
           equipment: equipment.trim(),
         });
         setTimeout(() => setShowSuccess(true), 150);
@@ -240,11 +266,9 @@ export default function Reparaciones({ repairs, clients, companyName, companyAdd
   const handleDelete = async (id: string) => {
     if (!window.confirm('\u00bfEst\u00e1 seguro de eliminar esta orden de reparaci\u00f3n?')) return;
     try {
-      const res = await fetch('/api/web-data');
-      const data = await res.json();
-      data.repairs = (data.repairs || []).filter((r: WebRepair) => r.id !== id);
-      await fetch('/api/web-save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-      onRefresh();
+      const res = await fetch(`/api/repairs/${id}`, { method: 'DELETE' });
+      if (res.ok) fetchRepairsData();
+      else alert('Error al eliminar');
     } catch { alert('Error al eliminar'); }
   };
 
@@ -391,10 +415,62 @@ export default function Reparaciones({ repairs, clients, companyName, companyAdd
             <input type="text" className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:outline-none" placeholder="Buscar reparaci\u00f3n..." style={{ width: 200 }} value={search} onChange={handleSearchInput} />
           </div>
           <button onClick={openNew} className="bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg py-1.5 px-3 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"><Plus size={13} />Nueva Orden</button>
+          <button onClick={() => setShowHistorial(!showHistorial)} className={'rounded-lg py-1.5 px-3 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ' + (showHistorial ? 'bg-blue-700 text-white' : 'bg-[#181a20] border border-[#2d3444] text-slate-300 hover:bg-[#1f242e]')}>
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            {showHistorial ? 'Volver' : 'Historial'}
+          </button>
         </div>
       </div>
 
-      {/* Finished Repairs */}
+      {showHistorial ? (
+        <div className="bg-[#111318] border border-[#1f242e] rounded-xl overflow-hidden">
+          <div className="px-5 pt-4 pb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Historial de Reparaciones Entregadas</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-[#181a20] text-[10px] tracking-wider text-slate-400 font-mono uppercase font-bold text-left">
+                  <th className="px-4 py-2.5">N\u00b0 Orden</th>
+                  <th className="px-4 py-2.5">Clave</th>
+                  <th className="px-4 py-2.5">Cliente</th>
+                  <th className="px-4 py-2.5">Equipo</th>
+                  <th className="px-4 py-2.5">Marca</th>
+                  <th className="px-4 py-2.5">Modelo</th>
+                  <th className="px-4 py-2.5">Estado</th>
+                  <th className="px-4 py-2.5">Fecha</th>
+                  <th className="px-4 py-2.5 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filterBySearch(deliveredRepairs).length === 0 ? (
+                  <tr><td colSpan={9} className="text-center text-slate-500 py-8 italic">No hay reparaciones entregadas</td></tr>
+                ) : filterBySearch(deliveredRepairs).map(r => {
+                  const client = getClient(r.clientId);
+                  return (
+                    <tr key={r.id} className="border-t border-[#1b1e26] hover:bg-[#14171e] transition-colors">
+                      <td className="px-4 py-2.5 font-semibold text-white">{r.id}</td>
+                      <td className="px-4 py-2.5"><span className="text-[1.1rem] font-bold tracking-widest text-cyan-400">{r.code}</span></td>
+                      <td className="px-4 py-2.5 text-slate-300 truncate max-w-[140px]">{client?.name || 'Desconocido'}</td>
+                      <td className="px-4 py-2.5 text-slate-300 truncate max-w-[180px]">{r.equipment}</td>
+                      <td className="px-4 py-2.5 text-slate-400">{r.marca || '-'}</td>
+                      <td className="px-4 py-2.5 text-slate-400">{r.modelo || '-'}</td>
+                      <td className="px-4 py-2.5"><span className={'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ' + statusBadge(r.status)}>{r.status}</span></td>
+                      <td className="px-4 py-2.5 text-slate-400">{r.date}</td>
+                      <td className="px-4 py-2.5 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button onClick={(e) => { e.stopPropagation(); handlePrint(r); }} className="text-slate-500 hover:text-white transition-colors cursor-pointer p-1.5 rounded hover:bg-[#1f242e]" title="Imprimir comprobante"><Printer size={12} /></button>
+                          <button onClick={(e) => { e.stopPropagation(); handleDelete(r.id); }} className="text-slate-500 hover:text-red-400 transition-colors cursor-pointer p-1.5 rounded hover:bg-[#1f242e]" title="Eliminar"><Trash2 size={12} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (<>
       <div className="bg-[#111318] border border-[#1f242e] rounded-xl overflow-hidden">
         <div className="px-5 pt-4 pb-2">
           <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5"><CheckCircle size={14} /> Reparaciones Finalizadas (Listas para Entregar)</h3>
@@ -413,9 +489,9 @@ export default function Reparaciones({ repairs, clients, companyName, companyAdd
               </tr>
             </thead>
             <tbody id="repairs-finished-tbody">
-              {finishedRepairs.length === 0 ? (
+              {filterBySearch(finishedRepairs).length === 0 ? (
                 <tr><td colSpan={7} className="text-center text-slate-500 py-8 italic">No hay reparaciones finalizadas</td></tr>
-              ) : finishedRepairs.map(r => {
+              ) : filterBySearch(finishedRepairs).map(r => {
                 const client = getClient(r.clientId);
                 return (
                   <tr key={r.id} className="border-t border-[#1b1e26] hover:bg-[#14171e] transition-colors cursor-pointer" onDoubleClick={() => openEdit(r)}>
@@ -459,9 +535,9 @@ export default function Reparaciones({ repairs, clients, companyName, companyAdd
               </tr>
             </thead>
             <tbody id="repairs-active-tbody">
-              {activeRepairs.length === 0 ? (
+              {filterBySearch(activeRepairs).length === 0 ? (
                 <tr><td colSpan={7} className="text-center text-slate-500 py-8 italic">No hay reparaciones en curso</td></tr>
-              ) : activeRepairs.map(r => {
+              ) : filterBySearch(activeRepairs).map(r => {
                 const client = getClient(r.clientId);
                 return (
                   <tr key={r.id} className="border-t border-[#1b1e26] hover:bg-[#14171e] transition-colors cursor-pointer" onDoubleClick={() => openEdit(r)}>
@@ -485,6 +561,7 @@ export default function Reparaciones({ repairs, clients, companyName, companyAdd
           </table>
         </div>
       </div>
+      </>)}
 
       {/* Create/Edit Modal */}
       {showModal && (
@@ -535,7 +612,7 @@ export default function Reparaciones({ repairs, clients, companyName, companyAdd
                           )}
                         </div>
                         {showClientDropdown && !selectedClient && (
-                          <div className="absolute z-10 top-full mt-1 left-0 right-0 bg-[#1a1d25] border border-[#2d3444] rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                          <div className="absolute z-10 top-full mt-1 left-0 right-0 bg-[#1a1d25] border border-[#2d3444] rounded-lg shadow-xl max-h-72 overflow-y-auto">
                             {filteredClients.length > 0 ? (
                               filteredClients.map(c => (
                                 <div
@@ -584,6 +661,14 @@ export default function Reparaciones({ repairs, clients, companyName, companyAdd
                 <div>
                   <label className="text-[10px] text-slate-500 font-mono uppercase font-bold block mb-1">Equipo</label>
                   <input type="text" className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" value={equipment} onChange={e => setEquipment(e.target.value)} required />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-500 font-mono uppercase font-bold block mb-1">Marca</label>
+                  <input type="text" className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" value={marca} onChange={e => setMarca(e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-500 font-mono uppercase font-bold block mb-1">Modelo</label>
+                  <input type="text" className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" value={modelo} onChange={e => setModelo(e.target.value)} />
                 </div>
                 <div>
                   <label className="text-[10px] text-slate-500 font-mono uppercase font-bold block mb-1">Estado</label>
