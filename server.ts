@@ -598,8 +598,9 @@ async function startServer() {
     const webDataPath = path.join(WEB_MAIN_DIR, 'data.json');
     if (fs.existsSync(webDataPath)) {
       const webData = JSON.parse(fs.readFileSync(webDataPath, 'utf8'));
+      const repairsMigrated = getConfig<boolean>('repairsMigrated', false);
       const repairsCount = (db.prepare('SELECT COUNT(*) as c FROM repairs').get() as any).c;
-      if (repairsCount === 0 && webData.repairs && webData.repairs.length > 0) {
+      if (!repairsMigrated && repairsCount === 0 && webData.repairs && webData.repairs.length > 0) {
         const manualRepairs = webData.repairs.filter((r: any) => !r.id.startsWith('REP-SGT-'));
         if (manualRepairs.length > 0) {
           console.log(`[MIGRATE] Migrando ${manualRepairs.length} reparaciones desde data.json a SQLite...`);
@@ -615,6 +616,7 @@ async function startServer() {
             }
           });
           doMigrate();
+          setConfig('repairsMigrated', true);
           console.log(`[MIGRATE] Migración completada: ${manualRepairs.length} reparaciones importadas.`);
         }
       }

@@ -9,3 +9,5 @@ database.json
 .env
 .env.example
 .nexusroot
+backups/
+.sync-state
