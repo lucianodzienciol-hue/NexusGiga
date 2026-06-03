@@ -26,6 +26,13 @@ const DB = {
     },
     
     async init() {
+        // Forzar limpieza de localStorage si cambia versión (para migraciones)
+        const APP_VERSION = 2;
+        const storedVersion = parseInt(localStorage.getItem('techstore_version') || '0', 10);
+        if (storedVersion < APP_VERSION) {
+            Object.values(this.keys).forEach(k => localStorage.removeItem(k));
+            localStorage.setItem('techstore_version', String(APP_VERSION));
+        }
         try {
             // Try via API proxy first (local server mode)
             const res = await fetch('/api/web-data'); 
