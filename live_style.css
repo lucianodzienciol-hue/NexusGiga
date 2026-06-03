@@ -1380,7 +1380,7 @@ tbody tr {
         max-height: 414px;
     }
     .carousel-slide {
-        background-size: contain;
+        background-size: cover;
         background-position: center;
     }
     .carousel-btn {
