@@ -172,9 +172,9 @@ export default function Comprar({ products, providers, onPurchaseCompleted }: Co
                       <tr key={idx} className="border-b border-[#1b1e26] text-xs hover:bg-[#14171e]">
                         <td className="py-2.5 px-4 text-white font-medium">{it.productName}</td>
                         <td className="py-2.5 px-4 text-center font-mono font-bold text-amber-500">+{it.quantity}</td>
-                        <td className="py-2.5 px-4 text-right font-mono text-slate-300">${it.cost.toFixed(2)}</td>
+                        <td className="py-2.5 px-4 text-right font-mono text-slate-300">${it.cost.toFixed(0)}</td>
                         <td className="py-2.5 px-4 text-right font-mono font-semibold text-blue-400">
-                          ${(it.cost * it.quantity).toFixed(2)}
+                          ${(it.cost * it.quantity).toFixed(0)}
                         </td>
                         <td className="py-2.5 px-4 text-center">
                           <button
@@ -197,7 +197,7 @@ export default function Comprar({ products, providers, onPurchaseCompleted }: Co
             <div className="text-left">
               <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">Total Documentado</span>
               <div className="text-3xl font-extrabold font-mono text-[#5aa6ec]">
-                ${purchaseTotal.toFixed(2)}
+                ${purchaseTotal.toFixed(0)}
               </div>
             </div>
 

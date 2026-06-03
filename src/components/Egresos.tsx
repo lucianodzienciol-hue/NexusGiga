@@ -15,8 +15,8 @@ export default function Egresos({ expenses, cashRegister, onRefresh }: EgresosPr
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(today);
   const [search, setSearch] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom, setDateFrom] = useState(today);
+  const [dateTo, setDateTo] = useState(today);
   const [typeFilter, setTypeFilter] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,10 +79,10 @@ export default function Egresos({ expenses, cashRegister, onRefresh }: EgresosPr
             <Banknote size={13} /> Efectivo en Caja
           </span>
           <div className={`text-3xl font-extrabold font-display mt-2 ${effectiveCash >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            ${effectiveCash.toFixed(2)}
+            ${effectiveCash.toFixed(0)}
           </div>
           <span className="text-[10px] text-slate-500 font-mono mt-1">
-            ${cashRegister.cash.toFixed(2)} inicial - ${cashExpenses.toFixed(2)} egresos
+            ${cashRegister.cash.toFixed(0)} inicial - ${cashExpenses.toFixed(0)} egresos
           </span>
         </div>
         <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
@@ -90,10 +90,10 @@ export default function Egresos({ expenses, cashRegister, onRefresh }: EgresosPr
             <Landmark size={13} /> Saldo en Banco
           </span>
           <div className={`text-3xl font-extrabold font-display mt-2 ${effectiveBank >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            ${effectiveBank.toFixed(2)}
+            ${effectiveBank.toFixed(0)}
           </div>
           <span className="text-[10px] text-slate-500 font-mono mt-1">
-            ${cashRegister.bank.toFixed(2)} inicial - ${bankExpenses.toFixed(2)} transferencias
+            ${cashRegister.bank.toFixed(0)} inicial - ${bankExpenses.toFixed(0)} transferencias
           </span>
         </div>
       </div>
@@ -103,7 +103,7 @@ export default function Egresos({ expenses, cashRegister, onRefresh }: EgresosPr
         <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
           <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">Total Egresos (Filtro)</span>
           <div className="text-3xl font-extrabold font-display text-red-400 mt-2">
-            -${totalEgresos.toFixed(2)}
+            -${totalEgresos.toFixed(0)}
           </div>
           <span className="text-[10px] text-slate-500 font-mono mt-1">Suma de egresos en pantalla</span>
         </div>
@@ -217,7 +217,7 @@ export default function Egresos({ expenses, cashRegister, onRefresh }: EgresosPr
                     </span>
                   </div>
                   <div className="col-span-2 text-right font-mono font-bold text-red-400 flex items-center justify-end gap-2">
-                    -${e.amount.toFixed(2)}
+                    -${e.amount.toFixed(0)}
                     <button onClick={() => handleDelete(e.id)} className="text-slate-500 hover:text-red-400 transition-colors cursor-pointer" title="Eliminar">
                       <Trash2 size={12} />
                     </button>

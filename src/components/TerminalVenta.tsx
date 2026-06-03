@@ -34,6 +34,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
   const [ticketPrinted, setTicketPrinted] = useState(false);
   const [lastFinishedSale, setLastFinishedSale] = useState<any | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [saleDate, setSaleDate] = useState(new Date().toISOString().slice(0, 10));
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -177,7 +178,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
 
   const handleOpenCheckout = () => {
     if (cart.length === 0) return;
-    setCashReceived(adjustedTotal.toFixed(2));
+    setCashReceived(adjustedTotal.toFixed(0));
     setTicketPrinted(false);
     setCheckoutOpen(true);
   };
@@ -199,7 +200,8 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
       clientId: selectedClient,
       clientName: clientObj?.name || 'Cliente General',
       cashReceived: cash,
-      change: change
+      change: change,
+      date: new Date(saleDate).toISOString()
     };
 
     try {
@@ -291,7 +293,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                         <span className={`font-semibold ${idx === highlightedIndex ? 'text-blue-400' : 'text-white'} group-hover:text-blue-400`}>{p.name}</span>
                         <span className="text-[10px] text-slate-500 font-mono">COD: {p.code} | Stock: {p.stock}</span>
                       </div>
-                      <span className="font-mono text-emerald-400 text-sm">${p.price.toFixed(2)}</span>
+                      <span className="font-mono text-emerald-400 text-sm">${p.price.toFixed(0)}</span>
                     </button>
                   ))
                 )}
@@ -346,9 +348,9 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                         </div>
                       </td>
                       <td className="py-3.5 px-4 text-right font-mono">
-                        <input type="text" value={customPrices[item.product.id] !== undefined ? customPrices[item.product.id] : item.product.price.toFixed(2)} onChange={(e) => { const val = e.target.value; setCustomPrices(prev => ({ ...prev, [item.product.id]: val })); }} className="w-24 bg-[#181a20] border border-[#2d3444] rounded py-1 px-2 text-xs text-right text-slate-300 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" />
+                        <input type="text" value={customPrices[item.product.id] !== undefined ? customPrices[item.product.id] : item.product.price.toFixed(0)} onChange={(e) => { const val = e.target.value; setCustomPrices(prev => ({ ...prev, [item.product.id]: val })); }} className="w-24 bg-[#181a20] border border-[#2d3444] rounded py-1 px-2 text-xs text-right text-slate-300 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" />
                       </td>
-                      <td className="py-3.5 px-4 text-right font-mono font-semibold text-blue-400">${(getEffectivePrice(item) * item.quantity).toFixed(2)}</td>
+                      <td className="py-3.5 px-4 text-right font-mono font-semibold text-blue-400">${(getEffectivePrice(item) * item.quantity).toFixed(0)}</td>
                       <td className="py-3.5 px-4 text-center">
                         <button onClick={() => removeFromCart(item.product.id)} className="text-slate-500 hover:text-red-400 p-1 rounded hover:bg-[#211417] transition-all"><Trash2 size={14} /></button>
                       </td>
@@ -429,7 +431,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
           <div className="mt-8 bg-[#0d0e12] border border-[#1b1e26] rounded-xl p-5 shadow-inner">
             <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">Total a Pagar</span>
             <div className="text-4xl lg:text-4xl xl:text-5xl font-extrabold font-mono text-[#5aa6ec] mt-2 tracking-tight drop-shadow-[0_0_12px_rgba(90,166,236,0.2)]">
-              ${cartTotal.toFixed(2)}
+              ${cartTotal.toFixed(0)}
             </div>
           </div>
         </div>
@@ -461,20 +463,31 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                     <div className="bg-[#0d0e12] rounded-lg p-4 flex flex-col gap-1 border border-[#1c222d]">
                       <div className="flex justify-between items-center">
                         <span className="text-slate-400 text-xs">Subtotal:</span>
-                        <span className="font-mono text-slate-400 text-sm">${cartTotal.toFixed(2)}</span>
+                        <span className="font-mono text-slate-400 text-sm">${cartTotal.toFixed(0)}</span>
                       </div>
                       {adjustmentPct !== 0 && (
                         <div className="flex justify-between items-center">
                           <span className="text-slate-400 text-xs">Ajuste ({adjustmentPct > 0 ? '+' : ''}{adjustmentPct}%):</span>
                           <span className={`font-mono text-sm ${adjustmentPct > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                            {adjustmentPct > 0 ? '+' : ''}{(cartTotal * adjustmentPct / 100).toFixed(2)}
+                            {adjustmentPct > 0 ? '+' : ''}{(cartTotal * adjustmentPct / 100).toFixed(0)}
                           </span>
                         </div>
                       )}
                       <div className="flex justify-between items-center border-t border-[#1f242e] pt-1 mt-1">
                         <span className="text-slate-300 text-xs font-semibold">Total del pedido:</span>
-                        <span className="text-2xl font-bold font-mono text-[#5aa6ec]">${adjustedTotal.toFixed(2)}</span>
+                        <span className="text-2xl font-bold font-mono text-[#5aa6ec]">${adjustedTotal.toFixed(0)}</span>
                       </div>
+                    </div>
+
+                    {/* Sale Date */}
+                    <div className="space-y-1.5">
+                      <label className="text-slate-300 text-xs font-medium block">Fecha de Venta</label>
+                      <input
+                        type="date"
+                        value={saleDate}
+                        onChange={e => setSaleDate(e.target.value)}
+                        className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-sm text-white font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
                     </div>
 
                     {/* Client Selection */}
@@ -513,7 +526,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                               setPaymentMethod(method.name);
                               const adj = cartTotal * (1 + (method.adjustment || 0) / 100);
                               if (!method.requiresCash) {
-                                setCashReceived(adj.toFixed(2));
+                                setCashReceived(adj.toFixed(0));
                               }
                             }}
                             className={`py-2 px-3 text-xs rounded-lg font-semibold border transition-all text-center ${
@@ -552,7 +565,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                         <div className="space-y-1.5">
                           <label className="text-slate-300 text-xs font-medium block">Devolver Cambio:</label>
                           <div className="bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-sm text-amber-400 font-semibold font-mono h-[38px] flex items-center">
-                            ${Math.max(0, (parseFloat(cashReceived) || 0) - adjustedTotal).toFixed(2)}
+                            ${Math.max(0, (parseFloat(cashReceived) || 0) - adjustedTotal).toFixed(0)}
                           </div>
                         </div>
                       </div>
@@ -591,13 +604,13 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                       {lastFinishedSale?.items.map((it: any, idx: number) => (
                         <div key={idx} className="flex justify-between text-slate-300">
                           <span>{it.productName} x{it.quantity}</span>
-                          <span>${(it.price * it.quantity).toFixed(2)}</span>
+                          <span>${(it.price * it.quantity).toFixed(0)}</span>
                         </div>
                       ))}
                       <div className="border-b border-dashed border-slate-800 my-1.5"></div>
                       <div className="flex justify-between font-bold text-white text-xs">
                         <span>TOTAL PAID:</span>
-                        <span>${lastFinishedSale?.total.toFixed(2)}</span>
+                        <span>${lastFinishedSale?.total.toFixed(0)}</span>
                       </div>
                       <div className="flex justify-between text-[10px] text-slate-400">
                         <span>Forma de Pago:</span>
@@ -605,11 +618,11 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                       </div>
                       <div className="flex justify-between text-[10px] text-slate-400">
                         <span>Recibido:</span>
-                        <span>${Number(lastFinishedSale?.cashReceived || 0).toFixed(2)}</span>
+                        <span>${Number(lastFinishedSale?.cashReceived || 0).toFixed(0)}</span>
                       </div>
                       <div className="flex justify-between text-[10px] text-amber-400 font-semibold">
                         <span>Cambio:</span>
-                        <span>${Number(lastFinishedSale?.change || 0).toFixed(2)}</span>
+                        <span>${Number(lastFinishedSale?.change || 0).toFixed(0)}</span>
                       </div>
                     </div>
 
@@ -666,13 +679,13 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                   {cart.map((item, idx) => (
                     <div key={idx} className="flex justify-between py-1 border-b border-[#1f242e] last:border-0">
                       <span className="text-slate-300">{item.product.name} <span className="text-slate-500">x{item.quantity}</span></span>
-                      <span className="text-[#5aa6ec] font-semibold">${(getEffectivePrice(item) * item.quantity).toFixed(2)}</span>
+                      <span className="text-[#5aa6ec] font-semibold">${(getEffectivePrice(item) * item.quantity).toFixed(0)}</span>
                     </div>
                   ))}
                   <div className="border-b border-dashed border-slate-800 my-3"></div>
                   <div className="flex justify-between font-bold text-white text-base">
                     <span>TOTAL:</span>
-                    <span>${cartTotal.toFixed(2)}</span>
+                    <span>${cartTotal.toFixed(0)}</span>
                   </div>
                 </div>
 

@@ -258,7 +258,7 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
                       <td className="py-3 px-4 text-slate-400">
                         <span className="bg-[#1a1d24] border border-[#2d3444] rounded px-2 py-0.5 text-[10px]">{p.category}</span>
                       </td>
-                      <td className="py-3 px-4 text-right font-mono text-emerald-400 font-semibold">${p.price.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-right font-mono text-emerald-400 font-semibold">${p.price.toFixed(0)}</td>
                       <td className="py-3 px-4 text-center">
                         <span className={`font-mono font-semibold px-2 py-0.5 rounded ${isLowStock ? 'bg-red-950/40 text-red-400 border border-red-900/50' : 'bg-emerald-950/40 text-emerald-400 border border-emerald-900/50'}`}>
                           {p.stock} u

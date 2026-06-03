@@ -16,9 +16,10 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
   const [dateFrom, setDateFrom] = useState(today);
   const [dateTo, setDateTo] = useState(today);
   const [methodFilter, setMethodFilter] = useState('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [expandedSaleId, setExpandedSaleId] = useState<string | null>(null);
 
-  const filtered = sales.filter(s => {
+  const filtered = [...sales].filter(s => {
     const matchesSearch = s.id.toLowerCase().includes(search.toLowerCase()) ||
       s.clientName?.toLowerCase().includes(search.toLowerCase()) ||
       s.paymentMethod.toLowerCase().includes(search.toLowerCase());
@@ -32,6 +33,9 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
       if (saleDate >= endDate) return false;
     }
     return true;
+  }).sort((a, b) => {
+    const diff = new Date(a.date).getTime() - new Date(b.date).getTime();
+    return sortOrder === 'asc' ? diff : -diff;
   });
 
   const totalRevenue = filtered.reduce((sum, s) => sum + s.total, 0);
@@ -68,7 +72,7 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
         <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
           <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">Ingresos Totales (Caja)</span>
           <div className="text-3xl font-extrabold font-display text-emerald-400 mt-2">
-            ${totalRevenue.toFixed(2)}
+            ${totalRevenue.toFixed(0)}
           </div>
           <span className="text-[10px] text-slate-500 font-mono mt-1">Suma acumulativa de transacciones</span>
         </div>
@@ -133,6 +137,15 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
               className="bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none"
               title="Hasta"
             />
+            <button
+              onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+              className="flex items-center gap-1 bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-2.5 text-[11px] text-slate-400 hover:text-white font-mono focus:outline-none transition-colors"
+              title={sortOrder === 'asc' ? 'Más antiguos primero' : 'Más recientes primero'}
+            >
+              <ChevronUp size={12} className={sortOrder === 'asc' ? 'text-white' : 'text-slate-500'} />
+              <ChevronDown size={12} className={sortOrder === 'desc' ? 'text-white' : 'text-slate-500'} />
+              <span className="ml-0.5">{sortOrder === 'asc' ? 'ASC' : 'DESC'}</span>
+            </button>
           </div>
           <div className="flex items-center gap-1.5">
             <Filter size={12} className="text-slate-500" />
@@ -199,7 +212,7 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
                         </span>
                       </div>
                       <div className="col-span-2 text-right font-mono font-bold text-[#5aa6ec] flex items-center justify-end gap-2">
-                        ${s.total.toFixed(2)}
+                        ${s.total.toFixed(0)}
                         {isExpanded ? <ChevronUp size={14} className="text-slate-500" /> : <ChevronDown size={14} className="text-slate-500" />}
                       </div>
                     </button>
@@ -232,7 +245,7 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
                           {s.items.map((it, index) => (
                             <div key={index} className="flex justify-between text-xs font-mono py-1 border-b border-[#1f242e] last:border-0">
                               <span className="text-slate-300">{it.productName} <span className="text-slate-500">x{it.quantity}</span></span>
-                              <span className="text-[#5aa6ec] font-semibold">${(it.price * it.quantity).toFixed(2)}</span>
+                              <span className="text-[#5aa6ec] font-semibold">${(it.price * it.quantity).toFixed(0)}</span>
                             </div>
                           ))}
                         </div>
@@ -241,8 +254,8 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
                         <div className="grid grid-cols-2 gap-4 text-[10px] text-slate-400 font-mono pt-2 border-t border-[#1f242e]/50">
                           <div>
                             <span>Metodo Pago: {s.paymentMethod}</span><br/>
-                            <span>Recibido: ${Number(s.cashReceived || s.total).toFixed(2)}</span><br/>
-                            <span>Cambio: ${Number(s.change || 0).toFixed(2)}</span>
+                            <span>Recibido: ${Number(s.cashReceived || s.total).toFixed(0)}</span><br/>
+                            <span>Cambio: ${Number(s.change || 0).toFixed(0)}</span>
                           </div>
                           <div className="text-right">
                             <span>Sincronizado Localmente: Sí</span><br/>

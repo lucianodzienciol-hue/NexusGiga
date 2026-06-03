@@ -75,14 +75,14 @@ const ticketTemplate = (
         <div class="item-row">
           <span>${item.productName}</span>
           <span>${item.quantity}</span>
-          <span>$${(item.price * item.quantity).toFixed(2)}</span>
+          <span>$${(item.price * item.quantity).toFixed(0)}</span>
         </div>
       `).join('')}
       <div class="divider-dash"></div>
       <div class="total-box">
         <div class="total-row">
           <span>TOTAL A PAGAR</span>
-          <span>$${sale.total.toFixed(2)}</span>
+          <span>$${sale.total.toFixed(0)}</span>
         </div>
       </div>
       <div class="divider-thin"></div>
@@ -93,11 +93,11 @@ const ticketTemplate = (
         </div>
         <div class="payment-row">
           <span>Recibido</span>
-          <span>$${Number(sale.cashReceived || sale.total).toFixed(2)}</span>
+          <span>$${Number(sale.cashReceived || sale.total).toFixed(0)}</span>
         </div>
         <div class="payment-row">
           <span>Cambio</span>
-          <span>$${Number(sale.change || 0).toFixed(2)}</span>
+          <span>$${Number(sale.change || 0).toFixed(0)}</span>
         </div>
       </div>
     </div>

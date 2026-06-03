@@ -25,8 +25,10 @@ import PaymentMethods from './components/PaymentMethods';
 import Egresos from './components/Egresos';
 import Reparaciones from './components/Reparaciones';
 import PanelWeb from './components/PanelWeb';
+import Estadisticas from './components/Estadisticas';
+import Backups from './components/Backups';
 
-type TabType = 'Vender' | 'Historiales' | 'Artículos' | 'Clientes' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web';
+type TabType = 'Vender' | 'Historiales' | 'Artículos' | 'Clientes' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web' | 'Estadísticas' | 'Backups';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('Vender');
@@ -51,9 +53,24 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [syncModalType, setSyncModalType] = useState<'syncing' | 'success' | 'error'>('syncing');
-  
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
 
-  const TAB_KEYS: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web'];
+  const primaryTabs: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Reparaciones'];
+  const secondaryTabs: TabType[] = ['Métodos de Pago', 'Panel Web', 'Estadísticas', 'Backups'];
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
+        setShowMoreMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+
+  const TAB_KEYS: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups'];
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -62,10 +79,11 @@ export default function App() {
         if (showCaja) { setShowCaja(false); e.preventDefault(); return; }
         if (showSettings) { setShowSettings(false); e.preventDefault(); return; }
       }
-      // Alt+1..9 cambia de pestana (AltGr saltado porque envía ctrlKey+altKey)
-      if (e.altKey && !e.ctrlKey && ['1','2','3','4','5','6','7','8','9'].includes(e.key)) {
+      // Alt+1..0 cambia de pestana (AltGr saltado porque envía ctrlKey+altKey)
+      if (e.altKey && !e.ctrlKey && ['1','2','3','4','5','6','7','8','9','0'].includes(e.key)) {
         e.preventDefault();
-        setActiveTab(TAB_KEYS[parseInt(e.key) - 1]);
+        const idx = e.key === '0' ? 9 : parseInt(e.key) - 1;
+        setActiveTab(TAB_KEYS[idx]);
       }
       if (e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey) {
         const tag = (e.target as HTMLElement).tagName;
@@ -242,20 +260,20 @@ export default function App() {
           </div>
 
           {/* Center Navigation Menu Bar */}
-          <nav className="hidden md:flex items-center gap-1">
-{(['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web'] as const).map((tab, idx) => {
-                const isActive = activeTab === tab;
+          <nav className="hidden md:flex items-center gap-0.5">
+            {primaryTabs.map((tab, idx) => {
+              const isActive = activeTab === tab;
               return (
                 <button
                   key={tab}
                   onClick={() => { setActiveTab(tab); }}
-                  className={`relative py-1.5 px-4 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
+                  className={`relative py-1.5 px-2.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all cursor-pointer whitespace-nowrap ${
                     isActive 
                       ? 'text-white bg-[#1b1f28] font-bold' 
                       : 'text-slate-400 hover:text-white hover:bg-[#151821]/50'
                   }`}
                 >
-                  <span className="text-[10px] text-slate-500 mr-1.5 font-mono">Alt+{idx + 1}</span>
+                  <span className="text-[9px] text-slate-500 mr-1 font-mono">Alt+{idx + 1}</span>
                   {tab}
                     {isActive && (
                     <div className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#5aa6ec]" />
@@ -263,6 +281,46 @@ export default function App() {
                 </button>
               );
             })}
+
+            {/* Dropdown "Más" */}
+            <div className="relative" ref={moreMenuRef}>
+              <button
+                onClick={() => setShowMoreMenu(prev => !prev)}
+                className={`relative py-1.5 px-2.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
+                  secondaryTabs.includes(activeTab) 
+                    ? 'text-white bg-[#1b1f28] font-bold' 
+                    : 'text-slate-400 hover:text-white hover:bg-[#151821]/50'
+                }`}
+              >
+                Más
+                <svg className={`w-3 h-3 transition-transform ${showMoreMenu ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+                {secondaryTabs.includes(activeTab) && (
+                  <div className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#5aa6ec]" />
+                )}
+              </button>
+
+              {showMoreMenu && (
+                <div className="absolute top-full right-0 mt-2 w-52 bg-[#0f1115] border border-[#1f242e] rounded-xl shadow-2xl z-50 py-2 overflow-hidden">
+                  {secondaryTabs.map((tab, idx) => {
+                    const isActive = activeTab === tab;
+                    return (
+                      <button
+                        key={tab}
+                        onClick={() => { setActiveTab(tab); setShowMoreMenu(false); }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-semibold transition-all flex items-center justify-between ${
+                          isActive 
+                            ? 'text-white bg-[#1b1f28]' 
+                            : 'text-slate-400 hover:text-white hover:bg-[#151821]'
+                        }`}
+                      >
+                        <span>{tab}</span>
+                        <span className="text-[9px] text-slate-600 font-mono">Alt+{primaryTabs.length + idx + 1}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </nav>
 
           {/* Right Header Controls - Search, Settings, Help, Avatar */}
@@ -320,7 +378,7 @@ export default function App() {
 
       {/* MOBILE TAB DRAWER (ONLY ON SMALL DEVICES) */}
       <div className="md:hidden bg-[#0f1115] border-b border-[#1f242e] px-4 py-2 flex gap-1 overflow-x-auto">
-        {(['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web'] as const).map((tab, idx) => {
+{(['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas'] as const).map((tab, idx) => {
           const isActive = activeTab === tab;
           return (
             <button
@@ -378,6 +436,14 @@ export default function App() {
 
         {activeTab === 'Panel Web' && (
           <PanelWeb webData={webData} onRefresh={fetchAllData} />
+        )}
+
+        {activeTab === 'Estadísticas' && (
+          <Estadisticas sales={sales} expenses={expenses} products={products} clients={clients} />
+        )}
+
+        {activeTab === 'Backups' && (
+          <Backups onRefresh={fetchAllData} />
         )}
 
       </main>
@@ -492,7 +558,7 @@ export default function App() {
                   {paymentMethods.length > 0 ? paymentMethods.map(pm => (
                     <div key={pm.id} className="flex justify-between text-slate-400">
                       <span>{pm.name}:</span>
-                      <span className="text-white font-semibold">${(paymentsByMethod[pm.name] || 0).toFixed(2)}</span>
+                      <span className="text-white font-semibold">${(paymentsByMethod[pm.name] || 0).toFixed(0)}</span>
                     </div>
                   )) : (
                     <div className="flex justify-between text-slate-400">
@@ -503,7 +569,7 @@ export default function App() {
                   <div className="border-b border-[#2d3444] my-2"></div>
                   <div className="flex justify-between text-amber-400 font-bold text-sm">
                     <span>SALDO DE CAJA:</span>
-                    <span>${totalCajaSum.toFixed(2)}</span>
+                    <span>${totalCajaSum.toFixed(0)}</span>
                   </div>
                 </div>
 

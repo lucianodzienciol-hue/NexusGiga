@@ -12,7 +12,7 @@ const DB_FILE = path.join(process.cwd(), 'database.db');
 const SEC_DB_FILE = path.join(process.cwd(), 'database.json');
 const BACKUP_DIR = path.join(process.cwd(), 'backups');
 const WEB_MAIN_DIR = path.join(process.cwd(), 'Web-main', 'Web-main');
-const MAX_BACKUPS = 30;
+const MAX_BACKUPS = 5;
 const BACKUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 interface WebDataConfig {
@@ -817,7 +817,7 @@ async function startServer() {
           csvEsc((p.name || '').trim()),
           csvEsc((p.desc || p.name || '').trim()),
           'in stock', 'new',
-          (p.price != null ? Number(p.price).toFixed(2) : '0.00') + ' ARS',
+          (p.price != null ? Number(p.price).toFixed(0) : '0.00') + ' ARS',
           csvEsc(BASE_URL + '/index.html?id=' + encodeURIComponent(p.id || '')),
           csvEsc(p.image ? (p.image.startsWith('http') ? p.image : BASE_URL + '/' + p.image.replace(/^\//, '')) : ''),
           csvEsc(brand), '99', '99'
@@ -968,7 +968,7 @@ async function startServer() {
       const rows = products.map((p: any) => [
         csvEsc(p.id || ''), csvEsc((p.name || '').trim()), csvEsc((p.desc || p.name || '').trim()),
         'in stock', 'new',
-        (p.price != null ? Number(p.price).toFixed(2) : '0.00') + ' ARS',
+        (p.price != null ? Number(p.price).toFixed(0) : '0.00') + ' ARS',
         csvEsc(BASE_URL + '/index.html?id=' + encodeURIComponent(p.id || '')),
         csvEsc(p.image ? (p.image.startsWith('http') ? p.image : BASE_URL + '/' + p.image.replace(/^\//, '')) : ''),
         csvEsc(brand), '99', '99'
@@ -1103,7 +1103,7 @@ async function startServer() {
     const rows = sales.flatMap(s =>
       s.items.map(item => [
         esc(s.id), esc(new Date(s.date).toLocaleString()), esc(s.clientName || 'Cliente General'),
-        esc(item.productName), (item.price * item.quantity).toFixed(2), esc(s.paymentMethod)
+        esc(item.productName), (item.price * item.quantity).toFixed(0), esc(s.paymentMethod)
       ].join(';'))
     );
     const csv = '\uFEFF' + header + '\n' + rows.join('\n');
@@ -1121,12 +1121,13 @@ async function startServer() {
   });
 
   app.post('/api/sales', (req, res) => {
-    const { items, total, paymentMethod, clientId, clientName, cashReceived, change } = req.body;
+    const { items, total, paymentMethod, clientId, clientName, cashReceived, change, date } = req.body;
+    const saleDate = date || new Date().toISOString();
     const saleId = 'VEN-' + Date.now().toString().slice(-6);
 
     const doSale = db.transaction(() => {
       db.prepare('INSERT INTO sales (id, date, total, paymentMethod, clientId, clientName, cashReceived, change) VALUES (?,?,?,?,?,?,?,?)').run(
-        saleId, new Date().toISOString(), Number(total) || 0, paymentMethod || 'Efectivo',
+        saleId, saleDate, Number(total) || 0, paymentMethod || 'Efectivo',
         clientId || '', clientName || 'Cliente General', Number(cashReceived) || total, Number(change) || 0
       );
       for (const item of (items || [])) {
@@ -1368,6 +1369,80 @@ async function startServer() {
     } catch (error: any) { res.status(500).json({ error: 'Error en rollback: ' + (error.message || error) }); }
   });
 
+  // LIST BACKUPS
+  app.get('/api/backups', (req, res) => {
+    try {
+      if (!fs.existsSync(BACKUP_DIR)) { fs.mkdirSync(BACKUP_DIR, { recursive: true }); }
+      const files = fs.readdirSync(BACKUP_DIR)
+        .filter(f => f.startsWith('nexus-') && (f.endsWith('.json') || f.endsWith('.db')))
+        .sort()
+        .reverse();
+      const seen = new Set<string>();
+      const backups: { base: string; date: string; hasJson: boolean; hasDb: boolean }[] = [];
+      for (const f of files) {
+        const base = f.replace(/\.(json|db)$/, '');
+        if (seen.has(base)) continue;
+        seen.add(base);
+        const datePart = base.replace('nexus-', '').replace(/T/g, ' ').replace(/-/g, ':').replace(/:(?=\d{2}$)/, '');
+        backups.push({
+          base,
+          date: datePart,
+          hasJson: files.includes(base + '.json'),
+          hasDb: files.includes(base + '.db')
+        });
+      }
+      res.json(backups);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // RESTORE FROM BACKUP FILE
+  app.post('/api/backups/restore', (req, res) => {
+    try {
+      const { base } = req.body;
+      if (!base) return res.status(400).json({ error: 'No se especificó backup' });
+      const jsonPath = path.join(BACKUP_DIR, base + '.json');
+      const dbPath = path.join(BACKUP_DIR, base + '.db');
+
+      if (fs.existsSync(dbPath)) {
+        const buffer = fs.readFileSync(dbPath);
+        const testDb = new Database(dbPath);
+        const integrity = testDb.pragma('integrity_check') as string[];
+        if (!integrity.every((r: string) => r === 'ok')) {
+          testDb.close();
+          return res.status(400).json({ error: 'El archivo de base de datos no es válido' });
+        }
+        testDb.close();
+        createBackup();
+        db.close();
+        fs.copyFileSync(dbPath, DB_FILE);
+        db = new Database(DB_FILE);
+        setupSchema(db);
+        lastPOSWrite = Date.now(); pendingSync = true;
+        return res.json({ success: true, message: 'Base de datos restaurada desde backup SQLite.' });
+      }
+
+      if (fs.existsSync(jsonPath)) {
+        const backupData = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
+        if (!backupData.products || !backupData.clients) {
+          return res.status(400).json({ error: 'El archivo de backup JSON no es válido' });
+        }
+        const doRestore = db.transaction(() => {
+          db.exec('DELETE FROM sale_items'); db.exec('DELETE FROM sales');
+          db.exec('DELETE FROM purchase_items'); db.exec('DELETE FROM purchases');
+          db.exec('DELETE FROM products'); db.exec('DELETE FROM clients');
+          db.exec('DELETE FROM providers'); db.exec('DELETE FROM payment_methods');
+          db.exec('DELETE FROM expenses'); db.exec('DELETE FROM app_config');
+          migrateData(db, backupData);
+        });
+        doRestore();
+        lastPOSWrite = Date.now(); pendingSync = true;
+        return res.json({ success: true, message: 'Backup JSON restaurado correctamente.' });
+      }
+
+      res.status(404).json({ error: 'Archivo de backup no encontrado' });
+    } catch (e: any) { res.status(500).json({ error: 'Error al restaurar backup: ' + (e.message || e) }); }
+  });
+
   // RESET
   app.post('/api/reset', (req, res) => {
     try {
@@ -1411,7 +1486,8 @@ async function startServer() {
     setInterval(doAutoSync, 30000);
     setTimeout(doAutoSync, 5000);
     setInterval(() => {
-      if (Date.now() - lastBackupTime > BACKUP_INTERVAL_MS) { createBackup(); lastBackupTime = Date.now(); }
+      const hour = new Date().getHours();
+      if (hour >= 10 && hour < 19 && Date.now() - lastBackupTime > BACKUP_INTERVAL_MS) { createBackup(); lastBackupTime = Date.now(); }
     }, 60000);
   }).on('error', (err: any) => {
     if (err.code === 'EADDRINUSE') console.error(`[FATAL] Puerto ${PORT} ya esta en uso.`);
