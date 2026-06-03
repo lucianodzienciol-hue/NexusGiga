@@ -281,11 +281,7 @@ const DB = {
         { id: '1', name: 'Juan Pérez', phone: '1122334455', email: 'juan@email.com', address: 'Calle Falsa 123' },
         { id: '2', name: 'María Gómez', phone: '1199887766', email: 'maria@email.com', address: 'Avenida Siempreviva 742' }
     ],
-    defaultRepairs: [
-        { id: 'REP-001', clientId: '1', equipment: 'Notebook HP', problem: 'No enciende, pantalla negra.', status: 'Recibida', date: '2023-10-25', notes: 'Trae cargador original.' },
-        { id: 'REP-002', clientId: '2', equipment: 'PC de Escritorio', problem: 'Muy lenta, virus sospechoso.', status: 'En Reparación', date: '2023-10-26', notes: 'Respaldar datos antes de formatear.' },
-        { id: 'REP-003', clientId: '1', equipment: 'Monitor LG', problem: 'Líneas verticales en pantalla.', status: 'Esperando Repuestos', date: '2023-10-24', notes: 'Se pidió placa T-CON.' }
-    ],
+    defaultRepairs: [],
     defaultServices: [
         { id: 'S-001', name: 'Limpieza y Mantenimiento', desc: 'Limpieza interna completa, cambio de pasta térmica y optimización básica del sistema.', price: 25000, icon: 'ph-broom' },
         { id: 'S-002', name: 'Instalación de Sistema Operativo', desc: 'Formateo, instalación de Windows, drivers esenciales y programas básicos.', price: 35000, icon: 'ph-windows-logo' },
