@@ -195,15 +195,13 @@ export default function Pendientes({ products, onRefresh }: PendientesProps) {
             <div className="overflow-hidden rounded-lg border border-[#1b1e26] bg-[#0d0e12]">
               <div className="divide-y divide-[#1b1e26]">
                 <div className="grid grid-cols-12 bg-[#181a20] px-4 py-3 text-[10px] tracking-wider text-slate-400 font-mono uppercase font-bold text-left">
-                  <div className="col-span-2">CÓDIGO</div>
-                  <div className="col-span-4">PRODUCTO</div>
+                  <div className="col-span-6">PRODUCTO</div>
                   <div className="col-span-2 text-center">CANT.</div>
                   <div className="col-span-4 text-right">ACCIÓN</div>
                 </div>
                 {items.map(item => (
                   <div key={item.id} className="grid grid-cols-12 px-4 py-3 text-xs text-slate-300 hover:bg-[#14171e] items-center transition-colors">
-                    <div className="col-span-2 font-mono text-slate-500">{item.productCode}</div>
-                    <div className="col-span-4 font-medium text-white truncate">{item.productName}</div>
+                    <div className="col-span-6 font-medium text-white truncate">{item.productName}</div>
                     <div className="col-span-2 text-center">
                       {editingId === item.id ? (
                         <input

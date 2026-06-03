@@ -65,6 +65,61 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
     printWindow.document.close();
   };
 
+  const handleFullScreen = (s: Sale) => {
+    const w = window.open('', '_blank');
+    if (!w) { alert('Permita popups para ver la venta en pantalla completa.'); return; }
+    const c = companyConfig || {};
+    const itemsHtml = s.items.map(it => `
+      <tr>
+        <td style="padding:6px 8px;border-bottom:1px solid #1f242e;color:#e2e8f0">${it.productName}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #1f242e;color:#94a3b8;text-align:center">${it.quantity}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #1f242e;color:#fbbf24;text-align:right;font-weight:bold">$${(it.price * it.quantity).toFixed(0)}</td>
+      </tr>
+    `).join('');
+    w.document.write(`
+<html><head><title>Venta ${s.id}</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d0e12;color:#e2e8f0;font-family:system-ui,-apple-system,sans-serif;display:flex;justify-content:center;padding:40px 20px;min-height:100vh}
+  .receipt{background:#111318;border:1px solid #1f242e;border-radius:12px;padding:32px;max-width:520px;width:100%}
+  .header{text-align:center;border-bottom:2px solid #1f242e;padding-bottom:16px;margin-bottom:16px}
+  .header h1{font-size:20px;font-weight:700;color:#f1f5f9}
+  .header p{font-size:11px;color:#64748b;margin-top:4px}
+  .meta{display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-bottom:12px;padding-bottom:8px;border-bottom:1px dashed #1f242e}
+  .client{font-size:12px;color:#e2e8f0;margin-bottom:12px;padding-bottom:8px;border-bottom:1px dashed #1f242e}
+  table{width:100%;border-collapse:collapse;margin:8px 0}
+  th{font-size:10px;text-transform:uppercase;color:#64748b;padding:6px 8px;border-bottom:2px solid #1f242e;text-align:left;letter-spacing:0.5px}
+  th:last-child{text-align:right}
+  th:nth-child(2){text-align:center}
+  .total-box{background:#181a20;border:1px solid #2d3444;border-radius:8px;padding:12px 16px;margin:12px 0}
+  .total-row{display:flex;justify-content:space-between;font-size:18px;font-weight:700;color:#fbbf24}
+  .pay-row{display:flex;justify-content:space-between;font-size:12px;color:#94a3b8;margin:4px 0}
+  .footer{text-align:center;padding-top:16px;border-top:1px solid #1f242e;margin-top:16px;font-size:11px;color:#475569}
+  .footer .thanks{font-size:14px;color:#fbbf24;font-weight:600;margin-bottom:4px}
+</style></head><body>
+<div class="receipt">
+  <div class="header">
+    <h1>${c.companyName || 'NEXUS POS'}</h1>
+    ${c.address ? '<p>'+c.address+(c.phone?' · '+c.phone:'')+'</p>' : ''}
+  </div>
+  <div class="meta">
+    <span><strong style="color:#e2e8f0">Venta:</strong> ${s.id}</span>
+    <span>${new Date(s.date).toLocaleString('es-AR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>
+  </div>
+  <div class="client"><strong style="color:#e2e8f0">Cliente:</strong> ${s.clientName || 'Cliente General'}</div>
+  <table><thead><tr><th>Producto</th><th style="text-align:center">Cant</th><th style="text-align:right">Total</th></tr></thead><tbody>${itemsHtml}</tbody></table>
+  <div class="total-box">
+    <div class="total-row"><span>TOTAL A PAGAR</span><span>$${s.total.toFixed(0)}</span></div>
+  </div>
+  <div class="pay-row"><span>Método de pago</span><span><strong style="color:#e2e8f0">${s.paymentMethod}</strong></span></div>
+  <div class="pay-row"><span>Recibido</span><span>$${Number(s.cashReceived || s.total).toFixed(0)}</span></div>
+  <div class="pay-row"><span>Cambio</span><span style="color:#fbbf24">$${Number(s.change || 0).toFixed(0)}</span></div>
+  <div class="footer"><div class="thanks">✦ Gracias por su compra ✦</div><div>${c.companyName || 'NEXUS POS'} · ${new Date().getFullYear()}</div></div>
+</div></body></html>
+    `);
+    w.document.close();
+  };
+
   return (
     <div className="space-y-6">
       {/* Banner / KPIs */}
@@ -229,6 +284,13 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
                             >
                               <Trash2 size={12} />
                               Eliminar
+                            </button>
+                            <button
+                              onClick={() => handleFullScreen(s)}
+                              className="bg-[#1c222d] hover:bg-[#252e3d] text-slate-300 border border-[#2d3444] rounded px-2.5 py-1 text-[10px] flex items-center gap-1.5 transition-all font-semibold"
+                            >
+                              <FileText size={12} />
+                              Pantalla Completa
                             </button>
                             <button
                               onClick={() => handlePrintTicket(s)}
