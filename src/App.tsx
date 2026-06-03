@@ -27,8 +27,9 @@ import Reparaciones from './components/Reparaciones';
 import PanelWeb from './components/PanelWeb';
 import Estadisticas from './components/Estadisticas';
 import Backups from './components/Backups';
+import Pendientes from './components/Pendientes';
 
-type TabType = 'Vender' | 'Historiales' | 'Artículos' | 'Clientes' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web' | 'Estadísticas' | 'Backups';
+type TabType = 'Vender' | 'Historiales' | 'Artículos' | 'Clientes' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web' | 'Estadísticas' | 'Backups' | 'Pendientes';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('Vender');
@@ -57,7 +58,7 @@ export default function App() {
   const moreMenuRef = useRef<HTMLDivElement>(null);
 
   const primaryTabs: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Reparaciones'];
-  const secondaryTabs: TabType[] = ['Métodos de Pago', 'Panel Web', 'Estadísticas', 'Backups'];
+  const secondaryTabs: TabType[] = ['Métodos de Pago', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes'];
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -70,7 +71,7 @@ export default function App() {
   }, []);
 
 
-  const TAB_KEYS: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups'];
+  const TAB_KEYS: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes'];
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -439,11 +440,15 @@ export default function App() {
         )}
 
         {activeTab === 'Estadísticas' && (
-          <Estadisticas sales={sales} expenses={expenses} products={products} clients={clients} />
+          <Estadisticas />
         )}
 
         {activeTab === 'Backups' && (
           <Backups onRefresh={fetchAllData} />
+        )}
+
+        {activeTab === 'Pendientes' && (
+          <Pendientes products={products} onRefresh={fetchAllData} />
         )}
 
       </main>

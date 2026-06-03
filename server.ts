@@ -212,6 +212,24 @@ CREATE TABLE IF NOT EXISTS web_services (
   icon TEXT DEFAULT '',
   price REAL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS restock_pending (
+  id TEXT PRIMARY KEY,
+  productId TEXT NOT NULL,
+  productName TEXT NOT NULL DEFAULT '',
+  productCode TEXT DEFAULT '',
+  quantity INTEGER NOT NULL DEFAULT 1,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS monthly_stats (
+  year INTEGER NOT NULL,
+  month INTEGER NOT NULL,
+  sales_count INTEGER DEFAULT 0,
+  cash_amount REAL DEFAULT 0,
+  PRIMARY KEY (year, month)
+);
 `;
 
 let db: Database.Database;
@@ -799,35 +817,71 @@ async function startServer() {
       save();
 
       lastPOSWrite = Date.now(); pendingSync = true;
-      // Keep writing data.json + catalog.csv for backward compat with Web-main static
-      try {
-        fs.writeFileSync(path.join(WEB_MAIN_DIR, 'data.json'), JSON.stringify(data, null, 2));
-        const products = data.products || [];
-        const brand = (data.config && data.config.companyName) || 'GIGA Computers';
-        const BASE_URL = 'https://gigacomputers.com.ar';
-        const csvEsc = (v: any) => {
-          if (v == null) return '';
-          const s = String(v);
-          if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) return '"' + s.replace(/"/g, '""') + '"';
-          return s;
-        };
-        const header = 'id,title,description,availability,condition,price,link,image_link,brand,inventory,quantity_to_sell_on_facebook';
-        const rows = products.map((p: any) => [
-          csvEsc(p.id || ''),
-          csvEsc((p.name || '').trim()),
-          csvEsc((p.desc || p.name || '').trim()),
-          'in stock', 'new',
-          (p.price != null ? Number(p.price).toFixed(0) : '0.00') + ' ARS',
-          csvEsc(BASE_URL + '/index.html?id=' + encodeURIComponent(p.id || '')),
-          csvEsc(p.image ? (p.image.startsWith('http') ? p.image : BASE_URL + '/' + p.image.replace(/^\//, '')) : ''),
-          csvEsc(brand), '99', '99'
-        ].join(','));
-        const csvContent = '\uFEFF' + header + '\n' + rows.join('\n');
-        fs.writeFileSync(path.join(WEB_MAIN_DIR, 'catalog.csv'), csvContent, 'utf8');
-      } catch {}
+      syncWebDataToFile();
       res.json({ success: true });
     } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
   });
+
+  // Sync web data to data.json (real-time sync for Web-main static site)
+  function syncWebDataToFile() {
+    try {
+      const data = {
+        products: db.prepare('SELECT * FROM products WHERE source = ?').all('web'),
+        clients: db.prepare('SELECT * FROM clients').all(),
+        repairs: db.prepare('SELECT * FROM repairs ORDER BY date DESC').all(),
+        services: db.prepare('SELECT * FROM web_services ORDER BY name').all(),
+        config: getConfig<any>('webConfig', {}),
+        categories: db.prepare('SELECT * FROM web_categories ORDER BY name').all(),
+      };
+      fs.writeFileSync(path.join(WEB_MAIN_DIR, 'data.json'), JSON.stringify(data, null, 2));
+      const products = data.products || [];
+      const brand = (data.config && data.config.companyName) || 'GIGA Computers';
+      const BASE_URL = 'https://gigacomputers.com.ar';
+      const csvEsc = (v: any) => {
+        if (v == null) return '';
+        const s = String(v);
+        if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) return '"' + s.replace(/"/g, '""') + '"';
+        return s;
+      };
+      const header = 'id,title,description,availability,condition,price,link,image_link,brand,inventory,quantity_to_sell_on_facebook';
+      const rows = products.map((p: any) => [
+        csvEsc(p.id || ''),
+        csvEsc((p.name || '').trim()),
+        csvEsc((p.desc || p.name || '').trim()),
+        'in stock', 'new',
+        (p.price != null ? Number(p.price).toFixed(0) : '0.00') + ' ARS',
+        csvEsc(BASE_URL + '/index.html?id=' + encodeURIComponent(p.id || '')),
+        csvEsc(p.image ? (p.image.startsWith('http') ? p.image : BASE_URL + '/' + p.image.replace(/^\//, '')) : ''),
+        csvEsc(brand), '99', '99'
+      ].join(','));
+      const csvContent = '\uFEFF' + header + '\n' + rows.join('\n');
+      fs.writeFileSync(path.join(WEB_MAIN_DIR, 'catalog.csv'), csvContent, 'utf8');
+    } catch (e) { console.error('[WebSync] Error:', e); }
+    setTimeout(syncWebToGit, 0);
+  }
+
+  function syncWebToGit() {
+    try {
+      const config = getConfig<CompanyConfig | null>('companyConfig', null);
+      const token = config?.gitToken;
+      if (!token) { console.warn('[WebGit] No hay token, no se puede hacer push'); return; }
+      const repoUrl = `https://${token}@github.com/gigacomputers2025-bot/Web.git`;
+      if (!fs.existsSync(path.join(WEB_MAIN_DIR, '.git'))) {
+        execSync('git init', { cwd: WEB_MAIN_DIR });
+        try { execSync(`git remote add origin ${repoUrl}`, { cwd: WEB_MAIN_DIR }); } catch {}
+      }
+      execSync(`git remote set-url origin ${repoUrl}`, { cwd: WEB_MAIN_DIR });
+      execSync('git config user.name "Nexus AutoSync"', { cwd: WEB_MAIN_DIR });
+      execSync('git config user.email "autosync@nexuspos.local"', { cwd: WEB_MAIN_DIR });
+      try { execSync('git branch -M main', { cwd: WEB_MAIN_DIR }); } catch {}
+      execSync('git add .', { cwd: WEB_MAIN_DIR });
+      try { execSync(`git commit -m "AutoSync ${new Date().toISOString()}"`, { cwd: WEB_MAIN_DIR }); } catch {}
+      execSync('git push -u origin main --force', { cwd: WEB_MAIN_DIR, stdio: 'pipe' });
+      console.log('[WebGit] Push completado');
+    } catch (e: any) {
+      console.error('[WebGit] Error:', String(e.stderr || e.message || e));
+    }
+  }
 
   // Alias for Web-main app.js sync — same logic as /api/web-save
   app.post('/api/save', (req, res) => {
@@ -1195,6 +1249,7 @@ async function startServer() {
       problem || '', notes || '', Number(price) || 0, date
     );
     lastPOSWrite = Date.now(); pendingSync = true;
+    syncWebDataToFile();
     res.status(201).json(db.prepare('SELECT * FROM repairs WHERE id = ?').get(id));
   });
 
@@ -1209,12 +1264,13 @@ async function startServer() {
       req.params.id
     );
     lastPOSWrite = Date.now(); pendingSync = true;
+    syncWebDataToFile();
     res.json(db.prepare('SELECT * FROM repairs WHERE id = ?').get(req.params.id));
   });
 
   app.delete('/api/repairs/:id', (req, res) => {
     const r = db.prepare('DELETE FROM repairs WHERE id = ?').run(req.params.id);
-    if (r.changes > 0) { lastPOSWrite = Date.now(); pendingSync = true; res.json({ success: true }); }
+    if (r.changes > 0) { lastPOSWrite = Date.now(); pendingSync = true; syncWebDataToFile(); res.json({ success: true }); }
     else res.status(404).json({ error: 'Repair not found' });
   });
 
@@ -1441,6 +1497,149 @@ async function startServer() {
 
       res.status(404).json({ error: 'Archivo de backup no encontrado' });
     } catch (e: any) { res.status(500).json({ error: 'Error al restaurar backup: ' + (e.message || e) }); }
+  });
+
+  // STATS
+  const STATS_SEED_DATA = [
+    {year:2015,months:[472,953,1126,1072,1091,1077,1162,1130,1170,1112,984,1060]},
+    {year:2016,months:[496,942,1152,1065,1052,864,1123,1130,944,910,835,850]},
+    {year:2017,months:[379,873,1086,872,1066,1047,1130,1218,1066,1030,1051,1064]},
+    {year:2018,months:[471,848,1069,902,1020,933,964,1012,831,956,847,1096]},
+    {year:2019,months:[446,880,893,894,964,914,1106,893,896,922,811,869]},
+    {year:2020,months:[385,699,683,471,1077,1318,881,1112,1013,857,787,827]},
+    {year:2021,months:[356,716,986,914,798,582,802,796,653,605,712,765]},
+    {year:2022,months:[290,750,758,670,671,688,598,709,626,488,598,608]},
+    {year:2023,months:[205,532,633,549,558,585,539,583,541,467,467,454]},
+    {year:2024,months:[193,441,532,569,625,481,579,589,527,622,482,673]},
+    {year:2025,months:[334,565,639,627,591,589,695,658,644,587,497,596]},
+    {year:2026,months:[324,470,584,549,505]},
+  ];
+  const CASH_SEED_DATA = [
+    {year:2015,months:[96,161,191,223,200,222,246,226,233,220,215,245]},
+    {year:2016,months:[107,178,245,219,232,222,254,260,232,207,217,203]},
+    {year:2017,months:[88,224,268,234,273,240,295,330,311,302,293,375]},
+    {year:2018,months:[155,261,338,309,373,323,340,417,330,397,373,511]},
+    {year:2019,months:[191,354,413,481,467,478,604,583,517,610,540,658]},
+    {year:2020,months:[230,510,628,444,979,1387,885,1340,1201,969,958,1040]},
+    {year:2021,months:[455,794,1303,1146,977,788,979,1085,955,930,1104,1304]},
+    {year:2022,months:[534,1070,1425,1132,1350,1453,1230,1862,1650,1215,1843,1859]},
+    {year:2023,months:[623,1854,2425,2752,2341,3056,3372,3295,3938,3592,4176,4763]},
+    {year:2024,months:[1828,4613,7273,6101,7440,5749,9359,10824,8514,10880,7834,10415]},
+    {year:2025,months:[6060,11669,10029,13210,13358,9550,12172,13937,11732,12262,10750,13338]},
+    {year:2026,months:[6973,12722,15650,15804,11707]},
+  ];
+
+  app.get('/api/stats', (req, res) => {
+    try {
+      const rows = db.prepare('SELECT year, month, sales_count, cash_amount FROM monthly_stats ORDER BY year, month').all();
+      res.json(rows);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.post('/api/stats/seed', (req, res) => {
+    try {
+      const insert = db.prepare('INSERT OR REPLACE INTO monthly_stats (year, month, sales_count, cash_amount) VALUES (?,?,?,?)');
+      const doSeed = db.transaction(() => {
+        for (const yr of STATS_SEED_DATA) {
+          for (let m = 0; m < yr.months.length; m++) {
+            const cashYr = CASH_SEED_DATA.find(c => c.year === yr.year);
+            insert.run(yr.year, m + 1, yr.months[m], cashYr ? cashYr.months[m] || 0 : 0);
+          }
+        }
+      });
+      doSeed();
+      res.json({ success: true, message: 'Datos de estadísticas cargados correctamente.' });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.post('/api/stats/sync-sales', (req, res) => {
+    try {
+      const rows = db.prepare(`
+        SELECT CAST(strftime('%Y', date) AS INTEGER) as year,
+               CAST(strftime('%m', date) AS INTEGER) as month,
+               COUNT(*) as sales_count
+        FROM sales
+        GROUP BY year, month
+        ORDER BY year, month
+      `).all();
+      const upsert = db.prepare('INSERT OR REPLACE INTO monthly_stats (year, month, sales_count, cash_amount) VALUES (?,?,?,COALESCE((SELECT cash_amount FROM monthly_stats WHERE year=? AND month=?),0))');
+      const doSync = db.transaction(() => {
+        for (const r of rows as any[]) {
+          upsert.run(r.year, r.month, r.sales_count, r.year, r.month);
+        }
+      });
+      doSync();
+      res.json({ success: true, message: 'Ventas sincronizadas correctamente.' });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.post('/api/stats/update', (req, res) => {
+    try {
+      const { year, month, field, value } = req.body;
+      if (!year || !month || !field || value === undefined) return res.status(400).json({ error: 'Faltan parámetros' });
+      const num = Number(value);
+      if (isNaN(num)) return res.status(400).json({ error: 'Valor inválido' });
+      const existing = db.prepare('SELECT * FROM monthly_stats WHERE year=? AND month=?').get(year, month);
+      if (existing) {
+        db.prepare(`UPDATE monthly_stats SET ${field}=? WHERE year=? AND month=?`).run(num, year, month);
+      } else {
+        const sales = field === 'sales_count' ? num : 0;
+        const cash = field === 'cash_amount' ? num : 0;
+        db.prepare('INSERT INTO monthly_stats (year, month, sales_count, cash_amount) VALUES (?,?,?,?)').run(year, month, sales, cash);
+      }
+      res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.post('/api/stats/add-year', (req, res) => {
+    try {
+      const { year } = req.body;
+      if (!year) return res.status(400).json({ error: 'Falta año' });
+      const insert = db.prepare('INSERT OR IGNORE INTO monthly_stats (year, month, sales_count, cash_amount) VALUES (?,?,0,0)');
+      const doAdd = db.transaction(() => {
+        for (let m = 1; m <= 12; m++) insert.run(year, m);
+      });
+      doAdd();
+      res.json({ success: true, message: `Año ${year} agregado correctamente.` });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // PENDIENTES (restock reminders)
+  app.get('/api/pendientes', (req, res) => {
+    try {
+      const rows = db.prepare('SELECT * FROM restock_pending ORDER BY createdAt DESC').all();
+      res.json(rows);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.post('/api/pendientes', (req, res) => {
+    try {
+      const { productId, productName, productCode, quantity } = req.body;
+      if (!productId || !quantity) return res.status(400).json({ error: 'Faltan datos' });
+      const id = 'PEND-' + Date.now().toString().slice(-6);
+      const now = new Date().toISOString();
+      db.prepare('INSERT INTO restock_pending (id, productId, productName, productCode, quantity, createdAt, updatedAt) VALUES (?,?,?,?,?,?,?)')
+        .run(id, productId, productName || '', productCode || '', Number(quantity) || 1, now, now);
+      const row = db.prepare('SELECT * FROM restock_pending WHERE id = ?').get(id);
+      res.status(201).json(row);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.put('/api/pendientes/:id', (req, res) => {
+    try {
+      const { quantity } = req.body;
+      if (quantity === undefined) return res.status(400).json({ error: 'Falta cantidad' });
+      const now = new Date().toISOString();
+      db.prepare('UPDATE restock_pending SET quantity = ?, updatedAt = ? WHERE id = ?').run(Number(quantity), now, req.params.id);
+      res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.delete('/api/pendientes/:id', (req, res) => {
+    try {
+      db.prepare('DELETE FROM restock_pending WHERE id = ?').run(req.params.id);
+      res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
   // RESET
