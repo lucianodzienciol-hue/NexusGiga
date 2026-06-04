@@ -245,7 +245,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
     const w = window.open('', '_blank');
     if (!w) { alert('Permita popups para ver la venta en pantalla completa.'); return; }
     const s = lastFinishedSale;
-    const c = companyConfig || {};
+    const c = companyConfig || {} as CompanyConfig;
     const itemsHtml = s.items.map((it: any) => `
       <tr>
         <td style="padding:6px 8px;border-bottom:1px solid #1f242e;color:#e2e8f0">${it.productName}</td>

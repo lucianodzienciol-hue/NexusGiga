@@ -38,6 +38,7 @@ export interface CompanyConfig {
   whatsapp?: string;
   hours?: string;
   gitToken?: string;
+  backupPassword?: string;
 }
 
 export interface PaymentMethod {
@@ -114,6 +115,7 @@ export interface WebRepair {
   problem: string;
   notes?: string;
   date: string;
+  updatedAt?: string;
 }
 
 export interface WebClient {

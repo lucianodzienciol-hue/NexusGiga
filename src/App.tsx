@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   ShoppingBag, 
   HelpCircle, 
@@ -16,7 +16,7 @@ import {
   Calculator,
   Wallet
 } from 'lucide-react';
-import { Product, Client, Provider, Sale, PaymentMethod, CompanyConfig, Expense, CashRegister, WebClient } from './types';
+import { Product, Client, Provider, Sale, PaymentMethod, CompanyConfig, Expense, CashRegister, WebClient, WebRepair } from './types';
 import TerminalVenta from './components/TerminalVenta';
 import Articulos from './components/Articulos';
 import Clientes from './components/Clientes';
@@ -28,8 +28,10 @@ import PanelWeb from './components/PanelWeb';
 import Estadisticas from './components/Estadisticas';
 import Backups from './components/Backups';
 import Pendientes from './components/Pendientes';
+import Cambios from './components/Cambios';
+import ProcessMonitor from './components/ProcessMonitor';
 
-type TabType = 'Vender' | 'Historiales' | 'Artículos' | 'Clientes' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web' | 'Estadísticas' | 'Backups' | 'Pendientes';
+type TabType = 'Vender' | 'Historiales' | 'Artículos' | 'Clientes' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web' | 'Estadísticas' | 'Backups' | 'Pendientes' | 'Cambios';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('Vender');
@@ -43,22 +45,30 @@ export default function App() {
   const [cashRegister, setCashRegister] = useState<CashRegister>({ cash: 0, bank: 0 });
   const [stockWarningEnabled, setStockWarningEnabled] = useState(true);
   const [webData, setWebData] = useState<any>(null);
+  const [repairs, setRepairs] = useState<WebRepair[]>([]);
 
   // Auto-sync GitHub
   const [gitToken, setGitToken] = useState('');
+  const [backupPassword, setBackupPassword] = useState('');
   const [syncStatus, setSyncStatus] = useState<{ pending: boolean; syncing: boolean; lastSync: string | null; error: string | null }>({ pending: false, syncing: false, lastSync: null, error: null });
+  const [showRestorePanel, setShowRestorePanel] = useState(false);
+  const [encryptedBackups, setEncryptedBackups] = useState<any[]>([]);
+  const [selectedBackup, setSelectedBackup] = useState('');
+  const [restorePassword, setRestorePassword] = useState('');
+  const [restoreLoading, setRestoreLoading] = useState(false);
 
   // App system utility overlays
   const [showHelp, setShowHelp] = useState(false);
   const [showCaja, setShowCaja] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showSyncModal, setShowSyncModal] = useState(false);
+  const [showProcessMonitor, setShowProcessMonitor] = useState(false);
   const [syncModalType, setSyncModalType] = useState<'syncing' | 'success' | 'error'>('syncing');
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const moreMenuRef = useRef<HTMLDivElement>(null);
 
   const primaryTabs: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Reparaciones'];
-  const secondaryTabs: TabType[] = ['Métodos de Pago', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes'];
+  const secondaryTabs: TabType[] = ['Métodos de Pago', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Cambios'];
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -71,14 +81,16 @@ export default function App() {
   }, []);
 
 
-  const TAB_KEYS: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes'];
+  const TAB_KEYS: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Cambios'];
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (showSyncModal && syncModalType === 'syncing') { e.preventDefault(); return; }
         if (showHelp) { setShowHelp(false); e.preventDefault(); return; }
         if (showCaja) { setShowCaja(false); e.preventDefault(); return; }
         if (showSettings) { setShowSettings(false); e.preventDefault(); return; }
+        if (showProcessMonitor) { setShowProcessMonitor(false); e.preventDefault(); return; }
       }
       // Alt+1..0 cambia de pestana (AltGr saltado porque envía ctrlKey+altKey)
       if (e.altKey && !e.ctrlKey && ['1','2','3','4','5','6','7','8','9','0'].includes(e.key)) {
@@ -93,10 +105,28 @@ export default function App() {
           setShowHelp(prev => !prev);
         }
       }
+      // Alt+Ctrl+G sincronización manual con GitHub
+      if (e.altKey && e.ctrlKey && e.key.toLowerCase() === 'g') {
+        e.preventDefault();
+        if (syncStatus.syncing) return;
+        setShowSyncModal(true);
+        setSyncModalType('syncing');
+        showToast('Sincronizando con GitHub...', 'info');
+        (async () => {
+          try { await fetch('/api/sync-full', { method: 'POST' }); setSyncModalType('success'); showToast('Sincronización completada', 'success'); } 
+          catch { setSyncModalType('error'); showToast('Error en sincronización', 'error'); }
+          setTimeout(() => setShowSyncModal(false), 4000);
+        })();
+      }
+      // Alt+P monitor de procesos
+      if (e.altKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        setShowProcessMonitor(prev => !prev);
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showHelp, showCaja, showSettings]);
+  }, [showHelp, showCaja, showSettings, syncStatus]);
 
   // Poll auto-sync status
   useEffect(() => {
@@ -112,8 +142,10 @@ export default function App() {
             } else if (!newStatus.syncing && prev.syncing) {
               if (newStatus.error) {
                 setSyncModalType('error');
+                showToast('Error en sincronización automática', 'error');
               } else if (newStatus.lastSync) {
                 setSyncModalType('success');
+                showToast('Sincronización automática completada', 'success');
               }
               setShowSyncModal(true);
               setTimeout(() => setShowSyncModal(false), 4000);
@@ -124,13 +156,13 @@ export default function App() {
       } catch {}
     };
     check();
-    const id = setInterval(check, 15000);
+    const id = setInterval(check, 30000);
     return () => clearInterval(id);
   }, []);
 
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     try {
-      const [pRes, cRes, prRes, sRes, pmRes, ccRes, swRes, eRes, crRes] = await Promise.all([
+      const [pRes, cRes, prRes, sRes, pmRes, ccRes, swRes, eRes, crRes, rRes] = await Promise.all([
         fetch('/api/products'),
         fetch('/api/clients'),
         fetch('/api/providers'),
@@ -139,7 +171,8 @@ export default function App() {
         fetch('/api/company-config'),
         fetch('/api/stock-warning'),
         fetch('/api/expenses'),
-        fetch('/api/cash-register')
+        fetch('/api/cash-register'),
+        fetch('/api/repairs')
       ]);
       
       if (pRes.ok) setProducts(await pRes.json());
@@ -152,6 +185,7 @@ export default function App() {
         if (ccData && ccData.companyName) {
           setCompanyConfig(ccData);
           if (ccData.gitToken) setGitToken(ccData.gitToken);
+          if (ccData.backupPassword) setBackupPassword(ccData.backupPassword);
         } else {
           setCompanyConfig(null);
         }
@@ -162,11 +196,12 @@ export default function App() {
       }
       if (eRes.ok) setExpenses(await eRes.json());
       if (crRes.ok) setCashRegister(await crRes.json());
+      if (rRes.ok) setRepairs(await rRes.json());
       try { const wd = await (await fetch('/api/web-data')).json(); setWebData(wd); } catch {}
     } catch (err) {
       console.error('Error syncing local database:', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchAllData();
@@ -205,8 +240,20 @@ export default function App() {
     window.location.href = '/api/download-app';
   };
 
+  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  const showToast = (msg: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
   const handleBackup = () => {
-    window.location.href = '/api/backup';
+    showToast('Generando backup...', 'info');
+    const a = document.createElement('a');
+    a.href = '/api/backup';
+    a.download = 'backup.json';
+    a.click();
+    setTimeout(() => showToast('Backup generado correctamente', 'success'), 1000);
   };
 
   const handleRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -379,7 +426,7 @@ export default function App() {
 
       {/* MOBILE TAB DRAWER (ONLY ON SMALL DEVICES) */}
       <div className="md:hidden bg-[#0f1115] border-b border-[#1f242e] px-4 py-2 flex gap-1 overflow-x-auto">
-{(['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas'] as const).map((tab, idx) => {
+{(['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Cambios'] as const).map((tab, idx) => {
           const isActive = activeTab === tab;
           return (
             <button
@@ -420,7 +467,7 @@ export default function App() {
         )}
 
         {activeTab === 'Historiales' && (
-          <Historiales sales={sales} paymentMethods={paymentMethods} companyConfig={companyConfig} onRefresh={fetchAllData} />
+          <Historiales sales={sales} paymentMethods={paymentMethods} companyConfig={companyConfig} onRefresh={fetchAllData} repairs={repairs} />
         )}
 
         {activeTab === 'Métodos de Pago' && (
@@ -451,6 +498,10 @@ export default function App() {
           <Pendientes products={products} onRefresh={fetchAllData} />
         )}
 
+        {activeTab === 'Cambios' && (
+          <Cambios onRefresh={fetchAllData} />
+        )}
+
       </main>
 
       {/* FOOTER BAR --- MATCHING PHOTO */}
@@ -469,6 +520,13 @@ export default function App() {
               className="text-slate-400 hover:text-white"
             >
               Soporte
+            </button>
+            <span className="hidden sm:inline text-slate-600">|</span>
+            <button 
+              onClick={() => setShowProcessMonitor(true)} 
+              className="text-slate-400 hover:text-white"
+            >
+              Monitor
             </button>
             <span className="hidden sm:inline text-slate-600">|</span>
             <button 
@@ -741,6 +799,31 @@ export default function App() {
                       >Guardar</button>
                     </div>
                   </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-slate-500 font-mono uppercase">Contrase\u00f1a de Backup</label>
+                    <div className="flex gap-1">
+                      <input
+                        type="password"
+                        className="flex-1 bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none"
+                        placeholder="Clave para encriptar backups"
+                        value={backupPassword}
+                        onChange={e => setBackupPassword(e.target.value)}
+                      />
+                      <button
+                        onClick={async () => {
+                          if (!backupPassword.trim()) { alert('Ingrese una contrase\u00f1a'); return; }
+                          const r = await fetch('/api/company-config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ backupPassword: backupPassword.trim() }) });
+                          if (r.ok) {
+                            alert('Contrase\u00f1a de backup guardada correctamente');
+                            const d = await r.json();
+                            if (d.companyName) setCompanyConfig(d);
+                          } else { alert('Error al guardar contrase\u00f1a'); }
+                        }}
+                        className="bg-amber-700 hover:bg-amber-600 text-white font-bold px-3 rounded-lg text-xs transition-colors cursor-pointer"
+                      >Guardar</button>
+                    </div>
+                    <p className="text-[9px] text-slate-600">Los backups se encriptan con AES-256 y se suben a GitHub junto al c\u00f3digo</p>
+                  </div>
                   <div className="flex items-center gap-2 text-[11px]">
                     {syncStatus.syncing ? (
                       <><span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" /><span className="text-amber-400">Sincronizando...</span></>
@@ -759,18 +842,22 @@ export default function App() {
                       if (syncStatus.syncing) return;
                       setShowSyncModal(true);
                       setSyncModalType('syncing');
+                      showToast('Sincronizando con GitHub...', 'info');
                       try {
                         const r = await fetch('/api/sync-full', { method: 'POST' });
                         const d = await r.json();
                         if (d.success) {
                           setSyncModalType('success');
+                          showToast('Sincronizado correctamente', 'success');
                           const statusRes = await fetch('/api/auto-sync-status');
                           if (statusRes.ok) setSyncStatus(await statusRes.json());
                         } else {
                           setSyncModalType('error');
+                          showToast('Error al sincronizar', 'error');
                         }
                       } catch {
                         setSyncModalType('error');
+                        showToast('Error de conexión al sincronizar', 'error');
                       }
                     }}
                     disabled={syncStatus.syncing}
@@ -805,6 +892,86 @@ export default function App() {
                       className="hidden"
                       onChange={handleRestore}
                     />
+                    <button
+                      onClick={async () => {
+                        try {
+                          const r = await fetch('/api/backups/encrypted');
+                          if (r.ok) { setEncryptedBackups(await r.json()); setShowRestorePanel(true); }
+                        } catch {}
+                      }}
+                      className="w-full flex items-center justify-center gap-2 bg-purple-700 hover:bg-purple-600 text-white font-semibold py-2 px-3 rounded-lg text-xs transition-colors cursor-pointer"
+                    >
+                      <RotateCcw size={13} />
+                      Restaurar desde GitHub
+                    </button>
+                    {showRestorePanel && (
+                      <div className="border border-[#2d3444] rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-slate-500 font-mono uppercase font-bold">Backups Encriptados</span>
+                          <button onClick={() => { setShowRestorePanel(false); setSelectedBackup(''); setRestorePassword(''); }} className="text-slate-500 hover:text-white text-xs cursor-pointer">&times;</button>
+                        </div>
+                        {encryptedBackups.length === 0 ? (
+                          <p className="text-[11px] text-slate-500 italic">No hay backups encriptados disponibles. Sincronice con GitHub primero.</p>
+                        ) : (
+                          <div className="max-h-40 overflow-y-auto space-y-1">
+                            {encryptedBackups.map((b: any) => (
+                              <button
+                                key={b.file}
+                                onClick={() => setSelectedBackup(b.file)}
+                                className={`w-full text-left px-2.5 py-1.5 rounded text-[11px] transition-colors cursor-pointer ${
+                                  selectedBackup === b.file ? 'bg-purple-800/40 text-purple-200 border border-purple-700' : 'text-slate-400 hover:bg-[#1a1d24]'
+                                }`}
+                              >
+                                <span className="font-semibold">{b.date}</span>
+                                <span className="text-[9px] ml-2 text-slate-600">({(b.size / 1024).toFixed(0)} KB)</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {selectedBackup && (
+                          <>
+                            <input
+                              type="password"
+                              className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none"
+                              placeholder="Contrase\u00f1a de backup"
+                              value={restorePassword}
+                              onChange={e => setRestorePassword(e.target.value)}
+                            />
+                            <button
+                              onClick={async () => {
+                                if (!restorePassword) { alert('Ingrese la contrase\u00f1a'); return; }
+                                if (!confirm('\u00bfEst\u00e1 seguro de restaurar este backup? Se perder\u00e1n los datos actuales.')) return;
+                                setRestoreLoading(true);
+                                try {
+                                  const r = await fetch('/api/backups/restore-encrypted', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ file: selectedBackup, password: restorePassword })
+                                  });
+                                  if (r.ok) {
+                                    alert('Backup restaurado correctamente. Los datos se recargar\u00e1n.');
+                                    setShowRestorePanel(false);
+                                    setSelectedBackup('');
+                                    setRestorePassword('');
+                                    fetchAllData();
+                                  } else {
+                                    const err = await r.json();
+                                    alert(err.error || 'Error al restaurar');
+                                  }
+                                } catch {
+                                  alert('Error de conexi\u00f3n');
+                                }
+                                setRestoreLoading(false);
+                              }}
+                              disabled={restoreLoading}
+                              className="w-full bg-purple-700 hover:bg-purple-600 text-white font-bold py-1.5 px-3 rounded-lg text-xs transition-colors disabled:opacity-50 cursor-pointer"
+                            >
+                              {restoreLoading ? 'Restaurando...' : 'Restaurar Backup'}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <p className="text-[10px] text-slate-500 leading-normal">
                     Guarda o restaura un respaldo completo de la base de datos (productos, clientes, ventas, etc.).
@@ -820,9 +987,9 @@ export default function App() {
           </div>
         )}
 
-      {/* GitHub Sync popup */}
+      {/* GitHub Sync blocker */}
         {showSyncModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] flex items-center justify-center p-4">
             <div className="bg-[#111318] border border-[#2d3444] rounded-xl max-w-sm w-full overflow-hidden shadow-2xl p-6">
               <div className="flex flex-col items-center text-center gap-3">
                 {syncModalType === 'syncing' && (
@@ -834,8 +1001,9 @@ export default function App() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-white font-bold text-sm">Sincronizando con GitHub...</p>
-                      <p className="text-slate-400 text-xs mt-1">Subiendo cambios al repositorio remoto</p>
+                      <p className="text-white font-bold text-base">Por favor espere</p>
+                      <p className="text-amber-400 text-sm mt-1 font-semibold">Actualización en curso...</p>
+                      <p className="text-slate-500 text-xs mt-2">Subiendo cambios al repositorio remoto</p>
                     </div>
                   </>
                 )}
@@ -853,6 +1021,7 @@ export default function App() {
                         <p className="text-slate-500 text-[10px] mt-1 font-mono">{syncStatus.lastSync}</p>
                       )}
                     </div>
+                    <button onClick={() => setShowSyncModal(false)} className="mt-2 text-[10px] text-slate-400 hover:text-white font-mono px-3 py-1 rounded border border-[#2d3444] hover:bg-[#1a1d24] transition-all">Cerrar</button>
                   </>
                 )}
                 {syncModalType === 'error' && (
@@ -866,18 +1035,32 @@ export default function App() {
                       <p className="text-white font-bold text-sm">Error de sincronización</p>
                       <p className="text-slate-400 text-xs mt-1">{syncStatus.error || 'Error desconocido'}</p>
                     </div>
+                    <button onClick={() => setShowSyncModal(false)} className="mt-2 text-[10px] text-slate-400 hover:text-white font-mono px-3 py-1 rounded border border-[#2d3444] hover:bg-[#1a1d24] transition-all">Cerrar</button>
                   </>
                 )}
-                <button
-                  onClick={() => setShowSyncModal(false)}
-                  className="mt-2 text-[10px] text-slate-400 hover:text-white font-mono px-3 py-1 rounded border border-[#2d3444] hover:bg-[#1a1d24] transition-all"
-                >
-                  Cerrar
-                </button>
               </div>
             </div>
           </div>
         )}
+
+        {/* POPUP: MONITOR DE PROCESOS */}
+        {showProcessMonitor && <ProcessMonitor onClose={() => setShowProcessMonitor(false)} />}
+
+      {/* Toast notifications */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-[60]">
+          <div className={`flex items-center gap-2.5 px-4 py-3 rounded-lg shadow-2xl border text-xs font-semibold ${
+            toast.type === 'success' ? 'bg-emerald-900/80 border-emerald-700/50 text-emerald-300' :
+            toast.type === 'error' ? 'bg-red-900/80 border-red-700/50 text-red-300' :
+            'bg-[#1c222d] border-[#2d3444] text-slate-200'
+          }`}>
+            {toast.type === 'success' && <CheckCircle size={14} className="text-emerald-400 shrink-0" />}
+            {toast.type === 'error' && <AlertTriangle size={14} className="text-red-400 shrink-0" />}
+            {toast.type === 'info' && <svg className="w-3.5 h-3.5 text-amber-400 animate-spin shrink-0" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>}
+            {toast.msg}
+          </div>
+        </div>
+      )}
 
     </div>
   );

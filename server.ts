@@ -1,19 +1,22 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { execSync } from 'child_process';
 import https from 'https';
 import AdmZip from 'adm-zip';
 import { createServer as createViteServer } from 'vite';
 import Database from 'better-sqlite3';
-import { Product, Client, Sale, Provider, Purchase, PaymentMethod, CompanyConfig, Expense, CashRegister } from './src/types';
+import { Product, Client, Sale, Provider, Purchase, PaymentMethod, CompanyConfig, Expense, CashRegister, WebRepair } from './src/types';
 
 const DB_FILE = path.join(process.cwd(), 'database.db');
 const SEC_DB_FILE = path.join(process.cwd(), 'database.json');
 const BACKUP_DIR = path.join(process.cwd(), 'backups');
 const WEB_MAIN_DIR = path.join(process.cwd(), 'web');
-const MAX_BACKUPS = 5;
-const BACKUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
+const MAX_BACKUPS = 30;
+const BACKUP_INTERVAL_MS = 60 * 60 * 1000;
+const SECONDARY_BACKUP_DIR = path.join(process.cwd(), 'Backup Secundario');
+const ENCRYPTED_BACKUP_DIR = path.join(process.cwd(), 'Backups Encriptados');
 
 interface WebDataConfig {
   [key: string]: any;
@@ -33,6 +36,10 @@ interface DatabaseSchema {
   categories?: { id: string; name: string }[];
   services?: { id: string; name: string; desc?: string; icon?: string; price?: number }[];
   webConfig?: WebDataConfig;
+  repairs?: WebRepair[];
+  restockPending?: { id: string; productId: string; productName: string; productCode: string; quantity: number; createdAt: string; updatedAt: string }[];
+  monthlyStats?: { year: number; month: number; sales_count: number; cash_amount: number }[];
+  siteVisits?: { date: string; count: number }[];
 }
 
 interface WebProduct {
@@ -83,7 +90,13 @@ const INITIAL_DB: DatabaseSchema = {
   companyConfig: null,
   stockWarningEnabled: true,
   expenses: [],
-  cashRegister: null
+  cashRegister: null,
+  repairs: [],
+  restockPending: [],
+  monthlyStats: [],
+  siteVisits: [],
+  categories: [],
+  services: []
 };
 
 const SCHEMA_SQL = `
@@ -191,7 +204,8 @@ CREATE TABLE IF NOT EXISTS repairs (
   problem TEXT DEFAULT '',
   notes TEXT DEFAULT '',
   price REAL DEFAULT 0,
-  date TEXT NOT NULL
+  date TEXT NOT NULL,
+  updatedAt TEXT DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS site_visits (
@@ -253,6 +267,7 @@ function setupSchema(database: Database.Database): void {
   for (const col of ['webDesc', 'ofertaPrice', 'fichaTecnica', 'fichaTecnicaFile']) {
     try { database.exec(`ALTER TABLE products ADD COLUMN ${col} TEXT DEFAULT ''`); } catch {}
   }
+  try { database.exec(`ALTER TABLE repairs ADD COLUMN updatedAt TEXT DEFAULT ''`); } catch {}
   database.pragma('journal_mode = WAL');
   database.pragma('synchronous = NORMAL');
   database.pragma('foreign_keys = ON');
@@ -353,8 +368,12 @@ function getFullDatabaseSchema(): DatabaseSchema {
     expenses: db.prepare('SELECT * FROM expenses').all() as Expense[],
     cashRegister: getConfig<CashRegister | null>('cashRegister', null),
     categories: db.prepare('SELECT * FROM web_categories ORDER BY name').all() as { id: string; name: string }[],
-    services: db.prepare('SELECT * FROM web_services ORDER BY name').all() as { id: string; name: string; desc: string; icon: string; price: number }[],
+    services: db.prepare('SELECT * FROM web_services ORDER BY name').all() as { id: string; name: string; desc?: string; icon?: string; price?: number }[],
     webConfig: getConfig<WebDataConfig | null>('webConfig', null),
+    repairs: db.prepare('SELECT * FROM repairs ORDER BY date DESC').all() as WebRepair[],
+    restockPending: db.prepare('SELECT * FROM restock_pending ORDER BY createdAt DESC').all(),
+    monthlyStats: db.prepare('SELECT * FROM monthly_stats ORDER BY year, month').all(),
+    siteVisits: db.prepare('SELECT * FROM site_visits ORDER BY date').all(),
   };
 }
 
@@ -370,6 +389,10 @@ function migrateData(database: Database.Database, data: DatabaseSchema): void {
   const insPurchaseItem = database.prepare(`INSERT INTO purchase_items (purchaseId, productId, productName, quantity, cost) VALUES (?,?,?,?,?)`);
   const insWebCat = database.prepare(`INSERT OR REPLACE INTO web_categories (id, name) VALUES (?,?)`);
   const insWebSvc = database.prepare(`INSERT OR REPLACE INTO web_services (id, name, desc, icon, price) VALUES (?,?,?,?,?)`);
+  const insRepair = database.prepare(`INSERT OR REPLACE INTO repairs (id, code, clientId, clientName, clientPhone, equipment, marca, modelo, status, problem, notes, price, date, updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+  const insRestock = database.prepare(`INSERT OR REPLACE INTO restock_pending (id, productId, productName, productCode, quantity, createdAt, updatedAt) VALUES (?,?,?,?,?,?,?)`);
+  const insMonthly = database.prepare(`INSERT OR REPLACE INTO monthly_stats (year, month, sales_count, cash_amount) VALUES (?,?,?,?)`);
+  const insVisit = database.prepare(`INSERT OR REPLACE INTO site_visits (date, count) VALUES (?,?)`);
 
   const migrate = database.transaction(() => {
     for (const p of data.products) {
@@ -404,6 +427,18 @@ function migrateData(database: Database.Database, data: DatabaseSchema): void {
       for (const item of (p.items || [])) {
         insPurchaseItem.run(p.id, item.productId || '', item.productName || '', item.quantity || 0, item.cost || 0);
       }
+    }
+    for (const r of (data.repairs || [])) {
+      insRepair.run(r.id, r.code || '', r.clientId || '', r.clientName || '', r.clientPhone || '', r.equipment || '', r.marca || '', r.modelo || '', r.status || 'Recibida', r.problem || '', r.notes || '', Number(r.price) || 0, r.date || '', r.updatedAt || r.date || '');
+    }
+    for (const r of (data.restockPending || [])) {
+      insRestock.run(r.id, r.productId || '', r.productName || '', r.productCode || '', Number(r.quantity) || 1, r.createdAt || '', r.updatedAt || '');
+    }
+    for (const m of (data.monthlyStats || [])) {
+      insMonthly.run(m.year, m.month, m.sales_count || 0, m.cash_amount || 0);
+    }
+    for (const v of (data.siteVisits || [])) {
+      insVisit.run(v.date || '', v.count || 0);
     }
     const insConfig = database.prepare('INSERT OR REPLACE INTO app_config (key, value) VALUES (?, ?)');
     if (data.companyConfig) insConfig.run('companyConfig', JSON.stringify(data.companyConfig));
@@ -469,27 +504,96 @@ function createBackup(): void {
   try {
     const ts = new Date().toISOString().slice(0, 19).replace(/[:]/g, '-');
     const data = getFullDatabaseSchema();
+
+    // Backup principal
+    if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
     fs.writeFileSync(path.join(BACKUP_DIR, `nexus-${ts}.json`), JSON.stringify(data, null, 2), 'utf-8');
     fs.copyFileSync(DB_FILE, path.join(BACKUP_DIR, `nexus-${ts}.db`));
-    const files = fs.readdirSync(BACKUP_DIR)
-      .filter(f => f.startsWith('nexus-'))
-      .sort();
-    const seen = new Set<string>();
-    const unique: string[] = [];
-    for (const f of files) {
-      const base = f.replace(/\.(json|db)$/, '');
-      if (!seen.has(base)) { seen.add(base); unique.push(base); }
+
+    // Backup secundario
+    if (!fs.existsSync(SECONDARY_BACKUP_DIR)) fs.mkdirSync(SECONDARY_BACKUP_DIR, { recursive: true });
+    if (!fs.existsSync(path.join(SECONDARY_BACKUP_DIR, `nexus-${ts}.json`))) {
+      fs.writeFileSync(path.join(SECONDARY_BACKUP_DIR, `nexus-${ts}.json`), JSON.stringify(data, null, 2), 'utf-8');
     }
-    while (unique.length > MAX_BACKUPS) {
-      const old = unique.shift()!;
-      for (const ext of ['.json', '.db']) {
-        const p = path.join(BACKUP_DIR, old + ext);
-        if (fs.existsSync(p)) fs.unlinkSync(p);
+    if (!fs.existsSync(path.join(SECONDARY_BACKUP_DIR, `nexus-${ts}.db`))) {
+      fs.copyFileSync(DB_FILE, path.join(SECONDARY_BACKUP_DIR, `nexus-${ts}.db`));
+    }
+
+    // Rotación en carpeta principal
+    const rotateDir = (dir: string) => {
+      const files = fs.readdirSync(dir)
+        .filter(f => f.startsWith('nexus-'))
+        .sort();
+      const seen = new Set<string>();
+      const unique: string[] = [];
+      for (const f of files) {
+        const base = f.replace(/\.(json|db)$/, '');
+        if (!seen.has(base)) { seen.add(base); unique.push(base); }
       }
-    }
+      while (unique.length > MAX_BACKUPS) {
+        const old = unique.shift()!;
+        for (const ext of ['.json', '.db']) {
+          const p = path.join(dir, old + ext);
+          if (fs.existsSync(p)) fs.unlinkSync(p);
+        }
+      }
+    };
+    rotateDir(BACKUP_DIR);
+    rotateDir(SECONDARY_BACKUP_DIR);
+
     console.log(`[BACKUP] Backup creado: nexus-${ts}`);
+
+    createEncryptedBackup();
   } catch (err) {
     console.error('[BACKUP] Error:', err);
+  }
+}
+
+function encryptBackup(data: string, password: string): Buffer {
+  const salt = crypto.randomBytes(16);
+  const key = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha512');
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+  const encrypted = Buffer.concat([cipher.update(data, 'utf-8'), cipher.final()]);
+  return Buffer.concat([salt, iv, encrypted]);
+}
+
+function decryptBackup(encrypted: Buffer, password: string): string {
+  const salt = encrypted.subarray(0, 16);
+  const iv = encrypted.subarray(16, 32);
+  const data = encrypted.subarray(32);
+  const key = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha512');
+  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+  return decipher.update(data) + decipher.final('utf-8');
+}
+
+function createEncryptedBackup(): void {
+  try {
+    const config = getConfig<CompanyConfig | null>('companyConfig', null);
+    const password = config?.backupPassword;
+    if (!password) return;
+
+    const ts = new Date().toISOString().slice(0, 19).replace(/[:]/g, '-');
+    const data = getFullDatabaseSchema();
+    const jsonStr = JSON.stringify(data, null, 2);
+    const encrypted = encryptBackup(jsonStr, password);
+
+    if (!fs.existsSync(ENCRYPTED_BACKUP_DIR)) fs.mkdirSync(ENCRYPTED_BACKUP_DIR, { recursive: true });
+    fs.writeFileSync(path.join(ENCRYPTED_BACKUP_DIR, `nexus-${ts}.json.enc`), encrypted);
+
+    // Rotación
+    const files = fs.readdirSync(ENCRYPTED_BACKUP_DIR)
+      .filter(f => f.startsWith('nexus-') && f.endsWith('.json.enc'))
+      .sort();
+    while (files.length > MAX_BACKUPS) {
+      const old = files.shift()!;
+      const p = path.join(ENCRYPTED_BACKUP_DIR, old);
+      if (fs.existsSync(p)) fs.unlinkSync(p);
+    }
+
+    console.log(`[BACKUP] Backup encriptado creado: nexus-${ts}.json.enc`);
+  } catch (err) {
+    console.error('[BACKUP] Error al encriptar:', err);
   }
 }
 
@@ -1188,6 +1292,7 @@ async function startServer() {
     const sale = db.prepare('SELECT * FROM sales WHERE id = ?').get(saleId) as any;
     sale.items = db.prepare('SELECT * FROM sale_items WHERE saleId = ?').all(saleId);
     res.status(201).json(sale);
+    try { createBackup(); } catch {}
   });
 
   // PURCHASES
@@ -1216,6 +1321,7 @@ async function startServer() {
     const purchase = db.prepare('SELECT * FROM purchases WHERE id = ?').get(purchaseId) as any;
     purchase.items = db.prepare('SELECT * FROM purchase_items WHERE purchaseId = ?').all(purchaseId);
     res.status(201).json(purchase);
+    try { createBackup(); } catch {}
   });
 
   // ===== REPAIRS =====
@@ -1234,10 +1340,10 @@ async function startServer() {
     } while (existingCodes.includes(code));
     const id = 'REP-' + Date.now().toString().slice(-6);
     const date = new Date().toISOString().split('T')[0];
-    db.prepare(`INSERT INTO repairs (id, code, clientId, clientName, clientPhone, equipment, marca, modelo, status, problem, notes, price, date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+    db.prepare(`INSERT INTO repairs (id, code, clientId, clientName, clientPhone, equipment, marca, modelo, status, problem, notes, price, date, updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
       id, code, clientId || '', clientName || '', clientPhone || '',
       equipment || '', marca || '', modelo || '', status || 'Recibida',
-      problem || '', notes || '', Number(price) || 0, date
+      problem || '', notes || '', Number(price) || 0, date, date
     );
     lastPOSWrite = Date.now(); pendingSync = true;
     syncWebDataToFile();
@@ -1248,15 +1354,20 @@ async function startServer() {
     const existing = db.prepare('SELECT * FROM repairs WHERE id = ?').get(req.params.id) as any;
     if (!existing) return res.status(404).json({ error: 'Repair not found' });
     const { equipment, marca, modelo, status, problem, notes, price } = req.body;
-    db.prepare('UPDATE repairs SET equipment=?, marca=?, modelo=?, status=?, problem=?, notes=?, price=? WHERE id=?').run(
+    const now = new Date().toISOString();
+    db.prepare('UPDATE repairs SET equipment=?, marca=?, modelo=?, status=?, problem=?, notes=?, price=?, updatedAt=? WHERE id=?').run(
       equipment ?? existing.equipment, marca ?? existing.marca, modelo ?? existing.modelo,
       status ?? existing.status, problem ?? existing.problem,
       notes ?? existing.notes, price !== undefined ? Number(price) : existing.price,
-      req.params.id
+      now, req.params.id
     );
     lastPOSWrite = Date.now(); pendingSync = true;
     syncWebDataToFile();
     res.json(db.prepare('SELECT * FROM repairs WHERE id = ?').get(req.params.id));
+  });
+
+  app.get('/api/repairs/history', (req, res) => {
+    res.json(db.prepare("SELECT * FROM repairs WHERE status = 'Entregada' ORDER BY updatedAt DESC, date DESC").all());
   });
 
   app.delete('/api/repairs/:id', (req, res) => {
@@ -1359,6 +1470,12 @@ async function startServer() {
         db.exec('DELETE FROM products'); db.exec('DELETE FROM clients');
         db.exec('DELETE FROM providers'); db.exec('DELETE FROM payment_methods');
         db.exec('DELETE FROM expenses'); db.exec('DELETE FROM app_config');
+        if (backupData.repairs !== undefined) db.exec('DELETE FROM repairs');
+        if (backupData.restockPending !== undefined) db.exec('DELETE FROM restock_pending');
+        if (backupData.monthlyStats !== undefined) db.exec('DELETE FROM monthly_stats');
+        if (backupData.siteVisits !== undefined) db.exec('DELETE FROM site_visits');
+        if (backupData.categories !== undefined) db.exec('DELETE FROM web_categories');
+        if (backupData.services !== undefined) db.exec('DELETE FROM web_services');
         migrateData(db, backupData);
       });
       doRestore();
@@ -1479,6 +1596,12 @@ async function startServer() {
           db.exec('DELETE FROM products'); db.exec('DELETE FROM clients');
           db.exec('DELETE FROM providers'); db.exec('DELETE FROM payment_methods');
           db.exec('DELETE FROM expenses'); db.exec('DELETE FROM app_config');
+          if (backupData.repairs !== undefined) db.exec('DELETE FROM repairs');
+          if (backupData.restockPending !== undefined) db.exec('DELETE FROM restock_pending');
+          if (backupData.monthlyStats !== undefined) db.exec('DELETE FROM monthly_stats');
+          if (backupData.siteVisits !== undefined) db.exec('DELETE FROM site_visits');
+          if (backupData.categories !== undefined) db.exec('DELETE FROM web_categories');
+          if (backupData.services !== undefined) db.exec('DELETE FROM web_services');
           migrateData(db, backupData);
         });
         doRestore();
@@ -1488,6 +1611,66 @@ async function startServer() {
 
       res.status(404).json({ error: 'Archivo de backup no encontrado' });
     } catch (e: any) { res.status(500).json({ error: 'Error al restaurar backup: ' + (e.message || e) }); }
+  });
+
+  // LIST ENCRYPTED BACKUPS
+  app.get('/api/backups/encrypted', (req, res) => {
+    try {
+      if (!fs.existsSync(ENCRYPTED_BACKUP_DIR)) { fs.mkdirSync(ENCRYPTED_BACKUP_DIR, { recursive: true }); }
+      // Pull encrypted backups from GitHub remote before listing
+      try {
+        const config = getConfig<CompanyConfig | null>('companyConfig', null);
+        if (config?.gitToken) {
+          execSync('git fetch origin 2>nul', { cwd: process.cwd(), stdio: 'pipe', windowsHide: true });
+          execSync('git checkout origin/master -- "Backups Encriptados/" 2>nul', { cwd: process.cwd(), stdio: 'pipe', windowsHide: true });
+        }
+      } catch {}
+      const files = fs.readdirSync(ENCRYPTED_BACKUP_DIR)
+        .filter(f => f.startsWith('nexus-') && f.endsWith('.json.enc'))
+        .sort()
+        .reverse()
+        .map(f => {
+          const datePart = f.replace('nexus-', '').replace('.json.enc', '').replace(/T/g, ' ').replace(/-/g, ':').replace(/:(?=\d{2}$)/, '');
+          const stat = fs.statSync(path.join(ENCRYPTED_BACKUP_DIR, f));
+          return { file: f, date: datePart, size: stat.size };
+        });
+      res.json(files);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // RESTORE FROM ENCRYPTED BACKUP
+  app.post('/api/backups/restore-encrypted', (req, res) => {
+    try {
+      const { file, password } = req.body;
+      if (!file || !password) return res.status(400).json({ error: 'Faltan datos' });
+      const filePath = path.join(ENCRYPTED_BACKUP_DIR, file);
+      if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Archivo no encontrado. Sincronice con GitHub para descargar los backups remotos.' });
+      const encrypted = fs.readFileSync(filePath);
+      const jsonStr = decryptBackup(encrypted, password);
+      const backupData = JSON.parse(jsonStr);
+      if (!backupData.products || !backupData.clients) {
+        return res.status(400).json({ error: 'El archivo de backup no es válido' });
+      }
+      const doRestore = db.transaction(() => {
+        db.exec('DELETE FROM sale_items'); db.exec('DELETE FROM sales');
+        db.exec('DELETE FROM purchase_items'); db.exec('DELETE FROM purchases');
+        db.exec('DELETE FROM products'); db.exec('DELETE FROM clients');
+        db.exec('DELETE FROM providers'); db.exec('DELETE FROM payment_methods');
+        db.exec('DELETE FROM expenses'); db.exec('DELETE FROM app_config');
+        if (backupData.repairs !== undefined) db.exec('DELETE FROM repairs');
+        if (backupData.restockPending !== undefined) db.exec('DELETE FROM restock_pending');
+        if (backupData.monthlyStats !== undefined) db.exec('DELETE FROM monthly_stats');
+        if (backupData.siteVisits !== undefined) db.exec('DELETE FROM site_visits');
+        if (backupData.categories !== undefined) db.exec('DELETE FROM web_categories');
+        if (backupData.services !== undefined) db.exec('DELETE FROM web_services');
+        migrateData(db, backupData);
+      });
+      doRestore();
+      lastPOSWrite = Date.now(); pendingSync = true;
+      res.json({ success: true, message: 'Backup encriptado restaurado correctamente.' });
+    } catch (e: any) {
+      res.status(400).json({ error: 'Error al restaurar: contraseña incorrecta o archivo inválido' });
+    }
   });
 
   // STATS
@@ -1642,12 +1825,58 @@ async function startServer() {
         db.exec('DELETE FROM products'); db.exec('DELETE FROM clients');
         db.exec('DELETE FROM providers'); db.exec('DELETE FROM payment_methods');
         db.exec('DELETE FROM expenses'); db.exec('DELETE FROM app_config');
+        if (INITIAL_DB.repairs !== undefined) db.exec('DELETE FROM repairs');
+        if (INITIAL_DB.restockPending !== undefined) db.exec('DELETE FROM restock_pending');
+        if (INITIAL_DB.monthlyStats !== undefined) db.exec('DELETE FROM monthly_stats');
+        if (INITIAL_DB.siteVisits !== undefined) db.exec('DELETE FROM site_visits');
+        if (INITIAL_DB.categories !== undefined) db.exec('DELETE FROM web_categories');
+        if (INITIAL_DB.services !== undefined) db.exec('DELETE FROM web_services');
         migrateData(db, INITIAL_DB);
       });
       doReset();
       lastPOSWrite = Date.now(); pendingSync = true;
       res.json({ success: true, message: 'Base de datos reiniciada al estado inicial.' });
     } catch (error: any) { res.status(500).json({ error: 'Error al reiniciar: ' + (error.message || error) }); }
+  });
+
+  // SYSTEM STATUS
+  app.get('/api/status', (req, res) => {
+    try {
+      const mb = (b: number) => (b / 1024 / 1024).toFixed(1);
+      const uptime = process.uptime();
+      const days = Math.floor(uptime / 86400);
+      const hours = Math.floor((uptime % 86400) / 3600);
+      const mins = Math.floor((uptime % 3600) / 60);
+      const uptimeStr = days > 0 ? `${days}d ${hours}h ${mins}m` : `${hours}h ${mins}m`;
+      let dbSize = 0;
+      try { dbSize = fs.statSync(path.join(process.cwd(), 'database.db')).size; } catch {}
+      const mem = process.memoryUsage();
+      let children: { pid: number; name: string }[] = [];
+      try {
+        const out = execSync(`wmic process where "ParentProcessId=${process.pid}" get ProcessId,Name /format:csv 2>nul`, { encoding: 'utf8', windowsHide: true, timeout: 3000 });
+        children = out.trim().split('\n').slice(1).filter(l => l.trim()).map(l => { const p = l.trim().split(','); return { name: p[2] || '', pid: parseInt(p[3]) || 0 }; }).filter(c => c.pid > 0);
+      } catch {}
+      const counts: Record<string, number> = {};
+      for (const table of ['products','clients','providers','sales','purchases','expenses','repairs','web_categories','web_services','restock_pending']) {
+        try { counts[table] = (db.prepare(`SELECT COUNT(*) as c FROM ${table}`).get() as any).c; } catch { counts[table] = 0; }
+      }
+      const config = getConfig<CompanyConfig | null>('companyConfig', null);
+      res.json({
+        pid: process.pid,
+        ppid: process.ppid,
+        uptime: uptimeStr,
+        uptimeSeconds: uptime,
+        memory: { rss: mb(mem.rss) + ' MB', heapTotal: mb(mem.heapTotal) + ' MB', heapUsed: mb(mem.heapUsed) + ' MB' },
+        nodeVersion: process.version,
+        platform: process.platform,
+        dbSize: mb(dbSize) + ' MB',
+        dbSizeBytes: dbSize,
+        counts,
+        children,
+        gitRemote: config?.gitRepo || 'No configurado',
+        lastSync: lastSyncTime || null
+      });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
   // Vite / static serving
@@ -1671,13 +1900,12 @@ async function startServer() {
     console.log(`  Base de datos: SQLite (WAL mode)`);
     console.log(`  Listening on http://localhost:${PORT}`);
     console.log(`  AutoSync a GitHub cada 30s`);
-    console.log(`  Backups automáticos cada 24h`);
+    console.log(`  Backups automáticos cada 1h + post-venta`);
     console.log(`=========================================`);
     setInterval(doAutoSync, 30000);
     setTimeout(doAutoSync, 5000);
     setInterval(() => {
-      const hour = new Date().getHours();
-      if (hour >= 10 && hour < 19 && Date.now() - lastBackupTime > BACKUP_INTERVAL_MS) { createBackup(); lastBackupTime = Date.now(); }
+      if (Date.now() - lastBackupTime > BACKUP_INTERVAL_MS) { createBackup(); lastBackupTime = Date.now(); }
     }, 60000);
   }).on('error', (err: any) => {
     if (err.code === 'EADDRINUSE') console.error(`[FATAL] Puerto ${PORT} ya esta en uso.`);

@@ -12,6 +12,11 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
   const banners = config.banners || [];
   const [activeSection, setActiveSection] = useState('config');
   const [visitStats, setVisitStats] = useState<{ total: number; today: number; lastDays: { date: string; count: number }[] } | null>(null);
+  const [draftConfig, setDraftConfig] = useState<any>(config);
+  const [draftBanners, setDraftBanners] = useState<any[]>(banners);
+
+  useEffect(() => { setDraftConfig(config); }, [config]);
+  useEffect(() => { setDraftBanners(banners); }, [banners]);
 
   useEffect(() => {
     if (activeSection === 'visitas') {
@@ -26,9 +31,8 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
     } catch { alert('Error al guardar'); }
   };
 
-  const updateConfig = (patch: any) => {
-    const updated = { ...webData, config: { ...config, ...patch } };
-    handleSave(updated);
+  const saveDraft = () => {
+    handleSave({ ...webData, config: { ...config, ...draftConfig, banners: draftBanners } });
   };
 
   const updateFull = (updated: any) => handleSave(updated);
@@ -128,32 +132,33 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
           <div className="space-y-4 max-w-xl">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider">Datos de la Empresa</h3>
             <div className="grid grid-cols-2 gap-3">
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Nombre</label><input type="text" value={config.companyName || ''} onChange={e => updateConfig({ companyName: e.target.value })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Dirección</label><input type="text" value={config.address || ''} onChange={e => updateConfig({ address: e.target.value })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Teléfono</label><input type="text" value={config.phone || ''} onChange={e => updateConfig({ phone: e.target.value })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">WhatsApp</label><input type="text" value={config.whatsapp || ''} onChange={e => updateConfig({ whatsapp: e.target.value })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Email</label><input type="text" value={config.email || ''} onChange={e => updateConfig({ email: e.target.value })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Horario</label><input type="text" value={config.hours || ''} onChange={e => updateConfig({ hours: e.target.value })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Instagram</label><input type="text" value={config.instagram || ''} onChange={e => updateConfig({ instagram: e.target.value })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Facebook</label><input type="text" value={config.facebook || ''} onChange={e => updateConfig({ facebook: e.target.value })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Nombre</label><input type="text" value={draftConfig.companyName || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, companyName: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Dirección</label><input type="text" value={draftConfig.address || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, address: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Teléfono</label><input type="text" value={draftConfig.phone || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, phone: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+              <div><label className="text-[10px] text-slate-500 font-mono uppercase">WhatsApp</label><input type="text" value={draftConfig.whatsapp || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, whatsapp: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Email</label><input type="text" value={draftConfig.email || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, email: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Horario</label><input type="text" value={draftConfig.hours || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, hours: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Instagram</label><input type="text" value={draftConfig.instagram || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, instagram: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Facebook</label><input type="text" value={draftConfig.facebook || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, facebook: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
             </div>
-            <p className="text-[10px] text-slate-500">Los cambios se guardan automáticamente al escribir.</p>
+            <button onClick={saveDraft} className="bg-[#5aa6ec] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold hover:brightness-110 transition-all cursor-pointer">Guardar Cambios</button>
           </div>
         )}
 
         {activeSection === 'seo' && (
           <div className="space-y-4 max-w-xl">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider">SEO y Métricas</h3>
-            <div><label className="text-[10px] text-slate-500 font-mono uppercase">Título del Sitio</label><input type="text" value={config.siteTitle || ''} onChange={e => updateConfig({ siteTitle: e.target.value })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-            <div><label className="text-[10px] text-slate-500 font-mono uppercase">Meta Descripción</label><textarea rows={2} value={config.metaDescription || ''} onChange={e => updateConfig({ metaDescription: e.target.value })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+            <div><label className="text-[10px] text-slate-500 font-mono uppercase">Título del Sitio</label><input type="text" value={draftConfig.siteTitle || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, siteTitle: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+            <div><label className="text-[10px] text-slate-500 font-mono uppercase">Meta Descripción</label><textarea rows={2} value={draftConfig.metaDescription || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, metaDescription: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Google Analytics ID</label><input type="text" value={config.ga4Id || ''} onChange={e => updateConfig({ ga4Id: e.target.value })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none" placeholder="G-XXXXXXXXXX" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Google Tag Manager</label><input type="text" value={config.gtmId || ''} onChange={e => updateConfig({ gtmId: e.target.value })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none" placeholder="GTM-XXXXXXX" /></div>
+              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Google Analytics ID</label><input type="text" value={draftConfig.ga4Id || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, ga4Id: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none" placeholder="G-XXXXXXXXXX" /></div>
+              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Google Tag Manager</label><input type="text" value={draftConfig.gtmId || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, gtmId: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none" placeholder="GTM-XXXXXXX" /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Productos en Inicio</label><input type="number" value={config.homeProductLimit ?? config.productLimit ?? ''} onChange={e => updateConfig({ homeProductLimit: parseInt(e.target.value) || 0, productLimit: parseInt(e.target.value) || 0 })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div className="flex items-end pb-2"><label className="flex items-center gap-2 text-xs text-slate-400"><input type="checkbox" checked={config.homeRandomOrder ?? config.randomOrder ?? false} onChange={e => updateConfig({ homeRandomOrder: e.target.checked, randomOrder: e.target.checked })} className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded" />Orden aleatorio</label></div>
+              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Productos en Inicio</label><input type="number" value={draftConfig.homeProductLimit ?? draftConfig.productLimit ?? ''} onChange={e => setDraftConfig((p: any) => ({ ...p, homeProductLimit: parseInt(e.target.value) || 0, productLimit: parseInt(e.target.value) || 0 }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+              <div className="flex items-end pb-2"><label className="flex items-center gap-2 text-xs text-slate-400"><input type="checkbox" checked={draftConfig.homeRandomOrder ?? draftConfig.randomOrder ?? false} onChange={e => setDraftConfig((p: any) => ({ ...p, homeRandomOrder: e.target.checked, randomOrder: e.target.checked }))} className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded" />Orden aleatorio</label></div>
             </div>
+            <button onClick={saveDraft} className="bg-[#5aa6ec] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold hover:brightness-110 transition-all cursor-pointer">Guardar Cambios</button>
           </div>
         )}
 
@@ -237,31 +242,32 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
           <div className="space-y-4 max-w-xl">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider">Popup Promocional</h3>
             <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-xs text-slate-400"><input type="checkbox" checked={config.popupActive || false} onChange={e => updateConfig({ popupActive: e.target.checked })} className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded" />Activo</label>
-              <label className="flex items-center gap-2 text-xs text-slate-400"><input type="checkbox" checked={config.popupAlways || false} onChange={e => updateConfig({ popupAlways: e.target.checked })} className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded" />Mostrar siempre</label>
+              <label className="flex items-center gap-2 text-xs text-slate-400"><input type="checkbox" checked={draftConfig.popupActive || false} onChange={e => setDraftConfig((p: any) => ({ ...p, popupActive: e.target.checked }))} className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded" />Activo</label>
+              <label className="flex items-center gap-2 text-xs text-slate-400"><input type="checkbox" checked={draftConfig.popupAlways || false} onChange={e => setDraftConfig((p: any) => ({ ...p, popupAlways: e.target.checked }))} className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded" />Mostrar siempre</label>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Duración (seg)</label><input type="number" value={config.popupDuration || 5} onChange={e => updateConfig({ popupDuration: parseInt(e.target.value) || 5 })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Delay (seg)</label><input type="number" value={config.popupDelay || 2} onChange={e => updateConfig({ popupDelay: parseInt(e.target.value) || 2 })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Duración (seg)</label><input type="number" value={draftConfig.popupDuration || 5} onChange={e => setDraftConfig((p: any) => ({ ...p, popupDuration: parseInt(e.target.value) || 5 }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Delay (seg)</label><input type="number" value={draftConfig.popupDelay || 2} onChange={e => setDraftConfig((p: any) => ({ ...p, popupDelay: parseInt(e.target.value) || 2 }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
             </div>
-            <div><label className="text-[10px] text-slate-500 font-mono uppercase">Texto</label><textarea rows={2} value={config.popupText || ''} onChange={e => updateConfig({ popupText: e.target.value })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+            <div><label className="text-[10px] text-slate-500 font-mono uppercase">Texto</label><textarea rows={2} value={draftConfig.popupText || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, popupText: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
             <div>
               <label className="text-[10px] text-slate-500 font-mono uppercase">Imagen</label>
               <div className="relative border-2 border-dashed border-[#2d3444] rounded-lg p-3 mt-1 text-center cursor-pointer hover:border-[#5aa6ec] transition-colors"
                 onClick={() => { const inp = document.getElementById('popup-file-input') as HTMLInputElement; inp?.click(); }}
                 onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-[#5aa6ec]'); }}
                 onDragLeave={e => { e.currentTarget.classList.remove('border-[#5aa6ec]'); }}
-                onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-[#5aa6ec]'); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => updateConfig({ popupImage: ev.target?.result as string }); r.readAsDataURL(f); } }}
+                onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-[#5aa6ec]'); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => setDraftConfig((p: any) => ({ ...p, popupImage: ev.target?.result as string })); r.readAsDataURL(f); } }}
               >
-                <input id="popup-file-input" type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => updateConfig({ popupImage: ev.target?.result as string }); r.readAsDataURL(f); } }} />
-                {config.popupImage ? (
-                  <img src={config.popupImage.startsWith('data:') || config.popupImage.startsWith('http') ? config.popupImage : imgSrc(config.popupImage)} alt="" className="max-h-24 mx-auto rounded object-contain" />
+                <input id="popup-file-input" type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => setDraftConfig((p: any) => ({ ...p, popupImage: ev.target?.result as string })); r.readAsDataURL(f); } }} />
+                {draftConfig.popupImage ? (
+                  <img src={draftConfig.popupImage.startsWith('data:') || draftConfig.popupImage.startsWith('http') ? draftConfig.popupImage : imgSrc(draftConfig.popupImage)} alt="" className="max-h-24 mx-auto rounded object-contain" />
                 ) : (
                   <div className="text-slate-500 text-xs py-3"><Image size={20} className="mx-auto mb-1 opacity-50" />Arrastrá imagen o hacé clic</div>
                 )}
               </div>
-              <input type="text" value={config.popupImage && !config.popupImage.startsWith('data:') ? config.popupImage : ''} onChange={e => updateConfig({ popupImage: e.target.value })} placeholder="O URL externa" className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white mt-2 focus:outline-none" />
+              <input type="text" value={draftConfig.popupImage && !draftConfig.popupImage.startsWith('data:') ? draftConfig.popupImage : ''} onChange={e => setDraftConfig((p: any) => ({ ...p, popupImage: e.target.value }))} placeholder="O URL externa" className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white mt-2 focus:outline-none" />
             </div>
+            <button onClick={saveDraft} className="bg-[#5aa6ec] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold hover:brightness-110 transition-all cursor-pointer">Guardar Cambios</button>
           </div>
         )}
 
@@ -313,14 +319,14 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
           <div className="space-y-4 max-w-xl">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-white uppercase tracking-wider">Carrusel de Banners</h3>
-              <button onClick={() => updateConfig({ banners: [...banners, { image: '', title: '', link: '', description: '' }] })} className="bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg py-1.5 px-3 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"><Plus size={13} />Agregar</button>
+              <button onClick={() => { setDraftBanners((p: any[]) => [...p, { image: '', title: '', link: '', description: '' }]); }} className="bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg py-1.5 px-3 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"><Plus size={13} />Agregar</button>
             </div>
-            {banners.length === 0 ? <p className="text-xs text-slate-500 italic">Sin banners configurados.</p> : banners.map((b: any, i: number) => (
+            {draftBanners.length === 0 ? <p className="text-xs text-slate-500 italic">Sin banners configurados.</p> : draftBanners.map((b: any, i: number) => (
               <div key={i} className="bg-[#0d0e12] border border-[#1f242e] rounded-lg p-4 space-y-2">
-                <div className="flex justify-between items-center"><span className="text-[10px] text-slate-500 font-mono uppercase">Banner #{i + 1}</span><button onClick={() => { const bs = [...banners]; bs.splice(i, 1); updateConfig({ banners: bs }); }} className="text-red-400 hover:text-red-300 cursor-pointer"><Trash2 size={12} /></button></div>
+                <div className="flex justify-between items-center"><span className="text-[10px] text-slate-500 font-mono uppercase">Banner #{i + 1}</span><button onClick={() => { setDraftBanners((p: any[]) => { const bs = [...p]; bs.splice(i, 1); return bs; }); }} className="text-red-400 hover:text-red-300 cursor-pointer"><Trash2 size={12} /></button></div>
                 <div className="grid grid-cols-2 gap-2">
-                  <div><label className="text-[10px] text-slate-500 font-mono">Título</label><input type="text" value={b.title || ''} onChange={e => { const bs = [...banners]; bs[i] = { ...bs[i], title: e.target.value }; updateConfig({ banners: bs }); }} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-                  <div><label className="text-[10px] text-slate-500 font-mono">Link</label><input type="text" value={b.link || ''} onChange={e => { const bs = [...banners]; bs[i] = { ...bs[i], link: e.target.value }; updateConfig({ banners: bs }); }} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+                  <div><label className="text-[10px] text-slate-500 font-mono">Título</label><input type="text" value={b.title || ''} onChange={e => setDraftBanners((p: any[]) => { const bs = [...p]; bs[i] = { ...bs[i], title: e.target.value }; return bs; })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+                  <div><label className="text-[10px] text-slate-500 font-mono">Link</label><input type="text" value={b.link || ''} onChange={e => setDraftBanners((p: any[]) => { const bs = [...p]; bs[i] = { ...bs[i], link: e.target.value }; return bs; })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
                 </div>
                 <div>
                   <label className="text-[10px] text-slate-500 font-mono">Imagen</label>
@@ -328,20 +334,21 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
                     onClick={() => { const inp = document.getElementById('banner-file-' + i) as HTMLInputElement; inp?.click(); }}
                     onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-[#5aa6ec]'); }}
                     onDragLeave={e => { e.currentTarget.classList.remove('border-[#5aa6ec]'); }}
-                    onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-[#5aa6ec]'); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => { const bs = [...banners]; bs[i] = { ...bs[i], image: ev.target?.result as string }; updateConfig({ banners: bs }); }; r.readAsDataURL(f); } }}
+                    onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-[#5aa6ec]'); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => { setDraftBanners((p: any[]) => { const bs = [...p]; bs[i] = { ...bs[i], image: ev.target?.result as string }; return bs; }); }; r.readAsDataURL(f); } }}
                   >
-                    <input id={'banner-file-' + i} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => { const bs = [...banners]; bs[i] = { ...bs[i], image: ev.target?.result as string }; updateConfig({ banners: bs }); }; r.readAsDataURL(f); } }} />
+                    <input id={'banner-file-' + i} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => { setDraftBanners((p: any[]) => { const bs = [...p]; bs[i] = { ...bs[i], image: ev.target?.result as string }; return bs; }); }; r.readAsDataURL(f); } }} />
                     {b.image ? (
                       <img src={b.image.startsWith('data:') || b.image.startsWith('http') ? b.image : imgSrc(b.image)} alt="" className="max-h-16 mx-auto rounded object-contain" />
                     ) : (
                       <div className="text-slate-500 text-[10px] py-2"><Image size={16} className="mx-auto mb-1 opacity-50" />Arrastrá o clic</div>
                     )}
                   </div>
-                  <input type="text" value={b.image && !b.image.startsWith('data:') ? b.image : ''} onChange={e => { const bs = [...banners]; bs[i] = { ...bs[i], image: e.target.value }; updateConfig({ banners: bs }); }} placeholder="O URL externa" className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white mt-1 focus:outline-none" />
+                  <input type="text" value={b.image && !b.image.startsWith('data:') ? b.image : ''} onChange={e => setDraftBanners((p: any[]) => { const bs = [...p]; bs[i] = { ...bs[i], image: e.target.value }; return bs; })} placeholder="O URL externa" className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white mt-1 focus:outline-none" />
                 </div>
-                <div><label className="text-[10px] text-slate-500 font-mono">Descripción</label><input type="text" value={b.description || ''} onChange={e => { const bs = [...banners]; bs[i] = { ...bs[i], description: e.target.value }; updateConfig({ banners: bs }); }} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+                <div><label className="text-[10px] text-slate-500 font-mono">Descripción</label><input type="text" value={b.description || ''} onChange={e => setDraftBanners((p: any[]) => { const bs = [...p]; bs[i] = { ...bs[i], description: e.target.value }; return bs; })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
               </div>
             ))}
+            <button onClick={saveDraft} className="bg-[#5aa6ec] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold hover:brightness-110 transition-all cursor-pointer">Guardar Cambios</button>
           </div>
         )}
 

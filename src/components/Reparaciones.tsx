@@ -434,6 +434,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                   <th className="px-4 py-2.5">N\u00b0 Orden</th>
                   <th className="px-4 py-2.5">Clave</th>
                   <th className="px-4 py-2.5">Cliente</th>
+                  <th className="px-4 py-2.5">Tel\u00e9fono</th>
                   <th className="px-4 py-2.5">Equipo</th>
                   <th className="px-4 py-2.5">Marca</th>
                   <th className="px-4 py-2.5">Modelo</th>
@@ -443,8 +444,8 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                 </tr>
               </thead>
               <tbody>
-                {filterBySearch(deliveredRepairs).length === 0 ? (
-                  <tr><td colSpan={9} className="text-center text-slate-500 py-8 italic">No hay reparaciones entregadas</td></tr>
+{filterBySearch(deliveredRepairs).length === 0 ? (
+                <tr><td colSpan={10} className="text-center text-slate-500 py-8 italic">No hay reparaciones entregadas</td></tr>
                 ) : filterBySearch(deliveredRepairs).map(r => {
                   const client = getClient(r.clientId);
                   return (
@@ -452,6 +453,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                       <td className="px-4 py-2.5 font-semibold text-white">{r.id}</td>
                       <td className="px-4 py-2.5"><span className="text-[1.1rem] font-bold tracking-widest text-cyan-400">{r.code}</span></td>
                       <td className="px-4 py-2.5 text-slate-300 truncate max-w-[140px]">{client?.name || 'Desconocido'}</td>
+                      <td className="px-4 py-2.5 text-slate-400 font-mono">{r.clientPhone || client?.phone || '-'}</td>
                       <td className="px-4 py-2.5 text-slate-300 truncate max-w-[180px]">{r.equipment}</td>
                       <td className="px-4 py-2.5 text-slate-400">{r.marca || '-'}</td>
                       <td className="px-4 py-2.5 text-slate-400">{r.modelo || '-'}</td>
@@ -482,6 +484,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                 <th className="px-4 py-2.5">N\u00b0 Orden</th>
                 <th className="px-4 py-2.5">Clave</th>
                 <th className="px-4 py-2.5">Cliente</th>
+                <th className="px-4 py-2.5">Tel\u00e9fono</th>
                 <th className="px-4 py-2.5">Equipo</th>
                 <th className="px-4 py-2.5">Estado</th>
                 <th className="px-4 py-2.5">Fecha</th>
@@ -490,7 +493,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
             </thead>
             <tbody id="repairs-finished-tbody">
               {filterBySearch(finishedRepairs).length === 0 ? (
-                <tr><td colSpan={7} className="text-center text-slate-500 py-8 italic">No hay reparaciones finalizadas</td></tr>
+                <tr><td colSpan={8} className="text-center text-slate-500 py-8 italic">No hay reparaciones finalizadas</td></tr>
               ) : filterBySearch(finishedRepairs).map(r => {
                 const client = getClient(r.clientId);
                 return (
@@ -498,6 +501,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                     <td className="px-4 py-2.5 font-semibold text-white">{r.id}</td>
                     <td className="px-4 py-2.5"><span className="text-[1.1rem] font-bold tracking-widest text-cyan-400">{r.code}</span></td>
                     <td className="px-4 py-2.5 text-slate-300 truncate max-w-[140px]">{client?.name || 'Desconocido'}</td>
+                    <td className="px-4 py-2.5 text-slate-400 font-mono">{r.clientPhone || client?.phone || '-'}</td>
                     <td className="px-4 py-2.5 text-slate-300 truncate max-w-[180px]">{r.equipment}</td>
                     <td className="px-4 py-2.5"><span className={'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ' + statusBadge(r.status)}>{r.status}</span></td>
                     <td className="px-4 py-2.5 text-slate-400">{r.date}</td>
@@ -528,6 +532,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                 <th className="px-4 py-2.5">N\u00b0 Orden</th>
                 <th className="px-4 py-2.5">Clave</th>
                 <th className="px-4 py-2.5">Cliente</th>
+                <th className="px-4 py-2.5">Tel\u00e9fono</th>
                 <th className="px-4 py-2.5">Equipo</th>
                 <th className="px-4 py-2.5">Estado</th>
                 <th className="px-4 py-2.5">Fecha</th>
@@ -536,7 +541,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
             </thead>
             <tbody id="repairs-active-tbody">
               {filterBySearch(activeRepairs).length === 0 ? (
-                <tr><td colSpan={7} className="text-center text-slate-500 py-8 italic">No hay reparaciones en curso</td></tr>
+                <tr><td colSpan={8} className="text-center text-slate-500 py-8 italic">No hay reparaciones en curso</td></tr>
               ) : filterBySearch(activeRepairs).map(r => {
                 const client = getClient(r.clientId);
                 return (
@@ -544,6 +549,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                     <td className="px-4 py-2.5 font-semibold text-white">{r.id}</td>
                     <td className="px-4 py-2.5"><span className="text-[1.1rem] font-bold tracking-widest text-cyan-400">{r.code}</span></td>
                     <td className="px-4 py-2.5 text-slate-300 truncate max-w-[140px]">{client?.name || 'Desconocido'}</td>
+                    <td className="px-4 py-2.5 text-slate-400 font-mono">{r.clientPhone || client?.phone || '-'}</td>
                     <td className="px-4 py-2.5 text-slate-300 truncate max-w-[180px]">{r.equipment}</td>
                     <td className="px-4 py-2.5"><span className={'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ' + statusBadge(r.status)}>{r.status}</span></td>
                     <td className="px-4 py-2.5 text-slate-400">{r.date}</td>
