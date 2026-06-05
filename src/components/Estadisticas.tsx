@@ -118,7 +118,8 @@ export default function Estadisticas() {
     } catch { alert('Error de conexión'); }
   };
 
-  const years = Array.from(new Set(stats.map(s => s.year))).sort((a: number, b: number) => b - a);
+  const years = [...new Set(stats.map(s => s.year))] as number[];
+  years.sort((a, b) => b - a);
   const currentData = stats.filter(s => s.year === selectedYear).sort((a, b) => a.month - b.month);
   const chartData = stats.filter(s => s.year === chartYear).sort((a, b) => a.month - b.month);
 

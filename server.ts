@@ -372,9 +372,9 @@ function getFullDatabaseSchema(): DatabaseSchema {
     services: db.prepare('SELECT * FROM web_services ORDER BY name').all() as { id: string; name: string; desc?: string; icon?: string; price?: number }[],
     webConfig: getConfig<WebDataConfig | null>('webConfig', null),
     repairs: db.prepare('SELECT * FROM repairs ORDER BY date DESC').all() as WebRepair[],
-    restockPending: db.prepare('SELECT * FROM restock_pending ORDER BY createdAt DESC').all(),
-    monthlyStats: db.prepare('SELECT * FROM monthly_stats ORDER BY year, month').all(),
-    siteVisits: db.prepare('SELECT * FROM site_visits ORDER BY date').all(),
+    restockPending: db.prepare('SELECT * FROM restock_pending ORDER BY createdAt DESC').all() as { id: string; productId: string; productName: string; productCode: string; quantity: number; createdAt: string; updatedAt: string }[],
+    monthlyStats: db.prepare('SELECT * FROM monthly_stats ORDER BY year, month').all() as { year: number; month: number; sales_count: number; cash_amount: number }[],
+    siteVisits: db.prepare('SELECT * FROM site_visits ORDER BY date').all() as { date: string; count: number }[],
   };
 }
 
@@ -1692,6 +1692,74 @@ async function startServer() {
     } catch (e: any) { res.status(500).json({ error: 'Error al restaurar backup: ' + (e.message || e) }); }
   });
 
+  // RESTORE LAST BACKUP (with password)
+  app.post('/api/backups/restore-last', (req, res) => {
+    try {
+      const { password } = req.body;
+      if (password !== 'Iona1511') {
+        return res.status(401).json({ error: 'Contraseña incorrecta' });
+      }
+
+      if (!fs.existsSync(BACKUP_DIR)) {
+        return res.status(404).json({ error: 'No hay backups disponibles' });
+      }
+      const files = fs.readdirSync(BACKUP_DIR)
+        .filter(f => f.startsWith('nexus-') && (f.endsWith('.json') || f.endsWith('.db')))
+        .sort()
+        .reverse();
+      if (files.length === 0) {
+        return res.status(404).json({ error: 'No hay backups disponibles' });
+      }
+      const newest = files[0].replace(/\.(json|db)$/, '');
+      const jsonPath = path.join(BACKUP_DIR, newest + '.json');
+      const dbPath = path.join(BACKUP_DIR, newest + '.db');
+
+      if (fs.existsSync(dbPath)) {
+        const testDb = new Database(dbPath);
+        const integrity = testDb.pragma('integrity_check') as string[];
+        if (!integrity.every((r: string) => r === 'ok')) {
+          testDb.close();
+          return res.status(400).json({ error: 'El archivo de base de datos no es válido' });
+        }
+        testDb.close();
+        createBackup();
+        db.close();
+        fs.copyFileSync(dbPath, DB_FILE);
+        db = new Database(DB_FILE);
+        setupSchema(db);
+        lastPOSWrite = Date.now(); pendingSync = true;
+        return res.json({ success: true, message: 'Último backup restaurado correctamente.' });
+      }
+
+      if (fs.existsSync(jsonPath)) {
+        const backupData = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
+        if (!backupData.products || !backupData.clients) {
+          return res.status(400).json({ error: 'El archivo de backup JSON no es válido' });
+        }
+        createBackup();
+        const doRestore = db.transaction(() => {
+          db.exec('DELETE FROM sale_items'); db.exec('DELETE FROM sales');
+          db.exec('DELETE FROM purchase_items'); db.exec('DELETE FROM purchases');
+          db.exec('DELETE FROM products'); db.exec('DELETE FROM clients');
+          db.exec('DELETE FROM providers'); db.exec('DELETE FROM payment_methods');
+          db.exec('DELETE FROM expenses'); db.exec('DELETE FROM app_config');
+          if (backupData.repairs !== undefined) db.exec('DELETE FROM repairs');
+          if (backupData.restockPending !== undefined) db.exec('DELETE FROM restock_pending');
+          if (backupData.monthlyStats !== undefined) db.exec('DELETE FROM monthly_stats');
+          if (backupData.siteVisits !== undefined) db.exec('DELETE FROM site_visits');
+          if (backupData.categories !== undefined) db.exec('DELETE FROM web_categories');
+          if (backupData.services !== undefined) db.exec('DELETE FROM web_services');
+          migrateData(db, backupData);
+        });
+        doRestore();
+        lastPOSWrite = Date.now(); pendingSync = true;
+        return res.json({ success: true, message: 'Último backup restaurado correctamente.' });
+      }
+
+      res.status(404).json({ error: 'Archivo de backup no encontrado' });
+    } catch (e: any) { res.status(500).json({ error: 'Error al restaurar último backup: ' + (e.message || e) }); }
+  });
+
   // LIST ENCRYPTED BACKUPS
   app.get('/api/backups/encrypted', (req, res) => {
     try {
@@ -2014,6 +2082,24 @@ async function startServer() {
     } catch { res.status(500).json({ error: 'Error al guardar configuración' }); }
   });
 
+  app.get('/api/whatsapp/enabled', (req, res) => {
+    const enabled = getConfig<boolean>('waEnabled', true);
+    res.json({ enabled });
+  });
+
+  app.post('/api/whatsapp/enabled', async (req, res) => {
+    const { enabled } = req.body;
+    setConfig('waEnabled', enabled === true);
+    lastPOSWrite = Date.now(); pendingSync = true;
+    if (!enabled) {
+      try { if (waClient) await waClient.destroy(); } catch {}
+      waClient = null; waReady = false; waQR = null; waInitializing = false;
+    } else {
+      if (!waClient && !waInitializing) initWhatsApp().catch(() => {});
+    }
+    res.json({ success: true });
+  });
+
   // Vite / static serving
   if (process.env.NODE_ENV !== 'production' && process.env.DISABLE_HMR !== 'true') {
     const vite = await createViteServer({ server: { middlewareMode: true, watch: { ignored: ['**/.wwebjs_auth/**', '**/.wwebjs_cache/**'] } }, appType: 'spa' });
@@ -2043,8 +2129,9 @@ async function startServer() {
       if (Date.now() - lastBackupTime > BACKUP_INTERVAL_MS) { createBackup(); lastBackupTime = Date.now(); }
     }, 60000);
 
-    // Inicializar WhatsApp después de que el servidor esté listo
-    initWhatsApp();
+    // Inicializar WhatsApp después de que el servidor esté listo (si está habilitado)
+    const waEnabled = getConfig<boolean>('waEnabled', true);
+    if (waEnabled) initWhatsApp();
   }).on('error', (err: any) => {
     if (err.code === 'EADDRINUSE') console.error(`[FATAL] Puerto ${PORT} ya esta en uso.`);
     else console.error('[FATAL] Error al iniciar servidor:', err);

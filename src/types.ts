@@ -38,6 +38,7 @@ export interface CompanyConfig {
   whatsapp?: string;
   hours?: string;
   gitToken?: string;
+  gitRepo?: string;
   backupPassword?: string;
 }
 

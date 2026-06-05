@@ -50,6 +50,7 @@ export default function App() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [cashRegister, setCashRegister] = useState<CashRegister>({ cash: 0, bank: 0 });
   const [stockWarningEnabled, setStockWarningEnabled] = useState(true);
+  const [waEnabled, setWaEnabled] = useState(true);
   const [webData, setWebData] = useState<any>(null);
   const [repairs, setRepairs] = useState<WebRepair[]>([]);
 
@@ -189,6 +190,13 @@ export default function App() {
         const swData = await swRes.json();
         setStockWarningEnabled(swData.enabled);
       }
+      try {
+        const waRes = await fetch('/api/whatsapp/enabled');
+        if (waRes.ok) {
+          const waData = await waRes.json();
+          setWaEnabled(waData.enabled);
+        }
+      } catch {}
       if (eRes.ok) setExpenses(await eRes.json());
       if (crRes.ok) setCashRegister(await crRes.json());
       if (rRes.ok) setRepairs(await rRes.json());
@@ -213,6 +221,20 @@ export default function App() {
       if (res.ok) setStockWarningEnabled(newVal);
     } catch (err) {
       console.error('Error toggling stock warning:', err);
+    }
+  };
+
+  const handleToggleWA = async () => {
+    const newVal = !waEnabled;
+    try {
+      const res = await fetch('/api/whatsapp/enabled', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: newVal })
+      });
+      if (res.ok) setWaEnabled(newVal);
+    } catch (err) {
+      console.error('Error toggling WhatsApp:', err);
     }
   };
 
@@ -623,7 +645,9 @@ export default function App() {
 
       {/* ADJUST SETTINGS SIDEDRAWER */}
         {showSettings && (
-          <div className="fixed inset-y-0 right-0 w-80 bg-[#111318] border-l border-[#2d3444] z-40 shadow-2xl p-6 flex flex-col justify-between overflow-y-auto">
+          <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)}>
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="fixed inset-y-0 right-0 w-80 bg-[#111318] border-l border-[#2d3444] shadow-2xl p-6 flex flex-col justify-between overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div>
               <div className="flex justify-between items-center border-b border-[#2d3444] pb-4 mb-6">
                 <span className="font-semibold text-white font-display text-sm flex items-center gap-2">
@@ -665,6 +689,20 @@ export default function App() {
                       className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded"
                     />
                     <label htmlFor="stock-warning" className="text-xs">Mostrar advertencia cuando el stock sea 0 al vender</label>
+                  </div>
+                </div>
+
+                <div className="space-y-1 pt-2">
+                  <label className="text-white font-medium block">WhatsApp</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <input
+                      type="checkbox"
+                      id="wa-enabled"
+                      checked={waEnabled}
+                      onChange={handleToggleWA}
+                      className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded"
+                    />
+                    <label htmlFor="wa-enabled" className="text-xs">Habilitar WhatsApp (requiere reinicio si se desactiva)</label>
                   </div>
                 </div>
 
@@ -865,6 +903,32 @@ export default function App() {
                       <RotateCcw size={13} />
                       Restaurar desde GitHub
                     </button>
+                    <button
+                      onClick={async () => {
+                        const pwd = prompt('Ingrese la contraseña para restaurar el último backup:');
+                        if (!pwd) return;
+                        try {
+                          const r = await fetch('/api/backups/restore-last', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ password: pwd })
+                          });
+                          if (r.ok) {
+                            alert('Último backup restaurado correctamente. Los datos se recargarán.');
+                            fetchAllData();
+                          } else {
+                            const err = await r.json();
+                            alert(err.error || 'Error al restaurar');
+                          }
+                        } catch {
+                          alert('Error de conexión');
+                        }
+                      }}
+                      className="w-full flex items-center justify-center gap-2 bg-red-700 hover:bg-red-600 text-white font-semibold py-2 px-3 rounded-lg text-xs transition-colors cursor-pointer"
+                    >
+                      <RotateCcw size={13} />
+                      Restaurar último cambio
+                    </button>
                     {showRestorePanel && (
                       <div className="border border-[#2d3444] rounded-lg p-3 space-y-2">
                         <div className="flex items-center justify-between">
@@ -945,6 +1009,7 @@ export default function App() {
               <span>Sincronización Integrada: Habilitada</span><br/>
               <span>Empresa: Local Host Module</span>
             </div>
+          </div>
           </div>
         )}
 
