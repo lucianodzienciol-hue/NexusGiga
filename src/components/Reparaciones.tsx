@@ -440,12 +440,13 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                   <th className="px-4 py-2.5">Modelo</th>
                   <th className="px-4 py-2.5">Estado</th>
                   <th className="px-4 py-2.5">Fecha</th>
+                  <th className="px-4 py-2.5 text-right">Precio</th>
                   <th className="px-4 py-2.5 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody>
 {filterBySearch(deliveredRepairs).length === 0 ? (
-                <tr><td colSpan={10} className="text-center text-slate-500 py-8 italic">No hay reparaciones entregadas</td></tr>
+                <tr><td colSpan={11} className="text-center text-slate-500 py-8 italic">No hay reparaciones entregadas</td></tr>
                 ) : filterBySearch(deliveredRepairs).map(r => {
                   const client = getClient(r.clientId);
                   return (
@@ -459,6 +460,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                       <td className="px-4 py-2.5 text-slate-400">{r.modelo || '-'}</td>
                       <td className="px-4 py-2.5"><span className={'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ' + statusBadge(r.status)}>{r.status}</span></td>
                       <td className="px-4 py-2.5 text-slate-400">{r.date}</td>
+                      <td className="px-4 py-2.5 text-right font-mono font-bold text-cyan-400">${Number(r.price || 0).toFixed(0)}</td>
                       <td className="px-4 py-2.5 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <button onClick={(e) => { e.stopPropagation(); handlePrint(r); }} className="text-slate-500 hover:text-white transition-colors cursor-pointer p-1.5 rounded hover:bg-[#1f242e]" title="Imprimir comprobante"><Printer size={12} /></button>
@@ -488,12 +490,13 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                 <th className="px-4 py-2.5">Equipo</th>
                 <th className="px-4 py-2.5">Estado</th>
                 <th className="px-4 py-2.5">Fecha</th>
+                <th className="px-4 py-2.5 text-right">Precio</th>
                 <th className="px-4 py-2.5 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody id="repairs-finished-tbody">
               {filterBySearch(finishedRepairs).length === 0 ? (
-                <tr><td colSpan={8} className="text-center text-slate-500 py-8 italic">No hay reparaciones finalizadas</td></tr>
+                <tr><td colSpan={9} className="text-center text-slate-500 py-8 italic">No hay reparaciones finalizadas</td></tr>
               ) : filterBySearch(finishedRepairs).map(r => {
                 const client = getClient(r.clientId);
                 return (
@@ -505,6 +508,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                     <td className="px-4 py-2.5 text-slate-300 truncate max-w-[180px]">{r.equipment}</td>
                     <td className="px-4 py-2.5"><span className={'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ' + statusBadge(r.status)}>{r.status}</span></td>
                     <td className="px-4 py-2.5 text-slate-400">{r.date}</td>
+                    <td className="px-4 py-2.5 text-right font-mono font-bold text-emerald-400">${Number(r.price || 0).toFixed(0)}</td>
                     <td className="px-4 py-2.5 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={(e) => { e.stopPropagation(); openEdit(r); }} className="text-slate-500 hover:text-white transition-colors cursor-pointer p-1.5 rounded hover:bg-[#1f242e]" title="Editar"><Pencil size={12} /></button>
@@ -536,12 +540,13 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                 <th className="px-4 py-2.5">Equipo</th>
                 <th className="px-4 py-2.5">Estado</th>
                 <th className="px-4 py-2.5">Fecha</th>
+                <th className="px-4 py-2.5 text-right">Precio</th>
                 <th className="px-4 py-2.5 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody id="repairs-active-tbody">
               {filterBySearch(activeRepairs).length === 0 ? (
-                <tr><td colSpan={8} className="text-center text-slate-500 py-8 italic">No hay reparaciones en curso</td></tr>
+                <tr><td colSpan={9} className="text-center text-slate-500 py-8 italic">No hay reparaciones en curso</td></tr>
               ) : filterBySearch(activeRepairs).map(r => {
                 const client = getClient(r.clientId);
                 return (
@@ -553,6 +558,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                     <td className="px-4 py-2.5 text-slate-300 truncate max-w-[180px]">{r.equipment}</td>
                     <td className="px-4 py-2.5"><span className={'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ' + statusBadge(r.status)}>{r.status}</span></td>
                     <td className="px-4 py-2.5 text-slate-400">{r.date}</td>
+                    <td className="px-4 py-2.5 text-right font-mono font-bold text-emerald-400">${Number(r.price || 0).toFixed(0)}</td>
                     <td className="px-4 py-2.5 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={(e) => { e.stopPropagation(); openEdit(r); }} className="text-slate-500 hover:text-white transition-colors cursor-pointer p-1.5 rounded hover:bg-[#1f242e]" title="Editar"><Pencil size={12} /></button>

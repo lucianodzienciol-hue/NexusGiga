@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Package, Plus, Trash2, CheckCircle, Search, ChevronDown } from 'lucide-react';
 import { Product } from '../types';
 
@@ -24,6 +24,7 @@ export default function Pendientes({ products, onRefresh }: PendientesProps) {
   const [quantity, setQuantity] = useState('1');
   const [showDropdown, setShowDropdown] = useState(false);
   const [productSearch, setProductSearch] = useState('');
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editQty, setEditQty] = useState('');
 
@@ -87,6 +88,13 @@ export default function Pendientes({ products, onRefresh }: PendientesProps) {
   ).slice(0, 20);
 
   const selectedProductObj = products.find(p => p.id === selectedProduct);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showDropdown || !listRef.current) return;
+    const el = listRef.current.children[highlightedIndex] as HTMLElement;
+    if (el) el.scrollIntoView({ block: 'nearest' });
+  }, [highlightedIndex, showDropdown]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
@@ -120,22 +128,33 @@ export default function Pendientes({ products, onRefresh }: PendientesProps) {
                         <input
                           type="text"
                           value={productSearch}
-                          onChange={e => setProductSearch(e.target.value)}
+                          onChange={e => { setProductSearch(e.target.value); setHighlightedIndex(0); }}
+                          onKeyDown={e => {
+                            if (e.key === 'ArrowDown') { e.preventDefault(); setHighlightedIndex(i => Math.min(i + 1, filteredProducts.length - 1)); }
+                            if (e.key === 'ArrowUp') { e.preventDefault(); setHighlightedIndex(i => Math.max(i - 1, 0)); }
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const target = filteredProducts[highlightedIndex];
+                              if (target) { setSelectedProduct(target.id); setShowDropdown(false); setProductSearch(''); }
+                            }
+                            if (e.key === 'Escape') { e.preventDefault(); setShowDropdown(false); setProductSearch(''); }
+                          }}
                           className="w-full bg-[#0d0e12] border border-[#2d3444] rounded-lg py-1.5 pl-7 pr-2 text-xs text-white focus:outline-none"
                           placeholder="Buscar producto..."
                           autoFocus
                         />
                       </div>
                     </div>
-                    <div className="overflow-y-auto max-h-44">
+                    <div className="overflow-y-auto max-h-44" ref={listRef}>
                       {filteredProducts.length === 0 ? (
                         <div className="p-3 text-xs text-slate-500 italic text-center">Sin resultados</div>
-                      ) : filteredProducts.map(p => (
+                      ) : filteredProducts.map((p, idx) => (
                         <button
                           key={p.id}
                           onClick={() => { setSelectedProduct(p.id); setShowDropdown(false); setProductSearch(''); }}
+                          onMouseEnter={() => setHighlightedIndex(idx)}
                           className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center justify-between ${
-                            selectedProduct === p.id ? 'bg-[#1b1f28] text-white' : 'text-slate-400 hover:bg-[#14171e] hover:text-white'
+                            idx === highlightedIndex ? 'bg-[#5aa6ec]/20 text-white' : selectedProduct === p.id ? 'bg-[#1b1f28] text-white' : 'text-slate-400 hover:bg-[#14171e] hover:text-white'
                           }`}
                         >
                           <span className="font-medium">{p.name}</span>

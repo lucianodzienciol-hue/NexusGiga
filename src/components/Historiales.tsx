@@ -45,6 +45,12 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
   });
 
   const totalRevenue = filtered.reduce((sum, s) => sum + s.total, 0);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todaySales = sales.filter(s => s.date.startsWith(todayStr));
+  const byMethod = todaySales.reduce<Record<string, number>>((acc, s) => {
+    acc[s.paymentMethod] = (acc[s.paymentMethod] || 0) + s.total;
+    return acc;
+  }, {});
 
   const toggleExpand = (id: string) => {
     setExpandedSaleId(prev => prev === id ? null : id);
@@ -161,23 +167,37 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
 
       {tab === 'ventas' ? (
         <>
-          {/* Banner / KPIs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
+          {/* Banner / KPIs + Resumen por método */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-4 flex flex-col justify-between">
               <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">Ingresos Totales (Caja)</span>
-              <div className="text-3xl font-extrabold font-display text-emerald-400 mt-2">
+              <div className="text-2xl font-extrabold font-display text-emerald-400 mt-1">
                 ${totalRevenue.toFixed(0)}
               </div>
               <span className="text-[10px] text-slate-500 font-mono mt-1">Suma acumulativa de transacciones</span>
             </div>
 
-            <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
+            <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-4 flex flex-col justify-between">
               <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">Ventas Realizadas</span>
-              <div className="text-3xl font-extrabold font-display text-white mt-2">
+              <div className="text-2xl font-extrabold font-display text-white mt-1">
                 {filtered.length}
               </div>
-              <span className="text-[10px] text-slate-500 font-mono mt-1">Tickets de venta guardados en base local</span>
+              <span className="text-[10px] text-slate-500 font-mono mt-1">Tickets de venta guardados</span>
             </div>
+
+            {paymentMethods.filter(pm => byMethod[pm.name]).map(pm => (
+              <div key={pm.id} className="bg-[#111318] border border-[#1f242e] rounded-xl p-4 flex flex-col justify-between">
+                <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">{pm.name}</span>
+                <div className="text-2xl font-extrabold font-display text-white mt-1">
+                  ${byMethod[pm.name].toFixed(0)}
+                </div>
+                <span className="text-[10px] text-slate-500 font-mono mt-1">{todayStr}</span>
+              </div>
+            ))}
+
+            {Object.keys(byMethod).length === 0 && (
+              <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-4 flex items-center justify-center text-slate-500 text-xs italic">Sin ventas hoy</div>
+            )}
           </div>
 
           {/* Main Table */}

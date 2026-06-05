@@ -8913,6 +8913,22 @@
   ],
   "repairs": [
     {
+      "id": "REP-075442",
+      "code": "X97XM",
+      "clientId": "1780419304170lgf2",
+      "clientName": "Juan Manuel Esso",
+      "clientPhone": "15-3060-6878",
+      "equipment": "Pc Escritorio",
+      "marca": "ninguno",
+      "modelo": "ninguno",
+      "status": "Finalizada",
+      "problem": "Bios",
+      "notes": "",
+      "price": 45000,
+      "date": "2026-06-05",
+      "updatedAt": "2026-06-05T14:24:04.412Z"
+    },
+    {
       "id": "REP-175696",
       "code": "584U4",
       "clientId": "1780584348165",
@@ -8937,12 +8953,12 @@
       "equipment": "All in One",
       "marca": "lenovo",
       "modelo": "Lenovo",
-      "status": "Recibida",
+      "status": "Finalizada",
       "problem": "Lentitud",
       "notes": "",
       "price": 0,
       "date": "2026-06-04",
-      "updatedAt": "2026-06-04"
+      "updatedAt": "2026-06-05T14:20:43.082Z"
     },
     {
       "id": "REP-965730",
