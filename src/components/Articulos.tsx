@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useCallback } from 'react';
-import { Plus, Edit2, Trash2, Search, Download, Layers, X, Image } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Download, Layers, X, Image, Percent } from 'lucide-react';
 import { Product } from '../types';
 
 interface ArticulosProps {
@@ -50,6 +50,40 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [customCat, setCustomCat] = useState(false);
+  const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
+  const [bulkPercentage, setBulkPercentage] = useState('');
+  const [bulkApplying, setBulkApplying] = useState(false);
+
+  const handleBulkPriceUpdate = async () => {
+    const pct = parseFloat(bulkPercentage);
+    if (isNaN(pct) || !bulkPercentage.trim()) {
+      alert('Ingrese un porcentaje válido.');
+      return;
+    }
+    const sign = pct >= 0 ? '+' : '';
+    if (!confirm(`¿Aplicar ${sign}${pct}% a los precios de ${products.length} artículos?\nLos precios resultantes se ajustarán entre $500 y $1000.`)) return;
+    setBulkApplying(true);
+    try {
+      const resp = await fetch('/api/products/bulk-price-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ percentage: pct }),
+      });
+      const data = await resp.json();
+      if (data.success) {
+        alert(`Precios actualizados: ${data.count} artículos modificados.`);
+        onRefresh();
+        setBulkPriceOpen(false);
+        setBulkPercentage('');
+      } else {
+        alert('Error: ' + (data.error || 'desconocido'));
+      }
+    } catch {
+      alert('Error de red al aplicar ajuste masivo.');
+    } finally {
+      setBulkApplying(false);
+    }
+  };
 
   const handleImportFromWeb = async () => {
     setImporting(true);
@@ -196,6 +230,10 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
           <p className="text-xs text-slate-400 mt-1">Agregue, edite, audite stock y elimine productos de su catálogo.</p>
         </div>
         <div className="flex gap-2">
+          <button onClick={() => setBulkPriceOpen(true)} className="bg-amber-700 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md">
+            <Percent size={14} />
+            Ajuste Masivo de Precios
+          </button>
           <button onClick={handleImportFromWeb} disabled={importing} className="bg-emerald-700 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
             <Download size={14} className={importing ? 'animate-spin' : ''} />
             {importing ? 'Importando...' : 'Importar desde Web'}
@@ -372,6 +410,49 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
                 <button type="submit" className="bg-[#5aa6ec] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold transition-all cursor-pointer">{editingId ? 'GUARDAR' : 'CREAR'}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Price Modal */}
+      {bulkPriceOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => { setBulkPriceOpen(false); setBulkPercentage(''); }}>
+          <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Ajuste Masivo de Precios</h3>
+              <button onClick={() => { setBulkPriceOpen(false); setBulkPercentage(''); }} className="text-slate-500 hover:text-white cursor-pointer"><X size={16} /></button>
+            </div>
+            <div className="space-y-4 text-xs">
+              <p className="text-slate-400">
+                Ingrese un porcentaje para ajustar el precio de <strong className="text-white">{products.length}</strong> artículos.
+                Los precios resultantes se ajustarán automáticamente entre <strong className="text-emerald-400">$500</strong> y <strong className="text-emerald-400">$1000</strong>.
+              </p>
+              <div>
+                <label className="text-[10px] text-slate-500 font-mono uppercase block mb-1">Porcentaje (%)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={bulkPercentage}
+                  onChange={e => setBulkPercentage(e.target.value)}
+                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-sm text-white font-mono focus:outline-none"
+                  placeholder="Ej: 10 para aumentar, -15 para reducir"
+                  autoFocus
+                />
+              </div>
+              <div className="bg-[#181a20] border border-[#2d3444] rounded-lg p-3 text-slate-400 text-[10px] leading-relaxed">
+                <p><strong className="text-amber-400">Ejemplos:</strong></p>
+                <p>• <span className="text-white">+10%</span> → precio actual × 1.10</p>
+                <p>• <span className="text-white">-20%</span> → precio actual × 0.80</p>
+                <p className="mt-1">Valores fuera de $500–$1000 se ajustan al límite más cercano.</p>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button onClick={() => { setBulkPriceOpen(false); setBulkPercentage(''); }} className="bg-[#181a20] border border-[#2d3444] text-slate-300 hover:text-white rounded-lg py-1.5 px-4 text-xs font-bold transition-all cursor-pointer">Cancelar</button>
+                <button onClick={handleBulkPriceUpdate} disabled={bulkApplying} className="bg-amber-700 hover:bg-amber-600 text-white rounded-lg py-1.5 px-4 text-xs font-bold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5">
+                  {bulkApplying && <span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" />}
+                  {bulkApplying ? 'Aplicando...' : 'Aplicar'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

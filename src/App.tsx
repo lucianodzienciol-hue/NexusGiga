@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   ShoppingBag, 
   HelpCircle, 
@@ -29,15 +29,16 @@ import Estadisticas from './components/Estadisticas';
 import Backups from './components/Backups';
 import Pendientes from './components/Pendientes';
 import Cambios from './components/Cambios';
+import WhatsAppConfig from './components/WhatsAppConfig';
 import ProcessMonitor from './components/ProcessMonitor';
 import WhatsAppStatus from './components/WhatsAppStatus';
 
-type TabType = 'Vender' | 'Historiales' | 'Artículos' | 'Clientes' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web' | 'Estadísticas' | 'Backups' | 'Pendientes' | 'Cambios';
+type TabType = 'Vender' | 'Historiales' | 'Artículos' | 'Clientes' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web' | 'Estadísticas' | 'Backups' | 'Pendientes' | 'Cambios' | 'WhatsApp';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     const saved = localStorage.getItem('nexus_activeTab');
-    const valid: TabType[] = ['Vender', 'Historiales', 'Artículos', 'Clientes', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Cambios'];
+    const valid: TabType[] = ['Vender', 'Historiales', 'Artículos', 'Clientes', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Cambios', 'WhatsApp'];
     return valid.includes(saved as TabType) ? (saved as TabType) : 'Vender';
   });
   const [products, setProducts] = useState<Product[]>([]);
@@ -72,24 +73,10 @@ export default function App() {
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [showProcessMonitor, setShowProcessMonitor] = useState(false);
   const [syncModalType, setSyncModalType] = useState<'syncing' | 'success' | 'error'>('syncing');
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const moreMenuRef = useRef<HTMLDivElement>(null);
-
-  const primaryTabs: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Reparaciones'];
-  const secondaryTabs: TabType[] = ['Métodos de Pago', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Cambios'];
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
-        setShowMoreMenu(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const navTabs: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Reparaciones', 'Métodos de Pago', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Cambios', 'WhatsApp'];
 
 
-  const TAB_KEYS: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Cambios'];
+  const TAB_KEYS: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Cambios', 'WhatsApp'];
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -301,11 +288,11 @@ export default function App() {
     <div className="min-h-screen bg-[#0c0d10] flex flex-col justify-between font-sans selection:bg-[#5aa6ec]/20 selection:text-white">
       
       {/* HEADER SECTION --- MATCHING PHOTO */}
-      <header className="bg-[#0f1115] border-b border-[#1f242e] sticky top-0 z-30 px-6 py-3.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-6">
+      <header className="bg-[#0f1115] border-b border-[#1f242e] sticky top-0 z-30 px-6 py-2">
+        <div className="max-w-7xl mx-auto flex items-center gap-4">
           
           {/* Logo Brand Brand */}
-          <div className="flex items-center gap-3 cursor-pointer select-none" onClick={() => setActiveTab('Vender')}>
+          <div className="flex items-center gap-3 shrink-0 cursor-pointer select-none" onClick={() => setActiveTab('Vender')}>
             <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-[#5aa6ec] to-blue-600 flex items-center justify-center p-1 shadow-md shadow-blue-500/10">
               <Calculator size={20} className="text-[#0c0d10] font-bold" />
             </div>
@@ -316,14 +303,14 @@ export default function App() {
           </div>
 
           {/* Center Navigation Menu Bar */}
-          <nav className="hidden md:flex items-center gap-0.5">
-            {primaryTabs.map((tab, idx) => {
+          <nav className="hidden md:flex flex-1 flex-wrap items-center justify-center gap-x-1 gap-y-0.5">
+            {navTabs.map((tab, idx) => {
               const isActive = activeTab === tab;
               return (
                 <button
                   key={tab}
                   onClick={() => { setActiveTab(tab); }}
-                  className={`relative py-1.5 px-2.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all cursor-pointer whitespace-nowrap ${
+                  className={`relative py-1 px-2.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all cursor-pointer whitespace-nowrap ${
                     isActive 
                       ? 'text-white bg-[#1b1f28] font-bold' 
                       : 'text-slate-400 hover:text-white hover:bg-[#151821]/50'
@@ -337,50 +324,10 @@ export default function App() {
                 </button>
               );
             })}
-
-            {/* Dropdown "Más" */}
-            <div className="relative" ref={moreMenuRef}>
-              <button
-                onClick={() => setShowMoreMenu(prev => !prev)}
-                className={`relative py-1.5 px-2.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
-                  secondaryTabs.includes(activeTab) 
-                    ? 'text-white bg-[#1b1f28] font-bold' 
-                    : 'text-slate-400 hover:text-white hover:bg-[#151821]/50'
-                }`}
-              >
-                Más
-                <svg className={`w-3 h-3 transition-transform ${showMoreMenu ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
-                {secondaryTabs.includes(activeTab) && (
-                  <div className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#5aa6ec]" />
-                )}
-              </button>
-
-              {showMoreMenu && (
-                <div className="absolute top-full right-0 mt-2 w-52 bg-[#0f1115] border border-[#1f242e] rounded-xl shadow-2xl z-50 py-2 overflow-hidden">
-                  {secondaryTabs.map((tab, idx) => {
-                    const isActive = activeTab === tab;
-                    return (
-                      <button
-                        key={tab}
-                        onClick={() => { setActiveTab(tab); setShowMoreMenu(false); }}
-                        className={`w-full text-left px-4 py-2.5 text-xs font-semibold transition-all flex items-center justify-between ${
-                          isActive 
-                            ? 'text-white bg-[#1b1f28]' 
-                            : 'text-slate-400 hover:text-white hover:bg-[#151821]'
-                        }`}
-                      >
-                        <span>{tab}</span>
-                        <span className="text-[9px] text-slate-600 font-mono">Alt+{primaryTabs.length + idx + 1}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
           </nav>
 
           {/* Right Header Controls - Search, Settings, Help, Avatar */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 shrink-0">
             
             {/* Utility buttons */}
             <div className="flex items-center gap-1.5">
@@ -434,7 +381,7 @@ export default function App() {
 
       {/* MOBILE TAB DRAWER (ONLY ON SMALL DEVICES) */}
       <div className="md:hidden bg-[#0f1115] border-b border-[#1f242e] px-4 py-2 flex gap-1 overflow-x-auto">
-{(['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Cambios'] as const).map((tab, idx) => {
+ {(['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'WhatsApp', 'Cambios'] as const).map((tab, idx) => {
           const isActive = activeTab === tab;
           return (
             <button
@@ -508,6 +455,10 @@ export default function App() {
 
         {activeTab === 'Cambios' && (
           <Cambios onRefresh={fetchAllData} />
+        )}
+
+        {activeTab === 'WhatsApp' && (
+          <WhatsAppConfig />
         )}
 
       </main>

@@ -887,6 +887,31 @@ async function startServer() {
     else res.status(404).json({ error: 'Product not found' });
   });
 
+  app.post('/api/products/bulk-price-update', (req, res) => {
+    const { percentage } = req.body;
+    if (percentage === undefined || isNaN(Number(percentage))) {
+      return res.status(400).json({ error: 'Porcentaje inválido' });
+    }
+    const factor = 1 + Number(percentage) / 100;
+    const rows = db.prepare('SELECT id, price FROM products').all() as any[];
+    const update = db.prepare('UPDATE products SET price = ? WHERE id = ?');
+    let count = 0;
+    const tx = db.transaction(() => {
+      for (const row of rows) {
+        let newPrice = Math.round(row.price * factor);
+        if (newPrice < 500) newPrice = 500;
+        if (newPrice > 1000) newPrice = 1000;
+        if (newPrice !== row.price) {
+          update.run(newPrice, row.id);
+          count++;
+        }
+      }
+    });
+    tx();
+    lastPOSWrite = Date.now(); pendingSync = true; syncWebDataToFile();
+    res.json({ success: true, count });
+  });
+
   app.get('/api/stock-warning', (req, res) => {
     res.json({ enabled: getConfig<boolean>('stockWarningEnabled', true) });
   });
@@ -1974,6 +1999,19 @@ async function startServer() {
     } catch (err: any) {
       res.status(500).json({ error: err?.message || 'Error al enviar mensaje' });
     }
+  });
+
+  app.get('/api/whatsapp/config', (req, res) => {
+    const config = getConfig<any>('whatsappConfig', {});
+    res.json(config);
+  });
+
+  app.post('/api/whatsapp/config', (req, res) => {
+    try {
+      setConfig('whatsappConfig', req.body);
+      lastPOSWrite = Date.now(); pendingSync = true;
+      res.json({ success: true });
+    } catch { res.status(500).json({ error: 'Error al guardar configuración' }); }
   });
 
   // Vite / static serving

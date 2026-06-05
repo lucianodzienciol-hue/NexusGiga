@@ -256,7 +256,7 @@
       "id": "1778690911983fjgw",
       "code": "1778690911983fjgw",
       "name": "Cable Usb Reforzado multiple",
-      "price": 7000,
+      "price": 8000,
       "cost": 0,
       "stock": 0,
       "category": "Cables",
@@ -8919,12 +8919,12 @@
       "equipment": "Pc Escritorio",
       "marca": "ninguno",
       "modelo": "ninguno",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "Boot",
       "notes": "Configuracion Bios",
       "price": 45000,
       "date": "2026-06-04",
-      "updatedAt": ""
+      "updatedAt": "2026-06-05T17:02:56.263Z"
     },
     {
       "id": "REP-502171",
@@ -8935,12 +8935,12 @@
       "equipment": "All in One",
       "marca": "lenovo",
       "modelo": "Lenovo",
-      "status": "Finalizada",
+      "status": "Recibida",
       "problem": "Lentitud",
       "notes": "",
       "price": 0,
       "date": "2026-06-04",
-      "updatedAt": "2026-06-05T15:53:28.221Z"
+      "updatedAt": "2026-06-05T17:22:05.438Z"
     },
     {
       "id": "REP-965730",

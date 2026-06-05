@@ -11,3 +11,7 @@ database.json
 .nexusroot
 backups/
 .sync-state
+.wwebjs_auth/
+.wwebjs_cache/
+Backup Secundario/
+Backups Encriptados/
