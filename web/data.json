@@ -3835,24 +3835,6 @@
       "fichaTecnicaFile": ""
     },
     {
-      "id": "1778691513012up6f",
-      "code": "1778691513012up6f",
-      "name": "Micro SD 256gb 170Mbs",
-      "price": 59000,
-      "cost": 0,
-      "stock": 0,
-      "category": "Memorias",
-      "source": "web",
-      "description": "Importado masivamente",
-      "image": "https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60",
-      "oferta": 0,
-      "nuevo": 0,
-      "webDesc": "Importado masivamente",
-      "ofertaPrice": "0.0",
-      "fichaTecnica": "",
-      "fichaTecnicaFile": ""
-    },
-    {
       "id": "17786915130132g2y",
       "code": "17786915130132g2y",
       "name": "Mouse Gamer Raptor Wireless 12800",
@@ -8921,12 +8903,12 @@
       "equipment": "Pc Escritorio",
       "marca": "ninguno",
       "modelo": "ninguno",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "Bios",
       "notes": "",
       "price": 45000,
       "date": "2026-06-05",
-      "updatedAt": "2026-06-05T14:24:04.412Z"
+      "updatedAt": "2026-06-05T15:16:13.471Z"
     },
     {
       "id": "REP-175696",
@@ -8953,12 +8935,12 @@
       "equipment": "All in One",
       "marca": "lenovo",
       "modelo": "Lenovo",
-      "status": "Finalizada",
+      "status": "Recibida",
       "problem": "Lentitud",
       "notes": "",
       "price": 0,
       "date": "2026-06-04",
-      "updatedAt": "2026-06-05T14:20:43.082Z"
+      "updatedAt": "2026-06-05T15:06:41.596Z"
     },
     {
       "id": "REP-965730",
@@ -9001,12 +8983,12 @@
       "equipment": "Disco Rigido Externo",
       "marca": "Noga",
       "modelo": "Noga",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "revisar no funciona",
       "notes": "Lleva disco externo de 500\n$65000",
       "price": 65000,
       "date": "2026-06-03",
-      "updatedAt": ""
+      "updatedAt": "2026-06-05T15:21:11.897Z"
     },
     {
       "id": "REP-154583",

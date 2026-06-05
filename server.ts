@@ -793,7 +793,7 @@ async function startServer() {
     db.prepare(`INSERT INTO products (id, code, name, price, cost, stock, category, source, description, image, oferta, nuevo, webDesc, ofertaPrice, fichaTecnica, fichaTecnicaFile) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
       id, code || '', name || '', Number(price) || 0, Number(cost) || 0, Number(stock) || 0, category || 'Varios', source === 'web' ? 'web' : 'local', desc || '', image || '', oferta === true ? 1 : 0, nuevo === true ? 1 : 0, webDesc || desc || '', Number(ofertaPrice) || 0, fichaTecnica || '', fichaTecnicaFile || ''
     );
-    lastPOSWrite = Date.now(); pendingSync = true;
+    lastPOSWrite = Date.now(); pendingSync = true; syncWebDataToFile();
     const row = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
     res.status(201).json(rowToProduct(row));
   });
@@ -822,14 +822,14 @@ async function startServer() {
     db.prepare(`UPDATE products SET code=?, name=?, price=?, cost=?, stock=?, category=?, source=?, description=?, image=?, oferta=?, nuevo=?, webDesc=?, ofertaPrice=?, fichaTecnica=?, fichaTecnicaFile=? WHERE id=?`).run(
       updated.code, updated.name, updated.price, updated.cost, updated.stock, updated.category, updated.source, updated.description, updated.image, updated.oferta, updated.nuevo, updated.webDesc, updated.ofertaPrice, updated.fichaTecnica, updated.fichaTecnicaFile, req.params.id
     );
-    lastPOSWrite = Date.now(); pendingSync = true;
+    lastPOSWrite = Date.now(); pendingSync = true; syncWebDataToFile();
     const row = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
     res.json(rowToProduct(row));
   });
 
   app.delete('/api/products/:id', (req, res) => {
     const r = db.prepare('DELETE FROM products WHERE id = ?').run(req.params.id);
-    if (r.changes > 0) { lastPOSWrite = Date.now(); pendingSync = true; res.json({ success: true }); }
+    if (r.changes > 0) { lastPOSWrite = Date.now(); pendingSync = true; syncWebDataToFile(); res.json({ success: true }); }
     else res.status(404).json({ error: 'Product not found' });
   });
 

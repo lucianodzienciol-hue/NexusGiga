@@ -34,7 +34,11 @@ import ProcessMonitor from './components/ProcessMonitor';
 type TabType = 'Vender' | 'Historiales' | 'Artículos' | 'Clientes' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web' | 'Estadísticas' | 'Backups' | 'Pendientes' | 'Cambios';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<TabType>('Vender');
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const saved = localStorage.getItem('nexus_activeTab');
+    const valid: TabType[] = ['Vender', 'Historiales', 'Artículos', 'Clientes', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Cambios'];
+    return valid.includes(saved as TabType) ? (saved as TabType) : 'Vender';
+  });
   const [products, setProducts] = useState<Product[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -46,6 +50,9 @@ export default function App() {
   const [stockWarningEnabled, setStockWarningEnabled] = useState(true);
   const [webData, setWebData] = useState<any>(null);
   const [repairs, setRepairs] = useState<WebRepair[]>([]);
+
+  // Persist activeTab to localStorage
+  useEffect(() => { localStorage.setItem('nexus_activeTab', activeTab); }, [activeTab]);
 
   // Auto-sync GitHub
   const [gitToken, setGitToken] = useState('');

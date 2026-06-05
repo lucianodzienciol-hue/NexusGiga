@@ -11,7 +11,10 @@ interface MonthlyStat {
 export default function Estadisticas() {
   const [stats, setStats] = useState<MonthlyStat[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState<'ventas' | 'caja'>('ventas');
+  const [selectedTab, setSelectedTab] = useState<'ventas' | 'caja'>(() => {
+    const saved = localStorage.getItem('nexus_e_tab');
+    return saved === 'caja' ? 'caja' : 'ventas';
+  });
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [message, setMessage] = useState<{ type: string; text: string } | null>(null);
   const [chartYear, setChartYear] = useState<number>(2026);
@@ -20,6 +23,8 @@ export default function Estadisticas() {
   const [showAddYear, setShowAddYear] = useState(false);
   const [newYear, setNewYear] = useState('');
   const seeded = useRef(false);
+
+  useEffect(() => { localStorage.setItem('nexus_e_tab', selectedTab); }, [selectedTab]);
 
   const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 

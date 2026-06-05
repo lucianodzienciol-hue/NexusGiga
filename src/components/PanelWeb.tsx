@@ -10,13 +10,19 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
   const config = webData?.config || {};
   const categories = webData?.categories || [];
   const banners = config.banners || [];
-  const [activeSection, setActiveSection] = useState('config');
+  const [activeSection, setActiveSection] = useState(() => {
+    const saved = localStorage.getItem('nexus_pw_section');
+    const valid = ['config', 'seo', 'visitas', 'servicios', 'popup', 'banners', 'categorias', 'sync'];
+    return valid.includes(saved) ? saved : 'config';
+  });
   const [visitStats, setVisitStats] = useState<{ total: number; today: number; lastDays: { date: string; count: number }[] } | null>(null);
   const [draftConfig, setDraftConfig] = useState<any>(config);
   const [draftBanners, setDraftBanners] = useState<any[]>(banners);
 
   useEffect(() => { setDraftConfig(config); }, [config]);
   useEffect(() => { setDraftBanners(banners); }, [banners]);
+
+  useEffect(() => { localStorage.setItem('nexus_pw_section', activeSection); }, [activeSection]);
 
   useEffect(() => {
     if (activeSection === 'visitas') {

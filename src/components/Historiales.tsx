@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Search, Printer, FileText, ChevronDown, ChevronUp, Landmark, ShieldCheck, Filter, Trash2, Download, Wrench } from 'lucide-react';
 import { Sale, PaymentMethod, CompanyConfig, WebRepair } from '../types';
 import ticketTemplate from '../ticketTemplate';
@@ -12,7 +12,10 @@ interface HistorialesProps {
 }
 
 export default function Historiales({ sales, paymentMethods, companyConfig, onRefresh, repairs }: HistorialesProps) {
-  const [tab, setTab] = useState<'ventas' | 'reparaciones'>('ventas');
+  const [tab, setTab] = useState<'ventas' | 'reparaciones'>(() => {
+    const saved = localStorage.getItem('nexus_h_tab');
+    return saved === 'reparaciones' ? 'reparaciones' : 'ventas';
+  });
   const [search, setSearch] = useState('');
   const today = new Date().toISOString().slice(0, 10);
   const [dateFrom, setDateFrom] = useState(today);
@@ -24,6 +27,8 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
   // Repairs state
   const [repSearch, setRepSearch] = useState('');
   const [expandedRepairId, setExpandedRepairId] = useState<string | null>(null);
+
+  useEffect(() => { localStorage.setItem('nexus_h_tab', tab); }, [tab]);
 
   const filtered = [...sales].filter(s => {
     const matchesSearch = s.id.toLowerCase().includes(search.toLowerCase()) ||
