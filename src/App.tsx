@@ -30,6 +30,7 @@ import Backups from './components/Backups';
 import Pendientes from './components/Pendientes';
 import Cambios from './components/Cambios';
 import ProcessMonitor from './components/ProcessMonitor';
+import WhatsAppStatus from './components/WhatsAppStatus';
 
 type TabType = 'Vender' | 'Historiales' | 'Artículos' | 'Clientes' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web' | 'Estadísticas' | 'Backups' | 'Pendientes' | 'Cambios';
 
@@ -535,6 +536,8 @@ export default function App() {
             >
               Monitor
             </button>
+            <span className="hidden sm:inline text-slate-600">|</span>
+            <WhatsAppStatus />
             <span className="hidden sm:inline text-slate-600">|</span>
             <button 
               onClick={() => setShowCaja(true)} 

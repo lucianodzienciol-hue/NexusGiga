@@ -7,6 +7,7 @@ import https from 'https';
 import AdmZip from 'adm-zip';
 import { createServer as createViteServer } from 'vite';
 import Database from 'better-sqlite3';
+import QRCode from 'qrcode';
 import { Product, Client, Sale, Provider, Purchase, PaymentMethod, CompanyConfig, Expense, CashRegister, WebRepair } from './src/types';
 
 const DB_FILE = path.join(process.cwd(), 'database.db');
@@ -603,6 +604,10 @@ let syncing = false;
 let lastSyncTime: string | null = null;
 let lastSyncError: string | null = null;
 let lastBackupTime = 0;
+let waClient: any = null;
+let waReady = false;
+let waQR: string | null = null;
+let waInitializing = false;
 const NEXUS_REPO_URL = 'https://github.com/gigacomputers2025-bot/Nexus.git';
 
 async function importCompanyConfig(silent = false): Promise<boolean> {
@@ -683,6 +688,55 @@ async function importFromWeb(silent = false): Promise<{ imported: number; update
     if (!silent) console.warn(`[IMPORT] No se pudo conectar con Web-main (${err?.message || err})`);
     return { imported: 0, updated: 0 };
   }
+}
+
+// ─── WhatsApp ─────────────────────────────────────────────────────────────
+async function initWhatsApp() {
+  if (waClient) return;
+  waInitializing = true;
+  try {
+    const { Client, LocalAuth } = (await import('whatsapp-web.js')).default;
+    const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+    waClient = new Client({
+      authStrategy: new LocalAuth(),
+      puppeteer: {
+        headless: true,
+        executablePath: chromePath,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      }
+    });
+
+    waClient.on('qr', async (qr: string) => {
+      waQR = qr;
+      waReady = false;
+      console.log('[WA] QR generado. Escanea con WhatsApp.');
+    });
+
+    waClient.on('ready', () => {
+      waReady = true;
+      waQR = null;
+      waInitializing = false;
+      console.log('[WA] Cliente WhatsApp listo.');
+    });
+
+    waClient.on('disconnected', (reason: string) => {
+      waReady = false;
+      waQR = null;
+      console.log('[WA] Desconectado:', reason);
+    });
+
+    await waClient.initialize();
+  } catch (err: any) {
+    console.warn('[WA] Error al inicializar WhatsApp:', err?.message || err);
+    waClient = null;
+    waReady = false;
+    waQR = null;
+    waInitializing = false;
+  }
+}
+
+function getWAStatus() {
+  return { ready: waReady, hasQR: !!waQR, initializing: waInitializing };
 }
 
 async function startServer() {
@@ -1879,9 +1933,52 @@ async function startServer() {
     } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
+  // ─── WhatsApp API ─────────────────────────────────────────────────────
+  app.get('/api/whatsapp/status', (req, res) => {
+    res.json(getWAStatus());
+  });
+
+  app.get('/api/whatsapp/qr', async (req, res) => {
+    if (!waQR) return res.status(400).json({ error: 'No hay QR disponible' });
+    try {
+      const dataUrl = await QRCode.toDataURL(waQR);
+      res.json({ qr: dataUrl });
+    } catch { res.status(500).json({ error: 'Error al generar QR' }); }
+  });
+
+  app.post('/api/whatsapp/init', async (req, res) => {
+    if (waReady) return res.json({ ready: true });
+    if (waClient) { waClient.destroy(); waClient = null; waReady = false; waQR = null; }
+    initWhatsApp().catch(() => {});
+    res.json({ initializing: true });
+  });
+
+  app.post('/api/whatsapp/logout', async (req, res) => {
+    try {
+      if (waClient) { await waClient.destroy(); }
+    } catch {}
+    waClient = null; waReady = false; waQR = null; waInitializing = false;
+    const authDir = path.join(process.cwd(), '.wwebjs_auth');
+    if (fs.existsSync(authDir)) fs.rmSync(authDir, { recursive: true, force: true });
+    res.json({ success: true });
+  });
+
+  app.post('/api/whatsapp/send', async (req, res) => {
+    if (!waReady) return res.status(400).json({ error: 'WhatsApp no conectado' });
+    const { number, message } = req.body;
+    if (!number || !message) return res.status(400).json({ error: 'Número y mensaje requeridos' });
+    try {
+      const chatId = number.includes('@c.us') ? number : `${number}@c.us`;
+      await waClient.sendMessage(chatId, message);
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || 'Error al enviar mensaje' });
+    }
+  });
+
   // Vite / static serving
   if (process.env.NODE_ENV !== 'production' && process.env.DISABLE_HMR !== 'true') {
-    const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
+    const vite = await createViteServer({ server: { middlewareMode: true, watch: { ignored: ['**/.wwebjs_auth/**', '**/.wwebjs_cache/**'] } }, appType: 'spa' });
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
@@ -1907,6 +2004,9 @@ async function startServer() {
     setInterval(() => {
       if (Date.now() - lastBackupTime > BACKUP_INTERVAL_MS) { createBackup(); lastBackupTime = Date.now(); }
     }, 60000);
+
+    // Inicializar WhatsApp después de que el servidor esté listo
+    initWhatsApp();
   }).on('error', (err: any) => {
     if (err.code === 'EADDRINUSE') console.error(`[FATAL] Puerto ${PORT} ya esta en uso.`);
     else console.error('[FATAL] Error al iniciar servidor:', err);
