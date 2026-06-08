@@ -8911,6 +8911,22 @@
       "updatedAt": "2026-06-05T15:16:13.471Z"
     },
     {
+      "id": "REP-703138",
+      "code": "RFXQM",
+      "clientId": "1780693703078",
+      "clientName": "Rodrigo Alvariñas",
+      "clientPhone": "11-5114-5837",
+      "equipment": "Notebook",
+      "marca": "Lenovo",
+      "modelo": "15 Gris",
+      "status": "Recibida",
+      "problem": "Programas adicionales\nCarga Bateria Inicial",
+      "notes": "",
+      "price": 0,
+      "date": "2026-06-05",
+      "updatedAt": "2026-06-05T21:10:23.936Z"
+    },
+    {
       "id": "REP-175696",
       "code": "584U4",
       "clientId": "1780584348165",
