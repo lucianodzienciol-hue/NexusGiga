@@ -245,6 +245,17 @@ CREATE TABLE IF NOT EXISTS monthly_stats (
   cash_amount REAL DEFAULT 0,
   PRIMARY KEY (year, month)
 );
+
+CREATE TABLE IF NOT EXISTS exchanges (
+  id TEXT PRIMARY KEY,
+  clientId TEXT NOT NULL DEFAULT '',
+  clientName TEXT NOT NULL DEFAULT '',
+  productId TEXT NOT NULL DEFAULT '',
+  productName TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'recibido',
+  date TEXT NOT NULL,
+  notes TEXT DEFAULT ''
+);
 `;
 
 let db: Database.Database;
@@ -269,6 +280,7 @@ function setupSchema(database: Database.Database): void {
     try { database.exec(`ALTER TABLE products ADD COLUMN ${col} TEXT DEFAULT ''`); } catch {}
   }
   try { database.exec(`ALTER TABLE repairs ADD COLUMN updatedAt TEXT DEFAULT ''`); } catch {}
+  try { database.exec(`ALTER TABLE exchanges ADD COLUMN notes TEXT DEFAULT ''`); } catch {}
   database.pragma('journal_mode = WAL');
   database.pragma('synchronous = NORMAL');
   database.pragma('foreign_keys = ON');
@@ -691,19 +703,42 @@ async function importFromWeb(silent = false): Promise<{ imported: number; update
 }
 
 // ─── WhatsApp ─────────────────────────────────────────────────────────────
+function findChrome(): string | undefined {
+  const candidates = [
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+    process.env.LOCALAPPDATA + '\\Google\\Chrome\\Application\\chrome.exe',
+    process.env.ProgramFiles + '\\Google\\Chrome\\Application\\chrome.exe',
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+  ];
+  for (const p of candidates) {
+    try { if (fs.existsSync(p)) return p; } catch {}
+  }
+  return undefined;
+}
+
+// Limpiar carpeta de autenticación de WhatsApp
+function clearWAAuth() {
+  const authDir = path.join(process.cwd(), '.wwebjs_auth');
+  try { if (fs.existsSync(authDir)) fs.rmSync(authDir, { recursive: true, force: true }); } catch {}
+}
+
 async function initWhatsApp() {
   if (waClient) return;
   waInitializing = true;
   try {
     const { Client, LocalAuth } = (await import('whatsapp-web.js')).default;
-    const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+    const chromePath = findChrome();
+    const pupConfig: any = {
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+    };
+    if (chromePath) pupConfig.executablePath = chromePath;
     waClient = new Client({
       authStrategy: new LocalAuth(),
-      puppeteer: {
-        headless: true,
-        executablePath: chromePath,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      }
+      puppeteer: pupConfig
     });
 
     waClient.on('qr', async (qr: string) => {
@@ -2098,6 +2133,44 @@ async function startServer() {
       if (!waClient && !waInitializing) initWhatsApp().catch(() => {});
     }
     res.json({ success: true });
+  });
+
+  // ─── Exchanges (Cambios) ────────────────────────────────────────────────
+  app.get('/api/exchanges', (req, res) => {
+    res.json(db.prepare('SELECT * FROM exchanges ORDER BY date DESC').all());
+  });
+
+  app.post('/api/exchanges', (req, res) => {
+    const { clientId, clientName, productId, productName, status, notes } = req.body;
+    const id = Date.now().toString();
+    const date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    db.prepare('INSERT INTO exchanges (id, clientId, clientName, productId, productName, status, date, notes) VALUES (?,?,?,?,?,?,?,?)')
+      .run(id, clientId || '', clientName || '', productId || '', productName || '', status || 'recibido', date, notes || '');
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.status(201).json({ id, clientId, clientName, productId, productName, status, date, notes });
+  });
+
+  app.put('/api/exchanges/:id', (req, res) => {
+    const existing = db.prepare('SELECT * FROM exchanges WHERE id = ?').get(req.params.id) as any;
+    if (!existing) return res.status(404).json({ error: 'Exchange not found' });
+    const { clientId, clientName, productId, productName, status, notes } = req.body;
+    db.prepare('UPDATE exchanges SET clientId=?, clientName=?, productId=?, productName=?, status=?, notes=? WHERE id=?').run(
+      clientId !== undefined ? clientId : existing.clientId,
+      clientName !== undefined ? clientName : existing.clientName,
+      productId !== undefined ? productId : existing.productId,
+      productName !== undefined ? productName : existing.productName,
+      status !== undefined ? status : existing.status,
+      notes !== undefined ? notes : existing.notes,
+      req.params.id
+    );
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.json(db.prepare('SELECT * FROM exchanges WHERE id = ?').get(req.params.id));
+  });
+
+  app.delete('/api/exchanges/:id', (req, res) => {
+    const r = db.prepare('DELETE FROM exchanges WHERE id = ?').run(req.params.id);
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.json({ success: r.changes > 0 });
   });
 
   // Vite / static serving

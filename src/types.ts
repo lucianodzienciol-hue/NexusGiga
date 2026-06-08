@@ -89,6 +89,17 @@ export interface Purchase {
   total: number;
 }
 
+export interface Exchange {
+  id: string;
+  clientId: string;
+  clientName: string;
+  productId: string;
+  productName: string;
+  status: 'recibido' | 'esperando' | 'entregado';
+  date: string;
+  notes?: string;
+}
+
 export interface Expense {
   id: string;
   date: string;
