@@ -256,6 +256,15 @@ CREATE TABLE IF NOT EXISTS exchanges (
   date TEXT NOT NULL,
   notes TEXT DEFAULT ''
 );
+
+CREATE TABLE IF NOT EXISTS notes (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL DEFAULT '',
+  content TEXT NOT NULL DEFAULT '',
+  category TEXT DEFAULT '',
+  date TEXT NOT NULL,
+  updatedAt TEXT DEFAULT ''
+);
 `;
 
 let db: Database.Database;
@@ -348,6 +357,17 @@ function getConfig<T>(key: string, defaultValue: T): T {
 
 function setConfig(key: string, value: any): void {
   db.prepare('INSERT OR REPLACE INTO app_config (key, value) VALUES (?, ?)').run(key, JSON.stringify(value));
+}
+
+function getRepairCounter(): number {
+  const existing = getConfig<number | null>('repairCounter', null);
+  if (existing !== null) return existing;
+  const rows = db.prepare("SELECT id FROM repairs WHERE id LIKE 'REP-%' ORDER BY id DESC LIMIT 1").all() as any[];
+  if (rows.length > 0) {
+    const num = parseInt(rows[0].id.replace('REP-', ''), 10);
+    return isNaN(num) ? 1 : num + 1;
+  }
+  return 1;
 }
 
 function getSalesWithItems(): Sale[] {
@@ -1439,6 +1459,19 @@ async function startServer() {
   });
 
   // ===== REPAIRS =====
+  app.get('/api/repair-counter', (req, res) => {
+    res.json({ counter: getRepairCounter() });
+  });
+
+  app.put('/api/repair-counter', (req, res) => {
+    const { counter } = req.body;
+    if (typeof counter !== 'number' || counter < 1) {
+      return res.status(400).json({ error: 'Counter must be a number >= 1' });
+    }
+    setConfig('repairCounter', counter);
+    res.json({ counter });
+  });
+
   app.get('/api/repairs', (req, res) => {
     res.json(db.prepare('SELECT * FROM repairs ORDER BY date DESC').all());
   });
@@ -1452,7 +1485,9 @@ async function startServer() {
       code = '';
       for (let i = 0; i < 5; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
     } while (existingCodes.includes(code));
-    const id = 'REP-' + Date.now().toString().slice(-6);
+    const counter = getRepairCounter();
+    const id = 'REP-' + counter.toString().padStart(4, '0');
+    setConfig('repairCounter', counter + 1);
     const date = new Date().toISOString().split('T')[0];
     db.prepare(`INSERT INTO repairs (id, code, clientId, clientName, clientPhone, equipment, marca, modelo, status, problem, notes, price, date, updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
       id, code, clientId || '', clientName || '', clientPhone || '',
@@ -2169,6 +2204,43 @@ async function startServer() {
 
   app.delete('/api/exchanges/:id', (req, res) => {
     const r = db.prepare('DELETE FROM exchanges WHERE id = ?').run(req.params.id);
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.json({ success: r.changes > 0 });
+  });
+
+  // ─── Notes (Notas) ───────────────────────────────────────────────────────
+  app.get('/api/notes', (req, res) => {
+    res.json(db.prepare('SELECT * FROM notes ORDER BY updatedAt DESC, date DESC').all());
+  });
+
+  app.post('/api/notes', (req, res) => {
+    const { title, content, category } = req.body;
+    const id = Date.now().toString();
+    const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    db.prepare('INSERT INTO notes (id, title, content, category, date, updatedAt) VALUES (?,?,?,?,?,?)')
+      .run(id, title || '', content || '', category || '', now, now);
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.status(201).json({ id, title, content, category, date: now, updatedAt: now });
+  });
+
+  app.put('/api/notes/:id', (req, res) => {
+    const existing = db.prepare('SELECT * FROM notes WHERE id = ?').get(req.params.id) as any;
+    if (!existing) return res.status(404).json({ error: 'Note not found' });
+    const { title, content, category } = req.body;
+    const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    db.prepare('UPDATE notes SET title=?, content=?, category=?, updatedAt=? WHERE id=?').run(
+      title !== undefined ? title : existing.title,
+      content !== undefined ? content : existing.content,
+      category !== undefined ? category : existing.category,
+      now,
+      req.params.id
+    );
+    lastPOSWrite = Date.now(); pendingSync = true;
+    res.json(db.prepare('SELECT * FROM notes WHERE id = ?').get(req.params.id));
+  });
+
+  app.delete('/api/notes/:id', (req, res) => {
+    const r = db.prepare('DELETE FROM notes WHERE id = ?').run(req.params.id);
     lastPOSWrite = Date.now(); pendingSync = true;
     res.json({ success: r.changes > 0 });
   });

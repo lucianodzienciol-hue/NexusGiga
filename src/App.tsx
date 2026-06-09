@@ -29,16 +29,17 @@ import Estadisticas from './components/Estadisticas';
 import Backups from './components/Backups';
 import Pendientes from './components/Pendientes';
 import Cambios from './components/Cambios';
+import Notas from './components/Notas';
 import WhatsAppConfig from './components/WhatsAppConfig';
 import ProcessMonitor from './components/ProcessMonitor';
 import WhatsAppStatus from './components/WhatsAppStatus';
 
-type TabType = 'Vender' | 'Historiales' | 'Artículos' | 'Clientes' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web' | 'Estadísticas' | 'Backups' | 'Pendientes' | 'Cambios' | 'WhatsApp';
+type TabType = 'Vender' | 'Historiales' | 'Artículos' | 'Clientes' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web' | 'Estadísticas' | 'Backups' | 'Pendientes' | 'Notas' | 'Cambios' | 'WhatsApp';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     const saved = localStorage.getItem('nexus_activeTab');
-    const valid: TabType[] = ['Vender', 'Historiales', 'Artículos', 'Clientes', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Cambios', 'WhatsApp'];
+    const valid: TabType[] = ['Vender', 'Historiales', 'Artículos', 'Clientes', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Notas', 'Cambios', 'WhatsApp'];
     return valid.includes(saved as TabType) ? (saved as TabType) : 'Vender';
   });
   const [products, setProducts] = useState<Product[]>([]);
@@ -74,10 +75,10 @@ export default function App() {
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [showProcessMonitor, setShowProcessMonitor] = useState(false);
   const [syncModalType, setSyncModalType] = useState<'syncing' | 'success' | 'error'>('syncing');
-  const navTabs: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Reparaciones', 'Métodos de Pago', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Cambios', 'WhatsApp'];
+  const navTabs: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Reparaciones', 'Métodos de Pago', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Notas', 'Cambios', 'WhatsApp'];
 
 
-  const TAB_KEYS: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Cambios', 'WhatsApp'];
+  const TAB_KEYS: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Notas', 'Cambios', 'WhatsApp'];
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -403,7 +404,7 @@ export default function App() {
 
       {/* MOBILE TAB DRAWER (ONLY ON SMALL DEVICES) */}
       <div className="md:hidden bg-[#0f1115] border-b border-[#1f242e] px-4 py-2 flex gap-1 overflow-x-auto">
- {(['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'WhatsApp', 'Cambios'] as const).map((tab, idx) => {
+ {(['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Notas', 'WhatsApp', 'Cambios'] as const).map((tab, idx) => {
           const isActive = activeTab === tab;
           return (
             <button
@@ -477,6 +478,10 @@ export default function App() {
 
         {activeTab === 'Cambios' && (
           <Cambios onRefresh={fetchAllData} />
+        )}
+
+        {activeTab === 'Notas' && (
+          <Notas onRefresh={fetchAllData} />
         )}
 
         {activeTab === 'WhatsApp' && (

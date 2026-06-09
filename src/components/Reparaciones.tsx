@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Plus, Trash2, Search, Printer, Wrench, CheckCircle, Pencil, X } from 'lucide-react';
+import { Plus, Trash2, Search, Printer, Wrench, CheckCircle, Pencil, X, Settings } from 'lucide-react';
 import { WebRepair, WebClient } from '../types';
 
 interface ReparacionesProps {
@@ -45,6 +45,8 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
   const [showSuccess, setShowSuccess] = useState(false);
   const [showHistorial, setShowHistorial] = useState(false);
   const [successData, setSuccessData] = useState<{ code: string; id: string; clientName?: string; clientPhone?: string; equipment?: string } | null>(null);
+  const [showCounterModal, setShowCounterModal] = useState(false);
+  const [counterValue, setCounterValue] = useState(1);
 
   // Form state
   const [clientMode, setClientMode] = useState<'search' | 'create'>('search');
@@ -82,6 +84,30 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
     const q = clientSearch.toLowerCase();
     return c.name.toLowerCase().includes(q) || (c.phone || '').toLowerCase().includes(q);
   });
+
+  const openCounterModal = async () => {
+    try {
+      const res = await fetch('/api/repair-counter');
+      if (res.ok) {
+        const data = await res.json();
+        setCounterValue(data.counter);
+      }
+    } catch {}
+    setShowCounterModal(true);
+  };
+
+  const saveCounter = async () => {
+    const val = parseInt(String(counterValue), 10);
+    if (isNaN(val) || val < 1) return;
+    try {
+      await fetch('/api/repair-counter', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ counter: val }),
+      });
+    } catch {}
+    setShowCounterModal(false);
+  };
 
   // Sort & filter
   const sortRepairs = (arr: WebRepair[]) => {
@@ -419,6 +445,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             {showHistorial ? 'Volver' : 'Historial'}
           </button>
+          <button onClick={openCounterModal} className="bg-[#181a20] border border-[#2d3444] text-slate-300 hover:bg-[#1f242e] rounded-lg py-1.5 px-3 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"><Settings size={13} />Numeraci\u00f3n</button>
         </div>
       </div>
 
@@ -716,6 +743,40 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                   <Trash2 size={12} /> Eliminar Orden Permanentemente
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Counter Modal */}
+      {showCounterModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowCounterModal(false)}>
+          <div className="bg-[#111318] border border-[#2d3444] rounded-xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center border-b border-[#2d3444] pb-3 mb-4">
+              <span className="font-semibold text-white font-display flex items-center gap-2"><Settings size={16} className="text-slate-400" /> Configurar Numeraci\u00f3n</span>
+              <button onClick={() => setShowCounterModal(false)} className="text-slate-400 hover:text-white transition-colors cursor-pointer"><X size={16} /></button>
+            </div>
+            <p className="text-xs text-slate-400 mb-3">El pr\u00f3ximo n\u00famero de orden ser\u00e1:</p>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Formato:</span>
+              <span className="text-sm font-mono font-bold text-amber-400 bg-[#181a20] border border-[#2d3444] rounded-lg px-3 py-1.5">
+                {'REP-' + String(counterValue).padStart(4, '0')}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mb-4">
+              Orden actual: REP-{String(counterValue).padStart(4, '0')}&nbsp;&rarr;&nbsp;Siguiente: REP-{String(counterValue + 1).padStart(4, '0')}
+            </p>
+            <label className="text-xs text-slate-400 mb-1 block">N\u00famero inicial para la pr\u00f3xima orden:</label>
+            <input
+              type="number"
+              min="1"
+              value={counterValue}
+              onChange={e => setCounterValue(parseInt(e.target.value, 10) || 1)}
+              className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-sm text-white font-mono focus:outline-none mb-4"
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setShowCounterModal(false)} className="flex-1 bg-[#181a20] hover:bg-[#1f242e] text-slate-300 font-medium py-2 px-4 rounded-lg text-xs transition-all cursor-pointer">Cancelar</button>
+              <button onClick={saveCounter} className="flex-1 bg-blue-700 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-xs transition-all cursor-pointer">Guardar</button>
             </div>
           </div>
         </div>
