@@ -426,7 +426,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-white" style={{ margin: 0 }}>Gesti\u00f3n de Reparaciones</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wider text-white" style={{ margin: 0 }}>Gestión de Reparaciones</h2>
         <div className="flex items-center gap-2">
           {/* Sort */}
           <div className="flex items-center gap-1.5 bg-[#181a20] border border-[#2d3444] rounded-full py-1 px-3">
@@ -753,7 +753,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowCounterModal(false)}>
           <div className="bg-[#111318] border border-[#2d3444] rounded-xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center border-b border-[#2d3444] pb-3 mb-4">
-              <span className="font-semibold text-white font-display flex items-center gap-2"><Settings size={16} className="text-slate-400" /> Configurar Numeraci\u00f3n</span>
+              <span className="font-semibold text-white font-display flex items-center gap-2"><Settings size={16} className="text-slate-400" /> Configurar Numeración</span>
               <button onClick={() => setShowCounterModal(false)} className="text-slate-400 hover:text-white transition-colors cursor-pointer"><X size={16} /></button>
             </div>
             <p className="text-xs text-slate-400 mb-3">El pr\u00f3ximo n\u00famero de orden ser\u00e1:</p>

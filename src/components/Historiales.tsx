@@ -22,6 +22,7 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
   const [dateTo, setDateTo] = useState(today);
   const [methodFilter, setMethodFilter] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [hideCash, setHideCash] = useState(false);
   const [expandedSaleId, setExpandedSaleId] = useState<string | null>(null);
 
   // Repairs state
@@ -36,6 +37,7 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
       s.paymentMethod.toLowerCase().includes(search.toLowerCase());
     if (!matchesSearch) return false;
     if (methodFilter && s.paymentMethod !== methodFilter) return false;
+    if (hideCash && s.paymentMethod.toLowerCase() === 'efectivo') return false;
     const saleDate = new Date(s.date);
     if (dateFrom && saleDate < new Date(dateFrom)) return false;
     if (dateTo) {
@@ -279,9 +281,21 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
                   ))}
                 </select>
               </div>
-              {(dateFrom || dateTo || methodFilter) && (
+              <button
+                onClick={() => setHideCash(!hideCash)}
+                className={`flex items-center gap-1.5 rounded-lg py-1.5 px-2.5 text-[11px] font-mono transition-all ${
+                  hideCash
+                    ? 'bg-red-700 text-white border border-red-600'
+                    : 'bg-[#181a20] border border-[#2d3444] text-slate-400 hover:text-white'
+                }`}
+                title={hideCash ? 'Mostrar todas las ventas' : 'Ocultar ventas en efectivo'}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                {hideCash ? 'Mostrando solo otros' : 'Ocultar Efectivo'}
+              </button>
+              {(dateFrom || dateTo || methodFilter || hideCash) && (
                 <button
-                  onClick={() => { setDateFrom(''); setDateTo(''); setMethodFilter(''); }}
+                  onClick={() => { setDateFrom(''); setDateTo(''); setMethodFilter(''); setHideCash(false); }}
                   className="text-[10px] text-slate-400 hover:text-white font-mono px-2 py-1 rounded border border-[#2d3444] hover:bg-[#1a1d24] transition-all"
                 >
                   Limpiar filtros

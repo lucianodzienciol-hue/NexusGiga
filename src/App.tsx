@@ -453,7 +453,7 @@ export default function App() {
         )}
 
         {activeTab === 'Egresos' && (
-          <Egresos expenses={expenses} cashRegister={cashRegister} onRefresh={fetchAllData} />
+          <Egresos expenses={expenses} onRefresh={fetchAllData} />
         )}
 
         {activeTab === 'Reparaciones' && (
@@ -804,7 +804,7 @@ export default function App() {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] text-slate-500 font-mono uppercase">Contrase\u00f1a de Backup</label>
+                    <label className="text-[10px] text-slate-500 font-mono uppercase">Contraseña de Backup</label>
                     <div className="flex gap-1">
                       <input
                         type="password"
@@ -826,7 +826,7 @@ export default function App() {
                         className="bg-amber-700 hover:bg-amber-600 text-white font-bold px-3 rounded-lg text-xs transition-colors cursor-pointer"
                       >Guardar</button>
                     </div>
-                    <p className="text-[9px] text-slate-600">Los backups se encriptan con AES-256 y se suben a GitHub junto al c\u00f3digo</p>
+                    <p className="text-[9px] text-slate-600">Los backups se encriptan con AES-256 y se suben a GitHub junto al código</p>
                   </div>
                   <div className="flex items-center gap-2 text-[11px]">
                     {syncStatus.syncing ? (
@@ -963,7 +963,7 @@ export default function App() {
                             <input
                               type="password"
                               className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none"
-                              placeholder="Contrase\u00f1a de backup"
+                              placeholder="Contraseña de backup"
                               value={restorePassword}
                               onChange={e => setRestorePassword(e.target.value)}
                             />

@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Search, Calendar, Filter, ArrowUpFromLine, ArrowDownToLine, Landmark, Banknote } from 'lucide-react';
-import { Expense, CashRegister } from '../types';
+import { Plus, Trash2, Search, Calendar, Filter, ArrowUpFromLine, ArrowDownToLine } from 'lucide-react';
+import { Expense } from '../types';
 
 interface EgresosProps {
   expenses: Expense[];
-  cashRegister: CashRegister;
   onRefresh: () => void;
 }
 
-export default function Egresos({ expenses, cashRegister, onRefresh }: EgresosProps) {
+export default function Egresos({ expenses, onRefresh }: EgresosProps) {
   const today = new Date().toISOString().slice(0, 10);
   const [type, setType] = useState<'efectivo' | 'transferencia'>('efectivo');
   const [description, setDescription] = useState('');
@@ -25,10 +24,12 @@ export default function Egresos({ expenses, cashRegister, onRefresh }: EgresosPr
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) { alert('Ingrese un monto válido.'); return; }
     try {
+      const now = new Date();
+      const localDateTime = new Date(date + 'T' + now.toTimeString().slice(0, 5));
       const res = await fetch('/api/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, description: description.trim(), amount: amountNum, date: new Date(date).toISOString() })
+        body: JSON.stringify({ type, description: description.trim(), amount: amountNum, date: localDateTime.toISOString() })
       });
       if (!res.ok) throw new Error('Error al registrar egreso');
       setDescription('');
@@ -65,39 +66,9 @@ export default function Egresos({ expenses, cashRegister, onRefresh }: EgresosPr
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const totalEgresos = filtered.reduce((sum, e) => sum + e.amount, 0);
-  const cashExpenses = expenses.filter(e => e.type === 'efectivo').reduce((s, e) => s + e.amount, 0);
-  const bankExpenses = expenses.filter(e => e.type === 'transferencia').reduce((s, e) => s + e.amount, 0);
-  const effectiveCash = cashRegister.cash - cashExpenses;
-  const effectiveBank = cashRegister.bank - bankExpenses;
 
   return (
     <div className="space-y-6">
-      {/* Cash Register Status */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
-          <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase flex items-center gap-1.5">
-            <Banknote size={13} /> Efectivo en Caja
-          </span>
-          <div className={`text-3xl font-extrabold font-display mt-2 ${effectiveCash >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            ${effectiveCash.toFixed(0)}
-          </div>
-          <span className="text-[10px] text-slate-500 font-mono mt-1">
-            ${cashRegister.cash.toFixed(0)} inicial - ${cashExpenses.toFixed(0)} egresos
-          </span>
-        </div>
-        <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
-          <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase flex items-center gap-1.5">
-            <Landmark size={13} /> Saldo en Banco
-          </span>
-          <div className={`text-3xl font-extrabold font-display mt-2 ${effectiveBank >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            ${effectiveBank.toFixed(0)}
-          </div>
-          <span className="text-[10px] text-slate-500 font-mono mt-1">
-            ${cashRegister.bank.toFixed(0)} inicial - ${bankExpenses.toFixed(0)} transferencias
-          </span>
-        </div>
-      </div>
-
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">

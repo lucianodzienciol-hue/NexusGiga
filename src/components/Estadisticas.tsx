@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BarChart3, TrendingUp, TrendingDown, RefreshCw, Database, Download } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown, RefreshCw, Database, Download, CalendarDays } from 'lucide-react';
 
 interface MonthlyStat {
   year: number;
@@ -11,10 +11,14 @@ interface MonthlyStat {
 export default function Estadisticas() {
   const [stats, setStats] = useState<MonthlyStat[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState<'ventas' | 'caja'>(() => {
+  const [selectedTab, setSelectedTab] = useState<'ventas' | 'caja' | 'diario'>(() => {
     const saved = localStorage.getItem('nexus_e_tab');
-    return saved === 'caja' ? 'caja' : 'ventas';
+    return saved === 'caja' ? 'caja' : saved === 'diario' ? 'diario' : 'ventas';
   });
+  const [dailyData, setDailyData] = useState<any[]>([]);
+  const [dailyLoading, setDailyLoading] = useState(false);
+  const [dailyMonth, setDailyMonth] = useState(new Date().getMonth() + 1);
+  const [dailyYear, setDailyYear] = useState(new Date().getFullYear());
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [message, setMessage] = useState<{ type: string; text: string } | null>(null);
   const [chartYear, setChartYear] = useState<number>(2026);
@@ -59,6 +63,18 @@ export default function Estadisticas() {
   };
 
   useEffect(() => { loadStats(); }, []);
+
+  const loadDailyData = async (yr: number, mo: number) => {
+    setDailyLoading(true);
+    try {
+      const r = await fetch(`/api/stats/daily?year=${yr}&month=${mo}`);
+      if (r.ok) setDailyData(await r.json());
+    } catch {} finally { setDailyLoading(false); }
+  };
+
+  useEffect(() => {
+    if (selectedTab === 'diario') loadDailyData(dailyYear, dailyMonth);
+  }, [selectedTab, dailyYear, dailyMonth]);
 
   const handleSeed = async () => {
     setMessage(null);
@@ -181,7 +197,7 @@ export default function Estadisticas() {
         </div>
       )}
 
-      {/* Tabs: Ventas / Caja */}
+      {/* Tabs: Ventas / Caja / Diario */}
       <div className="flex gap-1 bg-[#0d0e12] rounded-lg p-1 border border-[#1f242e] w-fit">
         <button onClick={() => setSelectedTab('ventas')} className={`py-1.5 px-4 rounded-md text-xs font-semibold transition-all ${selectedTab === 'ventas' ? 'bg-[#5aa6ec] text-slate-900' : 'text-slate-400 hover:text-white'}`}>
           Ventas
@@ -189,9 +205,82 @@ export default function Estadisticas() {
         <button onClick={() => setSelectedTab('caja')} className={`py-1.5 px-4 rounded-md text-xs font-semibold transition-all ${selectedTab === 'caja' ? 'bg-[#5aa6ec] text-slate-900' : 'text-slate-400 hover:text-white'}`}>
           Caja ($)
         </button>
+        <button onClick={() => setSelectedTab('diario')} className={`py-1.5 px-4 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 ${selectedTab === 'diario' ? 'bg-[#5aa6ec] text-slate-900' : 'text-slate-400 hover:text-white'}`}>
+          <CalendarDays size={13} /> Diario
+        </button>
       </div>
 
-      {loading ? (
+      {selectedTab === 'diario' ? (
+        <div className="space-y-4">
+          {/* Month/Year Navigation */}
+          <div className="flex items-center gap-3">
+            <select value={dailyMonth} onChange={e => setDailyMonth(parseInt(e.target.value))} className="bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-medium focus:outline-none cursor-pointer">
+              {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+            </select>
+            <div className="flex items-center gap-1">
+              <button onClick={() => setDailyYear(dailyYear - 1)} className="bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-2 text-xs text-slate-400 hover:text-white transition-all">◀</button>
+              <span className="bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-4 text-xs text-white font-mono font-bold min-w-[70px] text-center">{dailyYear}</span>
+              <button onClick={() => setDailyYear(dailyYear + 1)} className="bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-2 text-xs text-slate-400 hover:text-white transition-all">▶</button>
+            </div>
+            <button onClick={() => loadDailyData(dailyYear, dailyMonth)} className="flex items-center gap-1.5 bg-[#2d3444] hover:bg-[#3a4155] text-white rounded-lg py-1.5 px-3 text-[10px] font-semibold transition-colors">
+              <RefreshCw size={12} /> Refrescar
+            </button>
+          </div>
+
+          {dailyLoading ? (
+            <div className="p-12 text-center text-slate-500 text-xs">Cargando estadísticas diarias...</div>
+          ) : (
+            <div className="bg-[#111318] border border-[#1f242e] rounded-xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#181a20] border-b border-[#2d3444] text-[10px] tracking-wider text-slate-400 font-mono uppercase">
+                      <th className="py-2.5 px-3 font-bold">Día</th>
+                      <th className="py-2.5 px-3 text-right font-bold">Ventas</th>
+                      <th className="py-2.5 px-3 text-right font-bold">Ingresos ($)</th>
+                      <th className="py-2.5 px-3 text-right font-bold">Egresos ($)</th>
+                      <th className="py-2.5 px-3 text-right font-bold">Balance ($)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dailyData.map((d: any) => {
+                      const balance = d.income - d.expenses;
+                      return (
+                        <tr key={d.day} className="border-b border-[#1b1e26] hover:bg-[#14171e] text-xs transition-all">
+                          <td className="py-2 px-3 font-medium text-slate-300">{d.day}</td>
+                          <td className="py-2 px-3 text-right font-mono font-semibold text-slate-300">{d.salesCount}</td>
+                          <td className="py-2 px-3 text-right font-mono font-semibold text-emerald-400">${d.income.toLocaleString('es-AR')}</td>
+                          <td className="py-2 px-3 text-right font-mono font-semibold text-red-400">${d.expenses.toLocaleString('es-AR')}</td>
+                          <td className={`py-2 px-3 text-right font-mono font-bold ${balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                            ${balance.toLocaleString('es-AR')}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-[#181a20] border-t-2 border-[#2d3444] text-xs font-bold font-mono">
+                      <td className="py-2.5 px-3 text-slate-300 uppercase tracking-wider">Total</td>
+                      <td className="py-2.5 px-3 text-right text-white">
+                        {dailyData.reduce((s: number, d: any) => s + d.salesCount, 0)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right text-emerald-400">
+                        ${dailyData.reduce((s: number, d: any) => s + d.income, 0).toLocaleString('es-AR')}
+                      </td>
+                      <td className="py-2.5 px-3 text-right text-red-400">
+                        ${dailyData.reduce((s: number, d: any) => s + d.expenses, 0).toLocaleString('es-AR')}
+                      </td>
+                      <td className="py-2.5 px-3 text-right text-white">
+                        ${dailyData.reduce((s: number, d: any) => s + d.income - d.expenses, 0).toLocaleString('es-AR')}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : loading ? (
         <div className="p-12 text-center text-slate-500 text-xs">Cargando estadísticas...</div>
       ) : stats.length === 0 ? (
         <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-8 text-center">

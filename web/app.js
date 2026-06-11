@@ -589,8 +589,7 @@ const Pages = {
                 <aside class="catalog-sidebar glass">
                     <h3 class="sidebar-title">Categorías</h3>
                     <ul class="category-list">
-                        <li class="category-item active" data-category="all">Todas</li>
-                        ${categories.map(cat => `<li class="category-item" data-category="${cat.name}">${cat.name}</li>`).join('')}
+                        ${categories.map((cat, i) => `<li class="category-item${i === 0 ? ' active' : ''}" data-category="${cat.name}">${cat.name}</li>`).join('')}
                     </ul>
                 </aside>
                 <div class="catalog-main">
@@ -650,7 +649,7 @@ const Pages = {
             let filtered = filterOfertas ? allProducts.filter(p => p.oferta) : allProducts;
             
             // Only filter by category if there is no active search query
-            if (activeCat !== 'all' && !query) {
+            if (!query) {
                 filtered = filtered.filter(p => p.category === activeCat);
             }
             
@@ -692,15 +691,6 @@ const Pages = {
 
         // Search and Sort logic
         const debouncedUpdate = DB.utils.debounce(() => {
-            const query = document.getElementById('search-input').value.trim();
-            if (query) {
-                // Highlight "Todas" category visually when searching
-                const allCatBtn = document.querySelector('.category-item[data-category="all"]');
-                if (allCatBtn && !allCatBtn.classList.contains('active')) {
-                    document.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
-                    allCatBtn.classList.add('active');
-                }
-            }
             updateGrid();
         }, 200);
         document.getElementById('search-input').addEventListener('input', debouncedUpdate);

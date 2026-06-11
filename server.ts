@@ -359,6 +359,21 @@ function setConfig(key: string, value: any): void {
   db.prepare('INSERT OR REPLACE INTO app_config (key, value) VALUES (?, ?)').run(key, JSON.stringify(value));
 }
 
+function saveDataUriAsFile(dataUri: string, productId: string): string {
+  if (!dataUri.startsWith('data:')) return dataUri;
+  try {
+    const match = dataUri.match(/^data:image\/(\w+);base64,(.+)$/);
+    if (!match) return dataUri;
+    const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
+    const buffer = Buffer.from(match[2], 'base64');
+    const dir = path.join(WEB_MAIN_DIR, 'assets', 'products');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const filename = `prod_${productId}.${ext}`;
+    fs.writeFileSync(path.join(dir, filename), buffer);
+    return `assets/products/${filename}`;
+  } catch (e) { console.error('[Image] Error saving data URI:', e); return dataUri; }
+}
+
 function getRepairCounter(): number {
   const existing = getConfig<number | null>('repairCounter', null);
   if (existing !== null) return existing;
@@ -398,7 +413,7 @@ function getFullDatabaseSchema(): DatabaseSchema {
     paymentMethods: (db.prepare('SELECT * FROM payment_methods').all() as any[]).map(rowToPaymentMethod),
     companyConfig: getConfig<CompanyConfig | null>('companyConfig', null),
     stockWarningEnabled: getConfig<boolean>('stockWarningEnabled', true),
-    expenses: db.prepare('SELECT * FROM expenses').all() as Expense[],
+    expenses: db.prepare('SELECT id, date, type, descriptionText AS description, amount FROM expenses').all() as Expense[],
     cashRegister: getConfig<CashRegister | null>('cashRegister', null),
     categories: db.prepare('SELECT * FROM web_categories ORDER BY name').all() as { id: string; name: string }[],
     services: db.prepare('SELECT * FROM web_services ORDER BY name').all() as { id: string; name: string; desc?: string; icon?: string; price?: number }[],
@@ -884,6 +899,28 @@ async function startServer() {
         setConfig('webImgMigrated', true);
         if (imgUpdated > 0 || imgInserted > 0) console.log(`[MIGRATE] Imágenes web: ${imgInserted} insertadas, ${imgUpdated} actualizadas`);
       }
+      // Migrar data: URIs a archivos físicos (una sola vez)
+      const dataUriMigrated = getConfig<boolean>('dataUriMigrated', false);
+      if (!dataUriMigrated) {
+        const dataUriProducts = db.prepare("SELECT id, name, image FROM products WHERE image LIKE 'data:%'").all() as any[];
+        if (dataUriProducts.length > 0) {
+          let converted = 0;
+          const updDataUri = db.prepare('UPDATE products SET image=? WHERE id=?');
+          const doDataUriMigrate = db.transaction(() => {
+            for (const p of dataUriProducts) {
+              const newPath = saveDataUriAsFile(p.image, p.id);
+              if (newPath !== p.image) {
+                updDataUri.run(newPath, p.id);
+                converted++;
+              }
+            }
+          });
+          doDataUriMigrate();
+          console.log(`[MIGRATE] ${converted} imágenes data: URI convertidas a archivos`);
+        }
+        setConfig('dataUriMigrated', true);
+        try { if (typeof syncWebDataToFile === 'function') syncWebDataToFile(); } catch (e2) { console.warn('[MIGRATE] Error al refrescar sync:', e2); }
+      }
     }
   } catch (e) { console.warn('[MIGRATE] No se pudo migrar web data:', e); }
 
@@ -899,8 +936,9 @@ async function startServer() {
   app.post('/api/products', (req, res) => {
     const { code, name, price, cost, stock, category, desc, image, oferta, nuevo, source, webDesc, ofertaPrice, fichaTecnica, fichaTecnicaFile } = req.body;
     const id = Date.now().toString();
+    const savedImage = image ? saveDataUriAsFile(image, id) : '';
     db.prepare(`INSERT INTO products (id, code, name, price, cost, stock, category, source, description, image, oferta, nuevo, webDesc, ofertaPrice, fichaTecnica, fichaTecnicaFile) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
-      id, code || '', name || '', Number(price) || 0, Number(cost) || 0, Number(stock) || 0, category || 'Varios', source === 'web' ? 'web' : 'local', desc || '', image || '', oferta === true ? 1 : 0, nuevo === true ? 1 : 0, webDesc || desc || '', Number(ofertaPrice) || 0, fichaTecnica || '', fichaTecnicaFile || ''
+      id, code || '', name || '', Number(price) || 0, Number(cost) || 0, Number(stock) || 0, category || 'Varios', source === 'web' ? 'web' : 'local', desc || '', savedImage, oferta === true ? 1 : 0, nuevo === true ? 1 : 0, webDesc || desc || '', Number(ofertaPrice) || 0, fichaTecnica || '', fichaTecnicaFile || ''
     );
     lastPOSWrite = Date.now(); pendingSync = true; syncWebDataToFile();
     const row = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
@@ -911,6 +949,7 @@ async function startServer() {
     const existing = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id) as any;
     if (!existing) return res.status(404).json({ error: 'Product not found' });
     const { code, name, price, cost, stock, category, desc, image, oferta, nuevo, source, webDesc, ofertaPrice, fichaTecnica, fichaTecnicaFile } = req.body;
+    const savedImage = image !== undefined ? (image ? saveDataUriAsFile(image, req.params.id) : '') : existing.image;
     const updated = {
       code: code !== undefined ? code : existing.code,
       name: name !== undefined ? name : existing.name,
@@ -920,7 +959,7 @@ async function startServer() {
       category: category !== undefined ? category : existing.category,
       source: source !== undefined ? (source === 'web' ? 'web' : 'local') : existing.source,
       description: desc !== undefined ? desc : existing.description,
-      image: image !== undefined ? image : existing.image,
+      image: savedImage,
       oferta: oferta !== undefined ? (oferta === true ? 1 : 0) : existing.oferta,
       nuevo: nuevo !== undefined ? (nuevo === true ? 1 : 0) : existing.nuevo,
       webDesc: webDesc !== undefined ? webDesc : (existing.webDesc || existing.description || ''),
@@ -1090,7 +1129,7 @@ async function startServer() {
         'in stock', 'new',
         (p.price != null ? Number(p.price).toFixed(0) : '0.00') + ' ARS',
         csvEsc(BASE_URL + '/index.html?id=' + encodeURIComponent(p.id || '')),
-        csvEsc(p.image ? (p.image.startsWith('http') ? p.image : BASE_URL + '/' + p.image.replace(/^\//, '')) : ''),
+        csvEsc(p.image && !p.image.startsWith('data:') ? (p.image.startsWith('http') ? p.image : BASE_URL + '/' + p.image.replace(/^\//, '')) : ''),
         csvEsc(brand), '99', '99'
       ].join(','));
       const csvContent = '\uFEFF' + header + '\n' + rows.join('\n');
@@ -1253,7 +1292,7 @@ async function startServer() {
         'in stock', 'new',
         (p.price != null ? Number(p.price).toFixed(0) : '0.00') + ' ARS',
         csvEsc(BASE_URL + '/index.html?id=' + encodeURIComponent(p.id || '')),
-        csvEsc(p.image ? (p.image.startsWith('http') ? p.image : BASE_URL + '/' + p.image.replace(/^\//, '')) : ''),
+        csvEsc(p.image && !p.image.startsWith('data:') ? (p.image.startsWith('http') ? p.image : BASE_URL + '/' + p.image.replace(/^\//, '')) : ''),
         csvEsc(brand), '99', '99'
       ].join(','));
       const csvContent = '\uFEFF' + header + '\n' + rows.join('\n');
@@ -1560,7 +1599,7 @@ async function startServer() {
 
   // EXPENSES
   app.get('/api/expenses', (req, res) => {
-    res.json(db.prepare('SELECT * FROM expenses ORDER BY date DESC').all());
+    res.json(db.prepare('SELECT id, date, type, descriptionText AS description, amount FROM expenses ORDER BY date DESC').all());
   });
 
   app.post('/api/expenses', (req, res) => {
@@ -1569,7 +1608,7 @@ async function startServer() {
       id, req.body.date || new Date().toISOString(), req.body.type || 'efectivo', req.body.description || '', Number(req.body.amount) || 0
     );
     lastPOSWrite = Date.now(); pendingSync = true;
-    res.status(201).json(db.prepare('SELECT * FROM expenses WHERE id = ?').get(id));
+    res.status(201).json(db.prepare('SELECT id, date, type, descriptionText AS description, amount FROM expenses WHERE id = ?').get(id));
   });
 
   app.delete('/api/expenses/:id', (req, res) => {
@@ -1992,6 +2031,41 @@ async function startServer() {
       });
       doAdd();
       res.json({ success: true, message: `Año ${year} agregado correctamente.` });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.get('/api/stats/daily', (req, res) => {
+    try {
+      const year = parseInt(req.query.year as string) || new Date().getFullYear();
+      const month = parseInt(req.query.month as string) || (new Date().getMonth() + 1);
+      const yearStr = year.toString();
+      const monthStr = month.toString().padStart(2, '0');
+
+      const sales = db.prepare(`
+        SELECT CAST(strftime('%d', date) AS INTEGER) as day,
+               COUNT(*) as count,
+               COALESCE(SUM(total), 0) as income
+        FROM sales
+        WHERE strftime('%Y', date) = ? AND strftime('%m', date) = ?
+        GROUP BY day ORDER BY day
+      `).all(yearStr, monthStr) as any[];
+
+      const expenses = db.prepare(`
+        SELECT CAST(strftime('%d', date) AS INTEGER) as day,
+               COALESCE(SUM(amount), 0) as total
+        FROM expenses
+        WHERE strftime('%Y', date) = ? AND strftime('%m', date) = ?
+        GROUP BY day ORDER BY day
+      `).all(yearStr, monthStr) as any[];
+
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const dailyMap: Record<number, any> = {};
+      for (let d = 1; d <= daysInMonth; d++) dailyMap[d] = { day: d, salesCount: 0, income: 0, expenses: 0 };
+
+      for (const s of sales) { if (dailyMap[s.day]) { dailyMap[s.day].salesCount = s.count; dailyMap[s.day].income = s.income; } }
+      for (const e of expenses) { if (dailyMap[e.day]) { dailyMap[e.day].expenses = e.total; } }
+
+      res.json(Object.values(dailyMap));
     } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
