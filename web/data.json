@@ -9109,6 +9109,38 @@
       "updatedAt": "2026-06-12"
     },
     {
+      "id": "REP-17016",
+      "code": "ASFN5",
+      "clientId": "1780419304493jrvy",
+      "clientName": "Claudia Billordio",
+      "clientPhone": "15 2409 4918",
+      "equipment": "Tv Box",
+      "marca": "Mxq",
+      "modelo": "Negro",
+      "status": "Recibida",
+      "problem": "Xuper",
+      "notes": "",
+      "price": 30000,
+      "date": "2026-06-12",
+      "updatedAt": "2026-06-12"
+    },
+    {
+      "id": "REP-17017",
+      "code": "AC5FE",
+      "clientId": "1780419304126989n",
+      "clientName": "Malena Emilia Querejeta",
+      "clientPhone": "4631-2064",
+      "equipment": "Notebook",
+      "marca": "HP",
+      "modelo": "15 Gris",
+      "status": "Recibida",
+      "problem": "Bisagra Superior Izquierda",
+      "notes": "",
+      "price": 0,
+      "date": "2026-06-12",
+      "updatedAt": "2026-06-12"
+    },
+    {
       "id": "REP-17005",
       "code": "P5WNY",
       "clientId": "1780419304153o40r",
@@ -9213,12 +9245,12 @@
       "equipment": "Tv Box",
       "marca": "Gadnic",
       "modelo": "negro",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "Xuper",
       "notes": "El control no pertenece al mismo equipo",
       "price": 30000,
       "date": "2026-06-11",
-      "updatedAt": "2026-06-11T20:53:31.482Z"
+      "updatedAt": "2026-06-12T18:30:38.142Z"
     },
     {
       "id": "REP-17013",
@@ -9229,12 +9261,12 @@
       "equipment": "Tv Box",
       "marca": "Xiaomi",
       "modelo": "Negro",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "MAgis",
       "notes": "",
       "price": 30000,
       "date": "2026-06-11",
-      "updatedAt": "2026-06-11T20:36:28.022Z"
+      "updatedAt": "2026-06-12T18:30:49.046Z"
     },
     {
       "id": "REP-17014",
