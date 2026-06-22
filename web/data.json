@@ -9381,6 +9381,22 @@
   ],
   "repairs": [
     {
+      "id": "REP-17029",
+      "code": "8TT77",
+      "clientId": "1780419304183k4h3",
+      "clientName": "Omar Eljatib",
+      "clientPhone": "15-6353-1318",
+      "equipment": "Pc Escritorio",
+      "marca": "ninguno",
+      "modelo": "ninguno",
+      "status": "Entregada",
+      "problem": "Limpieza interna\nSacar Edge",
+      "notes": "",
+      "price": 45000,
+      "date": "2026-06-22",
+      "updatedAt": "2026-06-22T15:39:32.620Z"
+    },
+    {
       "id": "REP-17026",
       "code": "EE5UE",
       "clientId": "1780419304048l9lo",
@@ -9453,12 +9469,12 @@
       "equipment": "Notebook",
       "marca": "Asus",
       "modelo": "15 Negra",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "Revisar Cooler\nMemoria 2400 8GB",
       "notes": "",
       "price": 110000,
       "date": "2026-06-18",
-      "updatedAt": "2026-06-18T19:01:00.825Z"
+      "updatedAt": "2026-06-22T14:24:34.564Z"
     },
     {
       "id": "REP-17025",
@@ -10185,10 +10201,6 @@
     {
       "id": "1778677143559hu63",
       "name": "Parlantes"
-    },
-    {
-      "id": "1778677177046s2ls",
-      "name": "Pendrives"
     },
     {
       "id": "1778694719474x24z",
