@@ -3208,7 +3208,7 @@
       "id": "1778691273674jgoi",
       "code": "1778691273674jgoi",
       "name": "Webcam Raptor 4K",
-      "price": 39000,
+      "price": 43000,
       "cost": 0,
       "stock": 0,
       "category": "Webcams",
@@ -9399,6 +9399,38 @@
   ],
   "repairs": [
     {
+      "id": "REP-17059",
+      "code": "VB7HH",
+      "clientId": "17804193049545gwz",
+      "clientName": "Lucila Paillard",
+      "clientPhone": "11-3605-6692",
+      "equipment": "Telefono",
+      "marca": "Samsung",
+      "modelo": "ninguno",
+      "status": "Entregada",
+      "problem": "Publicidades",
+      "notes": "6242",
+      "price": 0,
+      "date": "2026-07-02",
+      "updatedAt": "2026-07-02T15:54:44.040Z"
+    },
+    {
+      "id": "REP-17060",
+      "code": "S56PF",
+      "clientId": "1783019539362",
+      "clientName": "Hugo Rube",
+      "clientPhone": "11-5836-0056",
+      "equipment": "Pc Escritorio",
+      "marca": "Ninguno",
+      "modelo": "Ninguno",
+      "status": "Recibida",
+      "problem": "Revisar",
+      "notes": "",
+      "price": 0,
+      "date": "2026-07-02",
+      "updatedAt": "2026-07-02"
+    },
+    {
       "id": "REP-17055",
       "code": "DMB7W",
       "clientId": "1782914477431",
@@ -9407,12 +9439,12 @@
       "equipment": "Pc Escritorio",
       "marca": "Ninguno",
       "modelo": "Ninguno",
-      "status": "Recibida",
+      "status": "Entregada",
       "problem": "Fuente + limpieza Interna 750W",
       "notes": "",
       "price": 180000,
       "date": "2026-07-01",
-      "updatedAt": "2026-07-01T14:46:25.388Z"
+      "updatedAt": "2026-07-01T20:44:40.865Z"
     },
     {
       "id": "REP-17056",
@@ -9423,12 +9455,12 @@
       "equipment": "Play 4",
       "marca": "Sony",
       "modelo": "Slim",
-      "status": "Recibida",
+      "status": "Entregada",
       "problem": "Limpieza Interna",
       "notes": "",
       "price": 79000,
       "date": "2026-07-01",
-      "updatedAt": "2026-07-01T14:46:44.405Z"
+      "updatedAt": "2026-07-01T20:40:16.537Z"
     },
     {
       "id": "REP-17057",
@@ -9439,12 +9471,28 @@
       "equipment": "Pc Escritorio",
       "marca": "ninguno",
       "modelo": "ninguno",
-      "status": "Recibida",
+      "status": "Entregada",
       "problem": "Revisar Virus",
       "notes": "",
-      "price": 0,
+      "price": 30000,
       "date": "2026-07-01",
-      "updatedAt": "2026-07-01"
+      "updatedAt": "2026-07-02T15:50:06.683Z"
+    },
+    {
+      "id": "REP-17058",
+      "code": "LM8RP",
+      "clientId": "1780419304070rgci",
+      "clientName": "Hector Sapere",
+      "clientPhone": "4433-2024",
+      "equipment": "Notebook",
+      "marca": "Lenovo",
+      "modelo": "15 Azul",
+      "status": "Entregada",
+      "problem": "Activacion",
+      "notes": "",
+      "price": 10000,
+      "date": "2026-07-01",
+      "updatedAt": "2026-07-01T21:48:33.846Z"
     },
     {
       "id": "REP-17050",
@@ -9455,12 +9503,12 @@
       "equipment": "Notebook",
       "marca": "Lenovo",
       "modelo": "15 Azul",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "11-4095-1946",
       "notes": "",
-      "price": 70000,
+      "price": 50000,
       "date": "2026-06-30",
-      "updatedAt": "2026-06-30T16:58:31.711Z"
+      "updatedAt": "2026-07-01T16:11:59.291Z"
     },
     {
       "id": "REP-17051",
@@ -9471,12 +9519,12 @@
       "equipment": "All in One",
       "marca": "HP",
       "modelo": "Blanca",
-      "status": "Recibida",
+      "status": "Finalizada",
       "problem": "Revisar para SSD",
       "notes": "",
-      "price": 0,
+      "price": 195000,
       "date": "2026-06-30",
-      "updatedAt": "2026-06-30"
+      "updatedAt": "2026-07-02T15:28:05.826Z"
     },
     {
       "id": "REP-17052",
@@ -9503,12 +9551,12 @@
       "equipment": "Notebook",
       "marca": "Lapbook",
       "modelo": "15 Gris",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "Revisar Endendido",
       "notes": "Debe cambiar cargador",
       "price": 10000,
       "date": "2026-06-30",
-      "updatedAt": "2026-06-30T20:01:10.682Z"
+      "updatedAt": "2026-07-01T21:48:20.111Z"
     },
     {
       "id": "REP-17054",
@@ -9519,12 +9567,12 @@
       "equipment": "notebook",
       "marca": "hp",
       "modelo": "15 gris",
-      "status": "Recibida",
+      "status": "Entregada",
       "problem": "limpieza",
       "notes": "",
       "price": 55000,
       "date": "2026-06-30",
-      "updatedAt": "2026-07-01T13:45:43.678Z"
+      "updatedAt": "2026-07-02T17:53:06.215Z"
     },
     {
       "id": "REP-17044",
