@@ -9633,6 +9633,118 @@
   ],
   "repairs": [
     {
+      "id": "REP-17119",
+      "code": "DHR8K",
+      "clientId": "1785851100803",
+      "clientName": "Liliana Veiga",
+      "clientPhone": "11-5818-3686",
+      "equipment": "Pc Escritorio",
+      "marca": "Ninguno",
+      "modelo": "Ninguno",
+      "status": "Finalizada",
+      "problem": "SO",
+      "notes": "",
+      "price": 75000,
+      "date": "2026-08-04",
+      "updatedAt": "2026-08-04T18:28:56.371Z"
+    },
+    {
+      "id": "REP-17120",
+      "code": "EFDLF",
+      "clientId": "17804193044316ymg",
+      "clientName": "Marcelo Mato",
+      "clientPhone": "15-3337-5069",
+      "equipment": "All in One",
+      "marca": "Memoria",
+      "modelo": "ninguno",
+      "status": "Finalizada",
+      "problem": "memoria",
+      "notes": "",
+      "price": 150000,
+      "date": "2026-08-04",
+      "updatedAt": "2026-08-04"
+    },
+    {
+      "id": "REP-17118",
+      "code": "VHQKQ",
+      "clientId": "1780419304090niov",
+      "clientName": "Ricardo Preta",
+      "clientPhone": "4988-9856",
+      "equipment": "pc escritorio",
+      "marca": "ninguna",
+      "modelo": "ninguna",
+      "status": "Entregada",
+      "problem": "S.O + revisar",
+      "notes": "11-5126-2219",
+      "price": 75000,
+      "date": "2026-08-03",
+      "updatedAt": "2026-08-04T18:28:40.003Z"
+    },
+    {
+      "id": "REP-17116",
+      "code": "3HV39",
+      "clientId": "1780419304288uyk2",
+      "clientName": "David Bentura",
+      "clientPhone": "1531525629",
+      "equipment": "tvbox",
+      "marca": "caja",
+      "modelo": "negra",
+      "status": "Entregada",
+      "problem": "xuper",
+      "notes": "",
+      "price": 15000,
+      "date": "2026-07-31",
+      "updatedAt": "2026-08-03T20:13:29.620Z"
+    },
+    {
+      "id": "REP-17117",
+      "code": "SRWCT",
+      "clientId": "17804193048161vgb",
+      "clientName": "manuel Bernardo",
+      "clientPhone": "11-2662-7440",
+      "equipment": "pc escritorio",
+      "marca": "ninguna",
+      "modelo": "ninguno",
+      "status": "Entregada",
+      "problem": "deja de dar video en windows",
+      "notes": "",
+      "price": 10000,
+      "date": "2026-07-31",
+      "updatedAt": "2026-07-31T20:31:05.491Z"
+    },
+    {
+      "id": "REP-17114",
+      "code": "VGBU8",
+      "clientId": "1780419305055nltn",
+      "clientName": "Norma Grande",
+      "clientPhone": "11-5828-0382",
+      "equipment": "Notebook",
+      "marca": "Asus",
+      "modelo": "Gamer",
+      "status": "Entregada",
+      "problem": "SO",
+      "notes": "",
+      "price": 85000,
+      "date": "2026-07-29",
+      "updatedAt": "2026-07-29T21:10:27.117Z"
+    },
+    {
+      "id": "REP-17115",
+      "code": "42CE7",
+      "clientId": "1785359045363",
+      "clientName": "Marcelo Quintero",
+      "clientPhone": "11-4035-5329",
+      "equipment": "Notebook",
+      "marca": "Hp",
+      "modelo": "15 Negra",
+      "status": "Entregada",
+      "problem": "Teclado",
+      "notes": "",
+      "price": 0,
+      "date": "2026-07-29",
+      "updatedAt": "2026-07-31T21:19:29.327Z"
+    },
+    {
       "id": "REP-17111",
       "code": "YM7UY",
       "clientId": "1780419304376uhd6",
@@ -9641,12 +9753,12 @@
       "equipment": "PC Escritorio",
       "marca": "Ninguno",
       "modelo": "ninguno",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "SSD 240",
       "notes": "",
       "price": 195000,
       "date": "2026-07-28",
-      "updatedAt": "2026-07-28T21:20:53.235Z"
+      "updatedAt": "2026-07-29T15:46:01.556Z"
     },
     {
       "id": "REP-17112",
@@ -9657,12 +9769,12 @@
       "equipment": "Pc Escritorio",
       "marca": "Ninguno",
       "modelo": "Ninguno",
-      "status": "En Reparacion",
+      "status": "Entregada",
       "problem": "Revisar",
       "notes": "",
       "price": 230000,
       "date": "2026-07-28",
-      "updatedAt": "2026-07-28T21:27:21.191Z"
+      "updatedAt": "2026-07-30T14:10:36.451Z"
     },
     {
       "id": "REP-17113",
@@ -9705,12 +9817,12 @@
       "equipment": "Pc Escritorio",
       "marca": "Ninguno",
       "modelo": "Ninguno",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "Fuente no tiene solido",
       "notes": "",
       "price": 115000,
       "date": "2026-07-27",
-      "updatedAt": "2026-07-28T17:37:20.337Z"
+      "updatedAt": "2026-07-29T17:38:07.066Z"
     },
     {
       "id": "REP-17107",
@@ -9721,12 +9833,12 @@
       "equipment": "Notebook",
       "marca": "Lenovo",
       "modelo": "17 Gris",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "Revisar SSD",
       "notes": "",
       "price": 195000,
       "date": "2026-07-27",
-      "updatedAt": "2026-07-28T19:38:15.771Z"
+      "updatedAt": "2026-07-29T17:38:18.353Z"
     },
     {
       "id": "REP-17108",
@@ -9737,12 +9849,12 @@
       "equipment": "Notebook",
       "marca": "Samsung",
       "modelo": "NP300",
-      "status": "Recibida",
+      "status": "Entregada",
       "problem": "Revisar",
       "notes": "",
       "price": 0,
       "date": "2026-07-27",
-      "updatedAt": "2026-07-27"
+      "updatedAt": "2026-07-29T17:38:29.852Z"
     },
     {
       "id": "REP-17109",
@@ -9769,12 +9881,12 @@
       "equipment": "Tv Box",
       "marca": "Android Tv",
       "modelo": "Violeta Caja",
-      "status": "Recibida",
+      "status": "Entregada",
       "problem": "Apps",
       "notes": "",
-      "price": 0,
+      "price": 25000,
       "date": "2026-07-27",
-      "updatedAt": "2026-07-28T21:27:07.502Z"
+      "updatedAt": "2026-07-31T20:31:15.297Z"
     },
     {
       "id": "REP-17102",
@@ -9785,12 +9897,12 @@
       "equipment": "Pc Slim",
       "marca": "Lenovo",
       "modelo": "Slim",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "Ver carcateristicas",
       "notes": "i3 + 4gb + 1tb",
       "price": 0,
       "date": "2026-07-24",
-      "updatedAt": "2026-07-27T19:14:23.605Z"
+      "updatedAt": "2026-07-31T18:20:07.951Z"
     },
     {
       "id": "REP-17103",
@@ -9849,12 +9961,12 @@
       "equipment": "Netbook",
       "marca": "Exo",
       "modelo": "13 Gris",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "No boot",
       "notes": "",
       "price": 0,
       "date": "2026-07-23",
-      "updatedAt": "2026-07-27T21:17:14.937Z"
+      "updatedAt": "2026-07-30T17:29:06.858Z"
     },
     {
       "id": "REP-17101",
