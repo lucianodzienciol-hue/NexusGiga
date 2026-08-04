@@ -355,7 +355,7 @@ export default function App() {
             {/* Utility buttons */}
             <div className="flex items-center gap-1.5">
               <a
-                href="https://github.com/gigacomputers2025-bot/Nexus"
+                href="https://github.com/lucianodzienciol-hue/NexusGiga"
                 target="_blank"
                 rel="noopener noreferrer"
                 title={`GitHub - Nexus POS${syncStatus.error ? ' (Error)' : syncStatus.lastSync ? ' (Sincronizado)' : ''}`}

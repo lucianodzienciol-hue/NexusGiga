@@ -655,7 +655,7 @@ let waClient: any = null;
 let waReady = false;
 let waQR: string | null = null;
 let waInitializing = false;
-const NEXUS_REPO_URL = 'https://github.com/gigacomputers2025-bot/Nexus.git';
+const NEXUS_REPO_URL = 'https://github.com/lucianodzienciol-hue/NexusGiga.git';
 
 async function importCompanyConfig(silent = false): Promise<boolean> {
   const WEB_URL = 'http://localhost:3000/api/config';
@@ -1143,7 +1143,7 @@ async function startServer() {
       const config = getConfig<CompanyConfig | null>('companyConfig', null);
       const token = config?.gitToken;
       if (!token) { console.warn('[WebGit] No hay token, no se puede hacer push'); return; }
-      const repoUrl = `https://${token}@github.com/gigacomputers2025-bot/Nexus.git`;
+      const repoUrl = `https://${token}@github.com/lucianodzienciol-hue/NexusGiga.git`;
       try { execSync('git remote get-url origin', { cwd: process.cwd() }); }
       catch { execSync(`git remote add origin ${repoUrl}`, { cwd: process.cwd() }); }
       execSync(`git remote set-url origin ${repoUrl}`, { cwd: process.cwd() });
@@ -1186,7 +1186,7 @@ async function startServer() {
       try { execSync('git diff --cached --quiet', { cwd: process.cwd() }); syncing = false; return; } catch {}
       execSync('git config user.name "Nexus AutoSync"', { cwd: process.cwd() });
       execSync('git config user.email "autosync@nexuspos.local"', { cwd: process.cwd() });
-      const authedUrl = `https://${token}@github.com/gigacomputers2025-bot/Nexus.git`;
+      const authedUrl = `https://${token}@github.com/lucianodzienciol-hue/NexusGiga.git`;
       try { execSync('git remote get-url origin', { cwd: process.cwd() }); }
       catch { execSync(`git remote add origin ${authedUrl}`, { cwd: process.cwd() }); }
       execSync(`git remote set-url origin ${authedUrl}`, { cwd: process.cwd() });
@@ -1202,7 +1202,7 @@ async function startServer() {
         const errMsg = String(pushErr.stderr || '') + String(pushErr.message || '');
         if (errMsg.includes('Repository not found') || errMsg.includes('not found') || errMsg.includes('404')) {
           await new Promise<void>((resolve, reject) => {
-            const postData = JSON.stringify({ name: 'Nexus', private: false, auto_init: false });
+            const postData = JSON.stringify({ name: 'NexusGiga', private: false, auto_init: false });
             const req = https.request({
               hostname: 'api.github.com', path: '/user/repos', method: 'POST',
               headers: { 'Authorization': `Bearer ${token}`, 'User-Agent': 'NexusPOS', 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) },
@@ -1231,7 +1231,7 @@ async function startServer() {
       execSync('git add -A', { cwd: process.cwd() });
       execSync('git config user.name "Nexus FullSync"', { cwd: process.cwd() });
       execSync('git config user.email "fullsync@nexuspos.local"', { cwd: process.cwd() });
-      const authedUrl = `https://${token}@github.com/gigacomputers2025-bot/Nexus.git`;
+      const authedUrl = `https://${token}@github.com/lucianodzienciol-hue/NexusGiga.git`;
       try { execSync('git remote get-url origin', { cwd: process.cwd() }); }
       catch { execSync(`git remote add origin ${authedUrl}`, { cwd: process.cwd() }); }
       execSync(`git remote set-url origin ${authedUrl}`, { cwd: process.cwd() });
@@ -1247,7 +1247,7 @@ async function startServer() {
         const errMsg = String(pushErr.stderr || '') + String(pushErr.message || '');
         if (errMsg.includes('Repository not found') || errMsg.includes('not found') || errMsg.includes('404')) {
           await new Promise<void>((resolve, reject) => {
-            const postData = JSON.stringify({ name: 'Nexus', private: false, auto_init: false });
+            const postData = JSON.stringify({ name: 'NexusGiga', private: false, auto_init: false });
             const req = https.request({
               hostname: 'api.github.com', path: '/user/repos', method: 'POST',
               headers: { 'Authorization': `Bearer ${token}`, 'User-Agent': 'NexusPOS', 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) },
