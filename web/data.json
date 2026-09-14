@@ -6520,7 +6520,7 @@
       "id": "17786951739233z6n",
       "code": "17786951739233z6n",
       "name": "Access Point Tplink 850RE",
-      "price": 57000,
+      "price": 59000,
       "cost": 0,
       "stock": 0,
       "category": "Redes",
@@ -9680,9 +9680,9 @@
       "status": "Recibida",
       "problem": "Revisar SO",
       "notes": "",
-      "price": 0,
+      "price": 85000,
       "date": "2026-09-14",
-      "updatedAt": "2026-09-14"
+      "updatedAt": "2026-09-14T19:31:45.102Z"
     },
     {
       "id": "REP-17193",
@@ -9709,12 +9709,28 @@
       "equipment": "2 Notebooks",
       "marca": "Acer",
       "modelo": "Bgh",
-      "status": "Recibida",
+      "status": "Finalizada",
       "problem": "Pasar Datos",
       "notes": "",
-      "price": 0,
+      "price": 55000,
       "date": "2026-09-14",
-      "updatedAt": "2026-09-14"
+      "updatedAt": "2026-09-14T19:21:10.323Z"
+    },
+    {
+      "id": "REP-17195",
+      "code": "VRDPR",
+      "clientId": "178041930460889ve",
+      "clientName": "Jose Maria Ocon",
+      "clientPhone": "15-5887-4111",
+      "equipment": "Notebook",
+      "marca": "lenovo",
+      "modelo": "14 Gris",
+      "status": "Recibida",
+      "problem": "240 SSD",
+      "notes": "",
+      "price": 195000,
+      "date": "2026-09-14",
+      "updatedAt": "2026-09-14T19:24:10.890Z"
     },
     {
       "id": "REP-17191",
@@ -10029,12 +10045,12 @@
       "equipment": "notebook",
       "marca": "hp",
       "modelo": "14 negra",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "revisar lentitud",
       "notes": "",
       "price": 85000,
       "date": "2026-09-04",
-      "updatedAt": "2026-09-07T19:53:56.882Z"
+      "updatedAt": "2026-09-14T17:44:47.811Z"
     },
     {
       "id": "REP-17172",
@@ -10509,12 +10525,12 @@
       "equipment": "notebook",
       "marca": "compaq",
       "modelo": "14 negra",
-      "status": "Finalizada",
+      "status": "Entregada",
       "problem": "2 equipos iguales revisar completos",
       "notes": "11-2392-4733",
       "price": 10000,
       "date": "2026-08-21",
-      "updatedAt": "2026-08-26T15:29:12.196Z"
+      "updatedAt": "2026-09-14T19:36:34.914Z"
     },
     {
       "id": "REP-17140",
