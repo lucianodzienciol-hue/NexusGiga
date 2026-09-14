@@ -3717,6 +3717,23 @@ const Cart = {
         document.getElementById('cart-checkout').style.display = '';
         const t = document.getElementById('co-total');
         if (t) t.textContent = formatMoney(this.total());
+        const remote = !Router.isLocal();
+        const btn = document.getElementById('co-submit');
+        if (btn) btn.textContent = remote ? 'Enviar pedido por WhatsApp' : 'Enviar pedido';
+        const hint = document.getElementById('co-remote-hint');
+        if (hint) hint.style.display = remote ? '' : 'none';
+    },
+
+    buildWaMessage(payload, storeName) {
+        const lines = [`Hola ${storeName}! Quiero hacer un pedido:`, ''];
+        for (const it of payload.items) {
+            lines.push(`• ${it.quantity} x ${it.name} - ${formatMoney(it.price * it.quantity)}`);
+        }
+        lines.push('', `Total: ${formatMoney(payload.total)}`, `Nombre: ${payload.clientName}`, `Tel: ${payload.clientPhone}`);
+        const deliveryTxt = payload.deliveryType === 'envio' ? 'Envío a domicilio' : 'Retiro en local';
+        lines.push(`Entrega: ${deliveryTxt}`);
+        if (payload.notes) lines.push(`Notas: ${payload.notes}`);
+        return lines.join('\n');
     },
 
     showMain() {
@@ -3738,6 +3755,27 @@ const Cart = {
         btn.disabled = true;
         btn.textContent = 'Enviando...';
 
+        const remote = !Router.isLocal();
+        const finishRemote = (payload) => {
+            const config = DB.getConfig();
+            if (!config.whatsapp) {
+                Toast.show('Pedidos online no disponibles en este momento', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Enviar pedido por WhatsApp';
+                return;
+            }
+            const msg = encodeURIComponent(this.buildWaMessage(payload, config.companyName || 'la tienda'));
+            window.open(`https://wa.me/${WA.formatNumber(config.whatsapp)}?text=${msg}`, '_blank');
+            this.items = [];
+            this.save();
+            ['co-name', 'co-phone', 'co-address', 'co-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            document.getElementById('cart-checkout').style.display = 'none';
+            document.getElementById('cart-success-msg').textContent = 'Se abrió WhatsApp con tu pedido. Enviá el mensaje para confirmarlo.';
+            document.getElementById('cart-success').style.display = '';
+            btn.disabled = false;
+            btn.textContent = 'Enviar pedido por WhatsApp';
+        };
+
         const payload = {
             items: this.items.map(i => ({ productId: i.id, name: i.name, quantity: i.qty, price: i.price })),
             total: this.total(),
@@ -3746,6 +3784,8 @@ const Cart = {
             notes: [notes, address ? 'Direcci\u00f3n: ' + address : '', delivery === 'envio' ? 'Env\u00edo a domicilio' : 'Retiro en local'].filter(Boolean).join(' | '),
             deliveryType: delivery
         };
+
+        if (remote) { finishRemote(payload); return; }
 
         let order = null;
         let retriable = false;
