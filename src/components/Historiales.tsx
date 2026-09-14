@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Search, Printer, FileText, ChevronDown, ChevronUp, Landmark, ShieldCheck, Filter, Trash2, Download, Wrench } from 'lucide-react';
-import { Sale, PaymentMethod, CompanyConfig, WebRepair } from '../types';
-import ticketTemplate from '../ticketTemplate';
+﻿import React, { useState, useEffect } from 'react';
+import { Calendar, Search, Printer, FileText, ChevronDown, ChevronUp, Landmark, ShieldCheck, Filter, Trash2, Download, Wrench, X } from 'lucide-react';
+import { Sale, PaymentMethod, CompanyConfig, WebRepair, Product } from '../types';
+import { formatMoney, currencyCodeOf } from '../lib/currency';
+import { printSale } from '../lib/print';
 
 interface HistorialesProps {
   sales: Sale[];
@@ -9,15 +10,18 @@ interface HistorialesProps {
   companyConfig: CompanyConfig | null;
   onRefresh: () => void;
   repairs: WebRepair[];
+  products?: Product[];
 }
 
-export default function Historiales({ sales, paymentMethods, companyConfig, onRefresh, repairs }: HistorialesProps) {
+export default function Historiales({ sales, paymentMethods, companyConfig, onRefresh, repairs, products = [] }: HistorialesProps) {
+  const cur = currencyCodeOf(companyConfig?.currency);
   const [tab, setTab] = useState<'ventas' | 'reparaciones'>(() => {
     const saved = localStorage.getItem('nexus_h_tab');
     return saved === 'reparaciones' ? 'reparaciones' : 'ventas';
   });
   const [search, setSearch] = useState('');
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date().toLocaleDateString('sv-SE');
+const escapeHtml = (v: any): string => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch] as string));
   const [dateFrom, setDateFrom] = useState(today);
   const [dateTo, setDateTo] = useState(today);
   const [methodFilter, setMethodFilter] = useState('');
@@ -52,7 +56,16 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
   });
 
   const totalRevenue = filtered.reduce((sum, s) => sum + s.total, 0);
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const costByProduct = new Map(products.map(p => [p.id, Number(p.cost) || 0]));
+  const profitOf = (s: Sale) => (s.items || []).reduce((sum, it) => {
+    const cost = costByProduct.has(it.productId) ? (costByProduct.get(it.productId) as number) : 0;
+    return sum + ((Number(it.price) || 0) - cost) * (Number(it.quantity) || 0);
+  }, 0);
+  const totalProfit = filtered.reduce((sum, s) => sum + profitOf(s), 0);
+  const rangeLabel = (dateFrom || dateTo)
+    ? `${dateFrom ? dateFrom.split('-').reverse().join('/') : '…'} – ${dateTo ? dateTo.split('-').reverse().join('/') : '…'}`
+    : 'todo el historial';
+  const todayStr = new Date().toLocaleDateString('sv-SE');
   const todaySales = sales.filter(s => s.date.startsWith(todayStr));
   const byMethod = todaySales.reduce<Record<string, number>>((acc, s) => {
     acc[s.paymentMethod] = (acc[s.paymentMethod] || 0) + s.total;
@@ -75,66 +88,121 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
   };
 
   const handlePrintTicket = (sale: Sale) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      alert('Por favor permita las ventanas emergentes para imprimir el ticket.');
-      return;
-    }
-    printWindow.document.write(ticketTemplate(sale, true, companyConfig || undefined));
-    printWindow.document.close();
+    printSale(sale, true, companyConfig);
   };
 
   const handleFullScreen = (s: Sale) => {
     const w = window.open('', '_blank');
     if (!w) { alert('Permita popups para ver la venta en pantalla completa.'); return; }
     const c = companyConfig || {} as CompanyConfig;
-    const itemsHtml = s.items.map(it => `
-      <tr>
-        <td style="padding:6px 8px;border-bottom:1px solid #1f242e;color:#e2e8f0">${it.productName}</td>
-        <td style="padding:6px 8px;border-bottom:1px solid #1f242e;color:#94a3b8;text-align:center">${it.quantity}</td>
-        <td style="padding:6px 8px;border-bottom:1px solid #1f242e;color:#fbbf24;text-align:right;font-weight:bold">$${(it.price * it.quantity).toFixed(0)}</td>
-      </tr>
-    `).join('');
+    const name = c.companyName || 'NEXUS FULL';
+    const addr = c.address || '';
+    const phone = c.phone || '';
+    const email = c.email || '';
     w.document.write(`
-<html><head><title>Venta ${s.id}</title>
-<style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:#0d0e12;color:#e2e8f0;font-family:system-ui,-apple-system,sans-serif;display:flex;justify-content:center;padding:40px 20px;min-height:100vh}
-  .receipt{background:#111318;border:1px solid #1f242e;border-radius:12px;padding:32px;max-width:520px;width:100%}
-  .header{text-align:center;border-bottom:2px solid #1f242e;padding-bottom:16px;margin-bottom:16px}
-  .header h1{font-size:20px;font-weight:700;color:#f1f5f9}
-  .header p{font-size:11px;color:#64748b;margin-top:4px}
-  .meta{display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-bottom:12px;padding-bottom:8px;border-bottom:1px dashed #1f242e}
-  .client{font-size:12px;color:#e2e8f0;margin-bottom:12px;padding-bottom:8px;border-bottom:1px dashed #1f242e}
-  table{width:100%;border-collapse:collapse;margin:8px 0}
-  th{font-size:10px;text-transform:uppercase;color:#64748b;padding:6px 8px;border-bottom:2px solid #1f242e;text-align:left;letter-spacing:0.5px}
-  th:last-child{text-align:right}
-  th:nth-child(2){text-align:center}
-  .total-box{background:#181a20;border:1px solid #2d3444;border-radius:8px;padding:12px 16px;margin:12px 0}
-  .total-row{display:flex;justify-content:space-between;font-size:18px;font-weight:700;color:#fbbf24}
-  .pay-row{display:flex;justify-content:space-between;font-size:12px;color:#94a3b8;margin:4px 0}
-  .footer{text-align:center;padding-top:16px;border-top:1px solid #1f242e;margin-top:16px;font-size:11px;color:#475569}
-  .footer .thanks{font-size:14px;color:#fbbf24;font-weight:600;margin-bottom:4px}
-</style></head><body>
-<div class="receipt">
-  <div class="header">
-    <h1>${c.companyName || 'NEXUS POS'}</h1>
-    ${c.address ? '<p>'+c.address+(c.phone?' · '+c.phone:'')+'</p>' : ''}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Factura - ${s.id}</title>
+  <style>
+    :root { --primary: #1a237e; --dark: #111827; --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-500: #6b7280; --gray-700: #374151; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, sans-serif; padding: 0; color: var(--dark); line-height: 1.5; background: white; }
+    .page { width: 210mm; padding: 15mm; margin: auto; background: white; position: relative; }
+    @page { size: A4; margin: 0; }
+    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--primary); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+    .company-name { font-size: 1.75rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: -0.025em; }
+    .company-info { font-size: 0.85rem; color: var(--gray-500); margin-top: 0.2rem; font-weight: 500; }
+    .order-meta { text-align: right; display: flex; flex-direction: column; justify-content: center; gap: 0.25rem; }
+    .order-id { font-size: 0.8rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em; }
+    .order-number { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+    .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem; }
+    .details-section h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); font-weight: 700; border-bottom: 2px solid var(--gray-100); padding-bottom: 0.5rem; margin-bottom: 0.75rem; }
+    .detail-row { display: flex; padding: 0.35rem 0; border-bottom: 1px solid var(--gray-100); font-size: 0.85rem; }
+    .detail-label { color: var(--gray-500); font-weight: 600; width: 120px; flex-shrink: 0; }
+    .detail-value { color: var(--dark); font-weight: 500; }
+    .invoice-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.85rem; }
+    .invoice-table th { background: var(--gray-50); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-500); font-weight: 700; padding: 0.6rem 0.75rem; text-align: left; border-bottom: 2px solid var(--gray-200); }
+    .invoice-table th:last-child { text-align: right; }
+    .invoice-table th:nth-child(2) { text-align: center; }
+    .invoice-table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--gray-100); }
+    .invoice-table td:last-child { text-align: right; font-weight: 600; }
+    .invoice-table td:nth-child(2) { text-align: center; color: var(--gray-500); }
+    .invoice-table tbody tr:nth-child(even) { background: var(--gray-50); }
+    .total-box { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 0.75rem; padding: 1rem 1.5rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    .total-box .label { font-size: 0.8rem; color: var(--gray-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .total-box .amount { font-size: 1.75rem; font-weight: 800; color: var(--primary); }
+    .payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+    .payment-item { padding: 0.5rem 0; border-bottom: 1px solid var(--gray-100); display: flex; justify-content: space-between; font-size: 0.85rem; }
+    .payment-item .label { color: var(--gray-500); font-weight: 600; }
+    .payment-item .value { color: var(--dark); font-weight: 500; }
+    .stamp { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); font-size: 4rem; font-weight: 900; color: rgba(26, 35, 126, 0.06); text-transform: uppercase; pointer-events: none; white-space: nowrap; border: 4px solid rgba(26, 35, 126, 0.1); border-radius: 2rem; padding: 1rem 3rem; }
+    .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--gray-200); display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--gray-500); }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div>
+        <div class="company-name">${name}</div>
+        <div class="company-info">${addr ? addr + ' &bull; ' : ''}${phone ? phone + ' &bull; ' : ''}${email || ''}</div>
+      </div>
+      <div class="order-meta">
+        <div class="order-id">Factura de Venta</div>
+        <div class="order-number"># ${s.id}</div>
+      </div>
+    </div>
+
+    <div class="details-grid">
+      <div class="details-section">
+        <h3>Datos del Cliente</h3>
+        <div class="detail-row"><span class="detail-label">Nombre</span><span class="detail-value">${s.clientName || 'Cliente General'}</span></div>
+        <div class="detail-row"><span class="detail-label">Fecha</span><span class="detail-value">${new Date(s.date).toLocaleString()}</span></div>
+      </div>
+      <div class="details-section">
+        <h3>Información de Pago</h3>
+        <div class="detail-row"><span class="detail-label">Método</span><span class="detail-value">${s.paymentMethod}</span></div>
+        <div class="detail-row"><span class="detail-label">Recibido</span><span class="detail-value">${formatMoney(Number(s.cashReceived || s.total), cur)}</span></div>
+        <div class="detail-row"><span class="detail-label">Cambio</span><span class="detail-value">${formatMoney(Number(s.change || 0), cur)}</span></div>
+      </div>
+    </div>
+
+    <h3 style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary);font-weight:700;border-bottom:2px solid var(--gray-100);padding-bottom:0.5rem;margin-bottom:0.75rem;">Productos Facturados</h3>
+    <table class="invoice-table">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th style="text-align:center">Cant</th>
+          <th style="text-align:right">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${s.items.map((it: any) => `
+          <tr>
+            <td>${escapeHtml(it.productName)}</td>
+            <td>${it.quantity}</td>
+            <td>${formatMoney(it.price * it.quantity, cur)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <div class="total-box">
+      <span class="label">Total a Pagar</span>
+      <span class="amount">${formatMoney(s.total, cur)}</span>
+    </div>
+
+    <div class="stamp">PAGADO</div>
+
+    <div class="footer">
+      <span>Conserve esta factura como comprobante de pago.</span>
+      <span>${new Date(s.date).toLocaleDateString()} &mdash; ${name}</span>
+    </div>
   </div>
-  <div class="meta">
-    <span><strong style="color:#e2e8f0">Venta:</strong> ${s.id}</span>
-    <span>${new Date(s.date).toLocaleString('es-AR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>
-  </div>
-  <div class="client"><strong style="color:#e2e8f0">Cliente:</strong> ${s.clientName || 'Cliente General'}</div>
-  <table><thead><tr><th>Producto</th><th style="text-align:center">Cant</th><th style="text-align:right">Total</th></tr></thead><tbody>${itemsHtml}</tbody></table>
-  <div class="total-box">
-    <div class="total-row"><span>TOTAL A PAGAR</span><span>$${s.total.toFixed(0)}</span></div>
-  </div>
-  <div class="pay-row"><span>Método de pago</span><span><strong style="color:#e2e8f0">${s.paymentMethod}</strong></span></div>
-  <div class="pay-row"><span>Recibido</span><span>$${Number(s.cashReceived || s.total).toFixed(0)}</span></div>
-  <div class="pay-row"><span>Cambio</span><span style="color:#fbbf24">$${Number(s.change || 0).toFixed(0)}</span></div>
-  <div class="footer"><div class="thanks">✦ Gracias por su compra ✦</div><div>${c.companyName || 'NEXUS POS'} · ${new Date().getFullYear()}</div></div>
-</div></body></html>
+</body>
+</html>
     `);
     w.document.close();
   };
@@ -179,9 +247,17 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
             <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-4 flex flex-col justify-between">
               <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">Ingresos Totales (Caja)</span>
               <div className="text-2xl font-extrabold font-display text-emerald-400 mt-1">
-                ${totalRevenue.toFixed(0)}
+                {formatMoney(totalRevenue, cur)}
               </div>
               <span className="text-[10px] text-slate-500 font-mono mt-1">Suma acumulativa de transacciones</span>
+            </div>
+
+            <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-4 flex flex-col justify-between">
+              <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">Ganancia aprox. ({rangeLabel})</span>
+              <div className="text-2xl font-extrabold font-display text-cyan-400 mt-1">
+                {formatMoney(totalProfit, cur)}
+              </div>
+              <span className="text-[10px] text-slate-500 font-mono mt-1">{totalRevenue > 0 ? `Margen ${(totalProfit / totalRevenue * 100).toFixed(1)}%` : 'Sin ingresos en el rango'}</span>
             </div>
 
             <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-4 flex flex-col justify-between">
@@ -196,7 +272,7 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
               <div key={pm.id} className="bg-[#111318] border border-[#1f242e] rounded-xl p-4 flex flex-col justify-between">
                 <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">{pm.name}</span>
                 <div className="text-2xl font-extrabold font-display text-white mt-1">
-                  ${byMethod[pm.name].toFixed(0)}
+                  {formatMoney(byMethod[pm.name], cur)}
                 </div>
                 <span className="text-[10px] text-slate-500 font-mono mt-1">{todayStr}</span>
               </div>
@@ -207,62 +283,15 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
             )}
           </div>
 
-          {/* Main Table */}
-          <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-              <div>
-                <h2 className="text-sm font-bold uppercase tracking-wider text-white">Historial de Ventas</h2>
-                <p className="text-[11px] text-slate-500">Listado interactivo de auditoría de transacciones salientes</p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <a
-                  href="/api/sales/export"
-                  className="flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg py-1.5 px-3 text-xs font-semibold transition-colors"
-                  title="Exportar ventas a Excel (CSV)"
-                >
-                  <Download size={13} />
-                  Exportar
-                </a>
-                <div className="relative w-full sm:w-56">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                    <Search size={14} />
-                  </span>
-                  <input
-                    type="text"
-                    className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:outline-none"
-                    placeholder="Buscar por ID, Cliente o Método de Pago..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Filters row */}
-            <div className="flex flex-wrap items-center gap-3 pb-2">
+          {/* Filters */}
+          <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-4">
+            <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
                 <Calendar size={13} className="text-slate-500" />
-                <input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none"
-                  title="Desde"
-                />
-                <span className="text-[10px] text-slate-500">→</span>
-                <input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none"
-                  title="Hasta"
-                />
-                <button
-                  onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                  className="flex items-center gap-1 bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-2.5 text-[11px] text-slate-400 hover:text-white font-mono focus:outline-none transition-colors"
-                  title={sortOrder === 'asc' ? 'Más antiguos primero' : 'Más recientes primero'}
-                >
+                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none" title="Desde" />
+                <span className="text-[10px] text-slate-500">â†’</span>
+                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none" title="Hasta" />
+                <button onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')} className="flex items-center gap-1 bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-2.5 text-[11px] text-slate-400 hover:text-white font-mono transition-colors" title={sortOrder === 'asc' ? 'Más antiguos primero' : 'Más recientes primero'}>
                   <ChevronUp size={12} className={sortOrder === 'asc' ? 'text-white' : 'text-slate-500'} />
                   <ChevronDown size={12} className={sortOrder === 'desc' ? 'text-white' : 'text-slate-500'} />
                   <span className="ml-0.5">{sortOrder === 'asc' ? 'ASC' : 'DESC'}</span>
@@ -270,166 +299,211 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
               </div>
               <div className="flex items-center gap-1.5">
                 <Filter size={12} className="text-slate-500" />
-                <select
-                  value={methodFilter}
-                  onChange={(e) => setMethodFilter(e.target.value)}
-                  className="bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-2.5 text-[11px] text-white font-mono focus:outline-none"
-                >
+                <select value={methodFilter} onChange={e => setMethodFilter(e.target.value)} className="bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-2.5 text-[11px] text-white font-mono focus:outline-none">
                   <option value="">Todos los métodos</option>
-                  {(paymentMethods.length > 0 ? paymentMethods : []).map(pm => (
-                    <option key={pm.id} value={pm.name}>{pm.name}</option>
-                  ))}
+                  {(paymentMethods.length > 0 ? paymentMethods : []).map(pm => <option key={pm.id} value={pm.name}>{pm.name}</option>)}
                 </select>
               </div>
-              <button
-                onClick={() => setHideCash(!hideCash)}
-                className={`flex items-center gap-1.5 rounded-lg py-1.5 px-2.5 text-[11px] font-mono transition-all ${
-                  hideCash
-                    ? 'bg-red-700 text-white border border-red-600'
-                    : 'bg-[#181a20] border border-[#2d3444] text-slate-400 hover:text-white'
-                }`}
-                title={hideCash ? 'Mostrar todas las ventas' : 'Ocultar ventas en efectivo'}
-              >
+              <button onClick={() => setHideCash(!hideCash)} className={`flex items-center gap-1.5 rounded-lg py-1.5 px-2.5 text-[11px] font-mono transition-all ${hideCash ? 'bg-red-700 text-white border border-red-600' : 'bg-[#181a20] border border-[#2d3444] text-slate-400 hover:text-white'}`} title={hideCash ? 'Mostrar todas las ventas' : 'Ocultar ventas en efectivo'}>
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                 {hideCash ? 'Mostrando solo otros' : 'Ocultar Efectivo'}
               </button>
               {(dateFrom || dateTo || methodFilter || hideCash) && (
-                <button
-                  onClick={() => { setDateFrom(''); setDateTo(''); setMethodFilter(''); setHideCash(false); }}
-                  className="text-[10px] text-slate-400 hover:text-white font-mono px-2 py-1 rounded border border-[#2d3444] hover:bg-[#1a1d24] transition-all"
-                >
+                <button onClick={() => { setDateFrom(''); setDateTo(''); setMethodFilter(''); setHideCash(false); }} className="text-[10px] text-slate-400 hover:text-white font-mono px-2 py-1 rounded border border-[#2d3444] hover:bg-[#1a1d24] transition-all">
                   Limpiar filtros
                 </button>
               )}
-            </div>
-
-            {/* Master table list */}
-            <div className="overflow-hidden rounded-lg border border-[#1b1e26] bg-[#0d0e12]">
-              {filtered.length === 0 ? (
-                <div className="p-12 text-slate-500 italic text-center text-xs">
-                  No hay ventas registradas que coincidan con la búsqueda.
-                </div>
-              ) : (
-                <div className="divide-y divide-[#1b1e26]">
-                  {/* Header row mock */}
-                  <div className="grid grid-cols-12 bg-[#181a20] px-4 py-3 text-[10px] tracking-wider text-slate-400 font-mono uppercase font-bold text-left">
-                    <div className="col-span-2">CÓDIGO TICKET</div>
-                    <div className="col-span-3">FECHA Y HORA</div>
-                    <div className="col-span-3">CLIENTE</div>
-                    <div className="col-span-2 text-center">MÉTODO</div>
-                    <div className="col-span-2 text-right">TOTAL</div>
-                  </div>
-
-                  {filtered.map(s => {
-                    const isExpanded = expandedSaleId === s.id;
-                    return (
-                      <div key={s.id} className="transition-all">
-                        {/* Collapsible main row info */}
-                        <button
-                          onClick={() => toggleExpand(s.id)}
-                          className="w-full grid grid-cols-12 px-4 py-3 text-xs text-left text-slate-300 hover:bg-[#14171e] items-center transition-colors"
-                        >
-                          <div className="col-span-2 font-mono font-bold text-white flex items-center gap-1.5">
-                            <FileText size={12} className="text-slate-500" />
-                            {s.id}
-                          </div>
-                          <div className="col-span-3 font-mono text-slate-400">
-                            {new Date(s.date).toLocaleString()}
-                          </div>
-                          <div className="col-span-3 font-medium truncate text-white">
-                            {s.clientName}
-                          </div>
-                          <div className="col-span-2 text-center">
-                            <span className="font-mono bg-[#1a1d24] border border-[#2d3444] rounded px-1.5 py-0.5 text-[9px] uppercase">
-                              {s.paymentMethod}
-                            </span>
-                          </div>
-                          <div className="col-span-2 text-right font-mono font-bold text-[#5aa6ec] flex items-center justify-end gap-2">
-                            ${s.total.toFixed(0)}
-                            {isExpanded ? <ChevronUp size={14} className="text-slate-500" /> : <ChevronDown size={14} className="text-slate-500" />}
-                          </div>
-                        </button>
-
-                        {/* Detailed block */}
-                        {isExpanded && (
-                          <div className="bg-[#151820] border-t border-b border-[#2d3444] px-6 py-4 space-y-3">
-                            <div className="flex justify-between items-center">
-                              <h4 className="text-[10px] uppercase font-bold tracking-wider text-slate-400 font-mono">Artículos Comprados:</h4>
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() => handleDeleteSale(s.id)}
-                                  className="bg-red-900/30 hover:bg-red-800/50 text-red-400 border border-red-800/40 rounded px-2.5 py-1 text-[10px] flex items-center gap-1.5 transition-all font-semibold"
-                                >
-                                  <Trash2 size={12} />
-                                  Eliminar
-                                </button>
-                                <button
-                                  onClick={() => handleFullScreen(s)}
-                                  className="bg-[#1c222d] hover:bg-[#252e3d] text-slate-300 border border-[#2d3444] rounded px-2.5 py-1 text-[10px] flex items-center gap-1.5 transition-all font-semibold"
-                                >
-                                  <FileText size={12} />
-                                  Pantalla Completa
-                                </button>
-                                <button
-                                  onClick={() => handlePrintTicket(s)}
-                                  className="bg-[#1c222d] hover:bg-[#252e3d] text-slate-300 border border-[#2d3444] rounded px-2.5 py-1 text-[10px] flex items-center gap-1.5 transition-all font-semibold"
-                                >
-                                  <Printer size={12} />
-                                  Reimprimir Ticket
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* List of products inside sale */}
-                            <div className="space-y-1.5">
-                              {s.items.map((it, index) => (
-                                <div key={index} className="flex justify-between text-xs font-mono py-1 border-b border-[#1f242e] last:border-0">
-                                  <span className="text-slate-300">{it.productName} <span className="text-slate-500">x{it.quantity}</span></span>
-                                  <span className="text-[#5aa6ec] font-semibold">${(it.price * it.quantity).toFixed(0)}</span>
-                                </div>
-                              ))}
-                            </div>
-
-                            {/* Payment metadata */}
-                            <div className="grid grid-cols-2 gap-4 text-[10px] text-slate-400 font-mono pt-2 border-t border-[#1f242e]/50">
-                              <div>
-                                <span>Metodo Pago: {s.paymentMethod}</span><br/>
-                                <span>Recibido: ${Number(s.cashReceived || s.total).toFixed(0)}</span><br/>
-                                <span>Cambio: ${Number(s.change || 0).toFixed(0)}</span>
-                              </div>
-                              <div className="text-right">
-                                <span>Sincronizado Localmente: Sí</span><br/>
-                                <span>ID de Venta: {s.id}</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              <div className="relative ml-auto">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500"><Search size={14} /></span>
+                <input type="text" className="bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:outline-none w-56" placeholder="Buscar por ID, Cliente o Método..." value={search} onChange={e => setSearch(e.target.value)} />
+              </div>
+              <a href={`/api/sales/export?from=${dateFrom}&to=${dateTo}&method=${encodeURIComponent(methodFilter)}&q=${encodeURIComponent(search)}${hideCash ? '&hideCash=1' : ''}&sort=${sortOrder}`} className="flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg py-1.5 px-3 text-xs font-semibold transition-colors" title="Exportar lo filtrado a Excel (CSV)">
+                <Download size={13} /> Exportar
+              </a>
             </div>
           </div>
+
+          {/* Today's Sales (diseño Reparaciones) */}
+          {(() => {
+            const todaySalesFiltered = filtered.filter(s => s.date.startsWith(todayStr));
+            const earlierSales = filtered.filter(s => !s.date.startsWith(todayStr));
+            return (<>
+              {todaySalesFiltered.length > 0 && (
+                <div className="bg-[#111318] border border-[#1f242e] rounded-xl overflow-hidden">
+                  <div className="px-5 pt-4 pb-2">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5"><FileText size={14} /> Facturas de Hoy</h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-[#181a20] text-[10px] tracking-wider text-slate-400 font-mono uppercase font-bold text-left">
+                          <th className="px-4 py-2.5">Ticket</th>
+                          <th className="px-4 py-2.5">Fecha y Hora</th>
+                          <th className="px-4 py-2.5">Cliente</th>
+                          <th className="px-4 py-2.5">Método</th>
+                           <th className="px-4 py-2.5 text-right">Total</th>
+                           <th className="px-4 py-2.5 text-right">Ganancia</th>
+                           <th className="px-4 py-2.5 text-right">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {todaySalesFiltered.map(s => (
+                          <tr key={s.id} className="border-t border-[#1b1e26] hover:bg-[#14171e] transition-colors cursor-pointer" onDoubleClick={() => toggleExpand(s.id)}>
+                            <td className="px-4 py-2.5 font-semibold text-white font-mono">{s.id}</td>
+                            <td className="px-4 py-2.5 text-slate-400 font-mono">{new Date(s.date).toLocaleString()}</td>
+                            <td className="px-4 py-2.5 text-slate-300 truncate max-w-[160px]">{s.clientName || 'General'}</td>
+                            <td className="px-4 py-2.5"><span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border bg-slate-700/20 text-slate-300 border-slate-600/30">{s.paymentMethod}</span></td>
+                            <td className="px-4 py-2.5 text-right font-mono font-bold text-emerald-400">{formatMoney(s.total, cur)}</td>
+                            <td className="px-4 py-2.5 text-right font-mono text-cyan-300">{formatMoney(profitOf(s), cur)}</td>
+                            <td className="px-4 py-2.5 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <button onClick={e => { e.stopPropagation(); handlePrintTicket(s); }} className="text-slate-500 hover:text-white transition-colors p-1.5 rounded hover:bg-[#1f242e]" title="Reimprimir ticket"><Printer size={12} /></button>
+                                <button onClick={e => { e.stopPropagation(); handleFullScreen(s); }} className="text-slate-500 hover:text-white transition-colors p-1.5 rounded hover:bg-[#1f242e]" title="Ver en pantalla completa"><FileText size={12} /></button>
+                                <button onClick={e => { e.stopPropagation(); handleDeleteSale(s.id); }} className="text-slate-500 hover:text-red-400 transition-colors p-1.5 rounded hover:bg-[#1f242e]" title="Eliminar"><Trash2 size={12} /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {earlierSales.length > 0 && (
+                <div className="bg-[#111318] border border-[#1f242e] rounded-xl overflow-hidden">
+                  <div className="px-5 pt-4 pb-2">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5"><Calendar size={14} /> Facturas Anteriores</h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-[#181a20] text-[10px] tracking-wider text-slate-400 font-mono uppercase font-bold text-left">
+                          <th className="px-4 py-2.5">Ticket</th>
+                          <th className="px-4 py-2.5">Fecha y Hora</th>
+                          <th className="px-4 py-2.5">Cliente</th>
+                          <th className="px-4 py-2.5">Método</th>
+                           <th className="px-4 py-2.5 text-right">Total</th>
+                           <th className="px-4 py-2.5 text-right">Ganancia</th>
+                           <th className="px-4 py-2.5 text-right">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {earlierSales.map(s => (
+                          <tr key={s.id} className="border-t border-[#1b1e26] hover:bg-[#14171e] transition-colors cursor-pointer" onDoubleClick={() => toggleExpand(s.id)}>
+                            <td className="px-4 py-2.5 font-semibold text-white font-mono">{s.id}</td>
+                            <td className="px-4 py-2.5 text-slate-400 font-mono">{new Date(s.date).toLocaleString()}</td>
+                            <td className="px-4 py-2.5 text-slate-300 truncate max-w-[160px]">{s.clientName || 'General'}</td>
+                            <td className="px-4 py-2.5"><span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border bg-slate-700/20 text-slate-300 border-slate-600/30">{s.paymentMethod}</span></td>
+                            <td className="px-4 py-2.5 text-right font-mono font-bold text-cyan-400">{formatMoney(s.total, cur)}</td>
+                            <td className="px-4 py-2.5 text-right font-mono text-cyan-300">{formatMoney(profitOf(s), cur)}</td>
+                            <td className="px-4 py-2.5 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <button onClick={e => { e.stopPropagation(); handlePrintTicket(s); }} className="text-slate-500 hover:text-white transition-colors p-1.5 rounded hover:bg-[#1f242e]" title="Reimprimir ticket"><Printer size={12} /></button>
+                                <button onClick={e => { e.stopPropagation(); handleFullScreen(s); }} className="text-slate-500 hover:text-white transition-colors p-1.5 rounded hover:bg-[#1f242e]" title="Ver en pantalla completa"><FileText size={12} /></button>
+                                <button onClick={e => { e.stopPropagation(); handleDeleteSale(s.id); }} className="text-slate-500 hover:text-red-400 transition-colors p-1.5 rounded hover:bg-[#1f242e]" title="Eliminar"><Trash2 size={12} /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {todaySalesFiltered.length === 0 && earlierSales.length === 0 && (
+                <div className="bg-[#111318] border border-[#1f242e] rounded-xl overflow-hidden">
+                  <div className="p-12 text-slate-500 italic text-center text-xs">No hay ventas registradas que coincidan con la búsqueda.</div>
+                </div>
+              )}
+            </>);
+          })()}
+
+          {/* Expandable detail modal (same toggle, rendered outside tables for simplicity) */}
+          {expandedSaleId && (() => {
+            const s = filtered.find(x => x.id === expandedSaleId);
+            if (!s) return null;
+            return (
+              <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setExpandedSaleId(null)}>
+                <div className="bg-[#111318] border border-[#2d3444] rounded-xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-center border-b border-[#2d3444] pb-3 mb-4">
+                    <span className="font-semibold text-white font-display text-sm">Factura {s.id}</span>
+                    <button onClick={() => setExpandedSaleId(null)} className="text-slate-400 hover:text-white transition-colors"><X size={16} /></button>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-xs text-slate-400">
+                      <span>{new Date(s.date).toLocaleString()}</span>
+                      <span className="text-white font-semibold">{s.clientName || 'Cliente General'}</span>
+                    </div>
+                    <div className="bg-[#0d0e12] border border-[#1f242e] rounded-lg overflow-hidden">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-[#181a20] text-[10px] tracking-wider text-slate-400 font-mono uppercase font-bold text-left">
+                            <th className="px-3 py-2">Producto</th>
+                            <th className="px-3 py-2 text-center">Cant</th>
+                            <th className="px-3 py-2 text-right">Subtotal</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {s.items.map((it, i) => (
+                            <tr key={i} className="border-t border-[#1b1e26]">
+                              <td className="px-3 py-2 text-slate-300">{it.productName}</td>
+                              <td className="px-3 py-2 text-center text-slate-400">{it.quantity}</td>
+                              <td className="px-3 py-2 text-right text-white font-semibold">{formatMoney(it.price * it.quantity, cur)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="flex justify-between items-center bg-[#181a20] border border-[#2d3444] rounded-lg px-4 py-3">
+                      <span className="text-xs text-slate-400 font-mono uppercase">Total</span>
+                      <span className="text-lg font-bold text-emerald-400">{formatMoney(s.total, cur)}</span>
+                    </div>
+                    <div className="flex justify-between items-center px-4 py-1">
+                      <span className="text-[11px] text-slate-500 font-mono uppercase">Ganancia aprox.</span>
+                      <span className="text-sm font-bold text-cyan-300">{formatMoney(profitOf(s), cur)}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-[11px] text-slate-400 font-mono">
+                      <div><span className="text-slate-500">Método:</span> {s.paymentMethod}</div>
+                      <div className="text-right"><span className="text-slate-500">Recibido:</span> {formatMoney(Number(s.cashReceived || s.total), cur)}</div>
+                      <div><span className="text-slate-500">Cambio:</span> {formatMoney(Number(s.change || 0), cur)}</div>
+                      <div className="text-right"><span className="text-slate-500">ID:</span> {s.id}</div>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                      <button onClick={() => { handlePrintTicket(s); setExpandedSaleId(null); }} className="flex-1 bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg text-xs transition-all flex items-center justify-center gap-1.5"><Printer size={13} /> Reimprimir</button>
+                      <button onClick={() => { handleFullScreen(s); setExpandedSaleId(null); }} className="flex-1 bg-[#1c222d] hover:bg-[#252e3d] text-slate-300 border border-[#2d3444] font-bold py-2 px-3 rounded-lg text-xs transition-all flex items-center justify-center gap-1.5"><FileText size={13} /> Pantalla Completa</button>
+                      <button onClick={() => { handleDeleteSale(s.id); setExpandedSaleId(null); }} className="flex-shrink-0 bg-red-900/30 hover:bg-red-800/50 text-red-400 border border-red-800/40 font-bold py-2 px-3 rounded-lg text-xs transition-all flex items-center justify-center gap-1.5"><Trash2 size={13} /></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </>
       ) : (
         <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <div>
               <h2 className="text-sm font-bold uppercase tracking-wider text-white">Historial de Reparaciones</h2>
-              <p className="text-[11px] text-slate-500">Órdenes de reparación finalizadas</p>
+              <p className="text-[11px] text-slate-500">Ã“rdenes de reparación finalizadas</p>
             </div>
-            <div className="relative w-full sm:w-56">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                <Search size={14} />
-              </span>
-              <input
-                type="text"
-                className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:outline-none"
-                placeholder="Buscar por clave, cliente o equipo..."
-                value={repSearch}
-                onChange={(e) => setRepSearch(e.target.value)}
-              />
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative w-full sm:w-56">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                  <Search size={14} />
+                </span>
+                <input
+                  type="text"
+                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:outline-none"
+                  placeholder="Buscar por clave, cliente o equipo..."
+                  value={repSearch}
+                  onChange={(e) => setRepSearch(e.target.value)}
+                />
+              </div>
+              <a href={`/api/repairs/export?q=${encodeURIComponent(repSearch)}`} className="flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg py-1.5 px-3 text-xs font-semibold transition-colors shrink-0" title="Exportar lo filtrado a Excel (CSV)">
+                <Download size={13} /> Exportar
+              </a>
             </div>
           </div>
 
@@ -472,8 +546,8 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
                             {r.status}
                           </span>
                         </div>
-                        <div className="col-span-2 text-right font-mono font-bold text-[#5aa6ec] flex items-center justify-end gap-2">
-                          ${Number(r.price).toFixed(0)}
+                        <div className="col-span-2 text-right font-mono font-bold text-[#A63A42] flex items-center justify-end gap-2">
+                          {formatMoney(Number(r.price), cur)}
                           {isExpanded ? <ChevronUp size={14} className="text-slate-500" /> : <ChevronDown size={14} className="text-slate-500" />}
                         </div>
                       </button>
@@ -516,12 +590,12 @@ export default function Historiales({ sales, paymentMethods, companyConfig, onRe
                               <span className="text-white">{r.date}</span>
                             </div>
                             <div>
-                              <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Última Actualización</span>
+                              <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Ãšltima Actualización</span>
                               <span className="text-white">{r.updatedAt ? new Date(r.updatedAt).toLocaleString() : '-'}</span>
                             </div>
                             <div>
                               <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Precio</span>
-                              <span className="text-emerald-400 font-bold">${Number(r.price).toFixed(0)}</span>
+                              <span className="text-emerald-400 font-bold">{formatMoney(Number(r.price), cur)}</span>
                             </div>
                             <div>
                               <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Estado</span>

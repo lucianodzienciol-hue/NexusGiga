@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Search, Store, Send } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Store, Send } from 'lucide-react';
 import { Provider } from '../types';
 
 interface ProveedoresProps {
@@ -11,7 +11,6 @@ export default function Proveedores({ providers, onRefresh }: ProveedoresProps) 
   const [search, setSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Form states
   const [ruc, setRuc] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -33,6 +32,15 @@ export default function Proveedores({ providers, onRefresh }: ProveedoresProps) 
     setFormOpen(false);
   };
 
+  const handleEditClick = (provider: Provider) => {
+    setEditingId(provider.id);
+    setRuc(provider.ruc);
+    setName(provider.name);
+    setPhone(provider.phone || '');
+    setEmail(provider.email || '');
+    setFormOpen(true);
+  };
+
   const handleSaveProvider = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !ruc) {
@@ -47,9 +55,12 @@ export default function Proveedores({ providers, onRefresh }: ProveedoresProps) 
       email: email || '-'
     };
 
+    const url = editingId ? `/api/providers/${editingId}` : '/api/providers';
+    const method = editingId ? 'PUT' : 'POST';
+
     try {
-      const resp = await fetch('/api/providers', {
-        method: 'POST',
+      const resp = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
@@ -66,6 +77,26 @@ export default function Proveedores({ providers, onRefresh }: ProveedoresProps) 
     }
   };
 
+  const handleDeleteProvider = async (id: string, providerName: string) => {
+    if (!confirm(`¿Está seguro de que desea eliminar a "${providerName}"?`)) return;
+
+    try {
+      const resp = await fetch(`/api/providers/${id}`, {
+        method: 'DELETE'
+      });
+      if (resp.ok) {
+        onRefresh();
+      } else {
+        let msg = 'Ocurrió un error al eliminar el proveedor.';
+        try { const b = await resp.json(); if (b && b.error) msg = b.error; } catch { /* noop */ }
+        alert(msg);
+      }
+    } catch (err) {
+      console.error('Error deleting provider:', err);
+      alert('Error de red al eliminar.');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Banner */}
@@ -77,7 +108,7 @@ export default function Proveedores({ providers, onRefresh }: ProveedoresProps) 
 
         <button
           onClick={() => { resetForm(); setFormOpen(true); }}
-          className="bg-[#5aa6ec] hover:bg-[#4691db] text-slate-900 font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+          className="bg-[#A63A42] hover:bg-[#4691db] text-slate-900 font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
         >
           <Plus size={14} />
           Nuevo Proveedor
@@ -116,6 +147,7 @@ export default function Proveedores({ providers, onRefresh }: ProveedoresProps) 
                   <th className="py-3 px-4">TELÉFONO</th>
                   <th className="py-3 px-4">CORREO ELECTRÓNICO</th>
                   <th className="py-3 px-4 text-center">CANAL</th>
+                  <th className="py-3 px-4 text-right">ACCIONES</th>
                 </tr>
               </thead>
               <tbody>
@@ -126,15 +158,31 @@ export default function Proveedores({ providers, onRefresh }: ProveedoresProps) 
                   >
                     <td className="py-3 px-4 font-mono font-semibold text-slate-400">{p.ruc}</td>
                     <td className="py-3 px-4 font-medium text-white flex items-center gap-1.5">
-                      <Store size={14} className="text-[#5aa6ec]" />
+                      <Store size={14} className="text-[#A63A42]" />
                       {p.name}
                     </td>
                     <td className="py-3 px-4 font-mono text-slate-300">{p.phone || '-'}</td>
                     <td className="py-3 px-4 text-slate-400 font-mono">{p.email || '-'}</td>
                     <td className="py-3 px-4 text-center">
-                      <span className="text-[9px] uppercase font-mono px-2 py-0.5 rounded border bg-transparent border-[#5aa6ec]/20 text-[#5aa6ec]">
+                      <span className="text-[9px] uppercase font-mono px-2 py-0.5 rounded border bg-transparent border-[#A63A42]/20 text-[#A63A42]">
                         Distribuidor Oficial
                       </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => handleEditClick(p)}
+                          className="p-1 rounded text-slate-400 hover:text-[#A63A42] hover:bg-[#1f242e] transition-all"
+                        >
+                          <Edit2 size={13} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProvider(p.id, p.name)}
+                          className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-[#251012] transition-all"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -148,7 +196,7 @@ export default function Proveedores({ providers, onRefresh }: ProveedoresProps) 
           <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 space-y-4">
             <div className="flex items-center justify-between border-b border-[#1f242e] pb-3 mb-1">
               <h3 className="text-xs font-bold uppercase tracking-wider text-white">
-                Nuevo Proveedor
+                {editingId ? 'Editar Proveedor' : 'Nuevo Proveedor'}
               </h3>
               <button 
                 onClick={resetForm}
@@ -165,7 +213,7 @@ export default function Proveedores({ providers, onRefresh }: ProveedoresProps) 
                   type="text"
                   required
                   placeholder="Ej: 20112233445"
-                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-red-500 font-mono"
                   value={ruc}
                   onChange={(e) => setRuc(e.target.value)}
                 />
@@ -177,7 +225,7 @@ export default function Proveedores({ providers, onRefresh }: ProveedoresProps) 
                   type="text"
                   required
                   placeholder="Ej: Snacks del Valle S.A."
-                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-red-500"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -188,7 +236,7 @@ export default function Proveedores({ providers, onRefresh }: ProveedoresProps) 
                 <input
                   type="text"
                   placeholder="Ej: 955333111"
-                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-red-500 font-mono"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                 />
@@ -199,7 +247,7 @@ export default function Proveedores({ providers, onRefresh }: ProveedoresProps) 
                 <input
                   type="email"
                   placeholder="Ej: compras@snacksvalle.com"
-                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-red-500 font-mono"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -211,7 +259,7 @@ export default function Proveedores({ providers, onRefresh }: ProveedoresProps) 
                   className="w-full py-2 rounded-lg bg-[#238636] hover:bg-[#2ea043] text-white font-bold transition-all shadow cursor-pointer text-center flex items-center justify-center gap-1.5"
                 >
                   <Send size={12} />
-                  REGISTRAR PROVEEDOR
+                  {editingId ? 'GUARDAR CAMBIOS' : 'REGISTRAR PROVEEDOR'}
                 </button>
               </div>
             </form>

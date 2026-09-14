@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { RotateCcw, Database, FileText, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { RotateCcw, Database, FileText, AlertTriangle, CheckCircle, RefreshCw, Download, Upload } from 'lucide-react';
 
 interface BackupsProps {
   onRefresh: () => void;
@@ -17,6 +17,73 @@ export default function Backups({ onRefresh }: BackupsProps) {
   const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [legacyReport, setLegacyReport] = useState<any | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [actionLoading, setActionLoading] = useState<'backup' | 'restore' | 'server' | null>(null);
+
+  const handleBackup = async () => {
+    setActionLoading('backup');
+    setMessage(null);
+    try {
+      const r = await fetch('/api/backup');
+      if (!r.ok) throw new Error('Error al generar backup');
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'backup.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      setMessage({ type: 'success', text: 'Backup descargado correctamente' });
+    } catch {
+      setMessage({ type: 'error', text: 'Error al generar el backup' });
+    }
+    setActionLoading(null);
+  };
+
+  const handleServerBackup = async () => {
+    setActionLoading('server');
+    setMessage(null);
+    try {
+      const r = await fetch('/api/backups/create', { method: 'POST' });
+      const d = await r.json();
+      if (d.success) {
+        setMessage({ type: 'success', text: 'Backup guardado en el servidor' });
+        loadBackups();
+      } else {
+        setMessage({ type: 'error', text: d.error || 'Error al crear backup' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Error de conexión con el servidor' });
+    }
+    setActionLoading(null);
+  };
+
+  const handleFileRestore = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!window.confirm('¿Restaurar base de datos desde este archivo?\n\nSe perderán los datos actuales.')) return;
+    setActionLoading('restore');
+    setMessage(null);
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const r = await fetch('/api/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!r.ok) throw new Error('Error al restaurar');
+      const d = await r.json().catch(() => ({}));
+      setMessage({ type: 'success', text: 'Base de datos restaurada correctamente' + (d.restored != null ? ` (${d.restored} filas)` : '') });
+      if (d.legacy) setLegacyReport(d.legacy);
+      onRefresh();
+    } catch {
+      setMessage({ type: 'error', text: 'Error al restaurar. Verifique que el archivo sea válido.' });
+    }
+    setActionLoading(null);
+    e.target.value = '';
+  };
 
   const loadBackups = async () => {
     setLoading(true);
@@ -41,7 +108,8 @@ export default function Backups({ onRefresh }: BackupsProps) {
       });
       const d = await r.json();
       if (d.success) {
-        setMessage({ type: 'success', text: 'Base de datos restaurada correctamente.' });
+        setMessage({ type: 'success', text: 'Base de datos restaurada correctamente.' + (d.restored != null ? ` (${d.restored} filas)` : '') });
+        if (d.legacy) setLegacyReport(d.legacy);
         onRefresh();
       } else {
         setMessage({ type: 'error', text: d.error || 'Error al restaurar' });
@@ -67,13 +135,47 @@ export default function Backups({ onRefresh }: BackupsProps) {
             <h2 className="text-sm font-bold uppercase tracking-wider text-white">Copias de Seguridad</h2>
             <p className="text-[11px] text-slate-500">Backups automáticos almacenados en el servidor local</p>
           </div>
-          <button
-            onClick={loadBackups}
-            className="flex items-center gap-1.5 bg-[#2d3444] hover:bg-[#3a4155] text-white rounded-lg py-1.5 px-3 text-xs font-semibold transition-colors"
-          >
-            <RefreshCw size={13} />
-            Refrescar
-          </button>
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleFileRestore}
+              className="hidden"
+            />
+            <button
+              onClick={handleBackup}
+              disabled={actionLoading === 'backup'}
+              className="flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg py-1.5 px-3 text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {actionLoading === 'backup' ? <RotateCcw size={13} className="animate-spin" /> : <Download size={13} />}
+              Guardar Backup
+            </button>
+            <button
+              onClick={handleServerBackup}
+              disabled={actionLoading === 'server'}
+              className="flex items-center gap-1.5 bg-blue-700 hover:bg-blue-600 text-white rounded-lg py-1.5 px-3 text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {actionLoading === 'server' ? <RotateCcw size={13} className="animate-spin" /> : <Database size={13} />}
+              Crear Backup
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={actionLoading === 'restore'}
+              className="flex items-center gap-1.5 bg-amber-700 hover:bg-amber-600 text-white rounded-lg py-1.5 px-3 text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {actionLoading === 'restore' ? <RotateCcw size={13} className="animate-spin" /> : <Upload size={13} />}
+              Restablecer Backup
+            </button>
+            <div className="w-px h-6 bg-[#1f242e]" />
+            <button
+              onClick={loadBackups}
+              className="flex items-center gap-1.5 bg-[#2d3444] hover:bg-[#3a4155] text-white rounded-lg py-1.5 px-3 text-xs font-semibold transition-colors"
+            >
+              <RefreshCw size={13} />
+              Refrescar
+            </button>
+          </div>
         </div>
 
         {message && (
@@ -82,6 +184,17 @@ export default function Backups({ onRefresh }: BackupsProps) {
           }`}>
             {message.type === 'success' ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
             {message.text}
+          </div>
+        )}
+
+        {legacyReport && (
+          <div className="mb-4 p-3 rounded-lg text-xs bg-amber-900/20 text-amber-300 border border-amber-800/40 space-y-1">
+            <div className="font-bold">Backup de versión anterior: compatibilidad aplicada</div>
+            <div className="font-mono text-[11px]">{Object.keys(legacyReport.tablas || {}).map((t) => `${t}: ${legacyReport.tablas[t]}`).join(' · ')}</div>
+            {(legacyReport.configs || []).length > 0 && <div>Configs: {legacyReport.configs.join(', ')}</div>}
+            {(legacyReport.secretosEliminados || []).length > 0 && <div>Secretos eliminados: {legacyReport.secretosEliminados.join(', ')}</div>}
+            {(legacyReport.advertencias || []).map((w: string, i: number) => <div key={i}>⚠ {w}</div>)}
+            <button onClick={() => setLegacyReport(null)} className="text-amber-400 underline text-[11px]">Ocultar</button>
           </div>
         )}
 

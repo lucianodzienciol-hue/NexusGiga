@@ -1,14 +1,16 @@
 import React, { useState, useRef, useMemo, useCallback } from 'react';
-import { Plus, Edit2, Trash2, Search, Download, Layers, X, Image, Percent } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Download, Layers, X, Image, Percent, Upload } from 'lucide-react';
 import { Product } from '../types';
+import { formatMoney } from '../lib/currency';
 
 interface ArticulosProps {
   products: Product[];
   categories: { id: string; name: string }[];
   onRefresh: () => void;
+  currency?: string;
 }
 
-const Articulos = React.memo(function Articulos({ products, categories, onRefresh }: ArticulosProps) {
+const Articulos = React.memo(function Articulos({ products, categories, onRefresh, currency }: ArticulosProps) {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
@@ -29,10 +31,10 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
     [products, debouncedSearch]
   );
 
-  // Form fields
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
+  const [priceMayorista, setPriceMayorista] = useState('');
   const [cost, setCost] = useState('');
   const [stock, setStock] = useState('');
   const [category, setCategory] = useState('');
@@ -52,7 +54,15 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
   const [customCat, setCustomCat] = useState(false);
   const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
   const [bulkPercentage, setBulkPercentage] = useState('');
+  const [bulkTarget, setBulkTarget] = useState<'minorista' | 'mayorista' | 'ambas'>('minorista');
   const [bulkApplying, setBulkApplying] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importData, setImportData] = useState('');
+  const [importPrices, setImportPrices] = useState('');
+  const [importMayorista, setImportMayorista] = useState('');
+  const [importCat, setImportCat] = useState('');
+  const [importWeb, setImportWeb] = useState(false);
+  const [importingBulk, setImportingBulk] = useState(false);
 
   const handleBulkPriceUpdate = async () => {
     const pct = parseFloat(bulkPercentage);
@@ -61,13 +71,14 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
       return;
     }
     const sign = pct >= 0 ? '+' : '';
-    if (!confirm(`¿Aplicar ${sign}${pct}% a los precios de ${products.length} artículos?\nLos precios resultantes se ajustarán entre $500 y $1000.`)) return;
+    const targetLabel = bulkTarget === 'minorista' ? 'minoristas' : bulkTarget === 'mayorista' ? 'mayoristas' : 'ambas listas';
+    if (!confirm(`¿Aplicar ${sign}${pct}% a los precios ${targetLabel} de ${products.length} artículos?\nLos precios resultantes se ajustarán entre $500 y $1000.`)) return;
     setBulkApplying(true);
     try {
       const resp = await fetch('/api/products/bulk-price-update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ percentage: pct }),
+        body: JSON.stringify({ percentage: pct, target: bulkTarget }),
       });
       const data = await resp.json();
       if (data.success) {
@@ -107,6 +118,7 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
     setCode('');
     setName('');
     setPrice('');
+    setPriceMayorista('');
     setCost('');
     setStock('');
     setCategory('');
@@ -130,6 +142,7 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
       setCode(product.code);
       setName(product.name);
       setPrice(product.price.toString());
+      setPriceMayorista((product.price_mayorista || 0).toString());
       setCost(product.cost.toString());
       setStock(product.stock.toString());
       setCategory(product.category);
@@ -162,6 +175,7 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
       code,
       name,
       price: parseFloat(price) || 0,
+      price_mayorista: parseFloat(priceMayorista) || 0,
       cost: parseFloat(cost) || 0,
       stock: parseInt(stock) || 0,
       category: resolvedCat || 'General',
@@ -201,7 +215,11 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
     try {
       const resp = await fetch(`/api/products/${id}`, { method: 'DELETE' });
       if (resp.ok) onRefresh();
-      else alert('Ocurrió un error al eliminar el producto.');
+      else {
+        let msg = 'Ocurrió un error al eliminar el producto.';
+        try { const b = await resp.json(); if (b && b.error) msg = b.error; } catch { /* noop */ }
+        alert(msg);
+      }
     } catch {
       alert('Error de red al eliminar.');
     }
@@ -214,8 +232,15 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
     reader.readAsDataURL(file);
   };
 
-  const imgSrc = (path: string) => {
-    if (!path) return '';
+  const categoryImages: Record<string, string> = {
+    Tinto: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&h=400&fit=crop',
+    Blanco: 'https://images.unsplash.com/photo-1558001373-7b93ee48ffa0?w=400&h=400&fit=crop',
+    Rosado: 'https://images.unsplash.com/photo-1541971897566-308cf7ad0934?w=400&h=400&fit=crop',
+    Espumante: 'https://images.unsplash.com/photo-1528823872057-9c018a7a7553?w=400&h=400&fit=crop',
+  };
+
+  const imgSrc = (path: string, category?: string) => {
+    if (!path) return category ? (categoryImages[category] || '') : '';
     if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) return path;
     const clean = path.replace(/^\//, '');
     if (clean.startsWith('web/')) return '/' + clean;
@@ -238,7 +263,11 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
             <Download size={14} className={importing ? 'animate-spin' : ''} />
             {importing ? 'Importando...' : 'Importar desde Web'}
           </button>
-          <button onClick={() => openEditModal(null)} className="bg-[#5aa6ec] hover:bg-[#4691db] text-slate-900 font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md">
+          <button onClick={() => setImportOpen(true)} className="bg-purple-700 hover:bg-purple-600 text-white font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md">
+            <Upload size={14} />
+            Importar Artículos
+          </button>
+          <button onClick={() => openEditModal(null)} className="bg-[#A63A42] hover:bg-[#872A32] text-slate-900 font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md">
             <Plus size={14} />
             Nuevo Artículo
           </button>
@@ -268,6 +297,7 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
                   <th className="py-3 px-4">DESCRIPCIÓN DEL ARTÍCULO</th>
                   <th className="py-3 px-4 w-32">CATEGORÍA</th>
                   <th className="py-3 px-4 text-right w-24">PRECIO VENT.</th>
+                  <th className="py-3 px-4 text-right w-24">MAYORISTA</th>
                   <th className="py-3 px-4 text-center w-24">STOCK</th>
                   <th className="py-3 px-4 text-center w-20">WEB</th>
                   <th className="py-3 px-4 text-right w-24">ACCIONES</th>
@@ -279,11 +309,14 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
                   return (
                     <tr key={p.id} className="border-b border-[#1b1e26] hover:bg-[#14171e] text-xs transition-colors cursor-pointer" onDoubleClick={() => openEditModal(p)}>
                       <td className="py-3 px-4 text-center">
-                        {p.image ? (
-                          <img src={imgSrc(p.image)} alt="" className="w-9 h-9 object-cover rounded mx-auto" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                        ) : (
-                          <span className="text-slate-600 text-[10px]">—</span>
-                        )}
+                        {(() => {
+                          const src = imgSrc(p.image, p.category);
+                          return src ? (
+                            <img src={src} alt="" className="w-9 h-9 object-cover rounded mx-auto" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                          ) : (
+                            <span className="text-slate-600 text-[10px]">—</span>
+                          );
+                        })()}
                       </td>
                       <td className="py-3 px-4 font-medium text-white flex items-center gap-1.5">
                         {p.name}
@@ -296,7 +329,8 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
                       <td className="py-3 px-4 text-slate-400">
                         <span className="bg-[#1a1d24] border border-[#2d3444] rounded px-2 py-0.5 text-[10px]">{p.category}</span>
                       </td>
-                      <td className="py-3 px-4 text-right font-mono text-emerald-400 font-semibold">${p.price.toFixed(0)}</td>
+                      <td className="py-3 px-4 text-right font-mono text-emerald-400 font-semibold">{formatMoney(p.price, currency)}</td>
+                      <td className="py-3 px-4 text-right font-mono text-indigo-300 font-semibold">{(Number(p.price_mayorista) || 0) > 0 ? formatMoney(Number(p.price_mayorista), currency) : '—'}</td>
                       <td className="py-3 px-4 text-center">
                         <span className={`font-mono font-semibold px-2 py-0.5 rounded ${isLowStock ? 'bg-red-950/40 text-red-400 border border-red-900/50' : 'bg-emerald-950/40 text-emerald-400 border border-emerald-900/50'}`}>
                           {p.stock} u
@@ -309,7 +343,7 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          <button onClick={() => openEditModal(p)} className="p-1 rounded text-slate-400 hover:text-[#5aa6ec] hover:bg-[#1f242e] transition-all"><Edit2 size={13} /></button>
+                          <button onClick={() => openEditModal(p)} className="p-1 rounded text-slate-400 hover:text-[#A63A42] hover:bg-[#1f242e] transition-all"><Edit2 size={13} /></button>
                           <button onClick={() => handleDelete(p.id, p.name)} className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-[#251012] transition-all"><Trash2 size={13} /></button>
                         </div>
                       </td>
@@ -322,7 +356,6 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
         </div>
       </div>
 
-      {/* Modal */}
       {formOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={resetForm}>
           <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -332,13 +365,12 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
             </div>
 
             <form onSubmit={handleSave} className="space-y-3 text-xs">
-              {/* Imagen drag & drop */}
               <div
-                className="relative border-2 border-dashed border-[#2d3444] rounded-lg p-3 text-center cursor-pointer hover:border-[#5aa6ec] transition-colors"
+                className="relative border-2 border-dashed border-[#2d3444] rounded-lg p-3 text-center cursor-pointer hover:border-[#A63A42] transition-colors"
                 onClick={() => fileInputRef.current?.click()}
-                onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-[#5aa6ec]'); }}
-                onDragLeave={e => { e.currentTarget.classList.remove('border-[#5aa6ec]'); }}
-                onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-[#5aa6ec]'); handleFile(e.dataTransfer.files[0]); }}
+                onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-[#A63A42]'); }}
+                onDragLeave={e => { e.currentTarget.classList.remove('border-[#A63A42]'); }}
+                onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-[#A63A42]'); handleFile(e.dataTransfer.files[0]); }}
               >
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={e => handleFile(e.target.files?.[0] || null)} />
                 {image ? (
@@ -356,6 +388,7 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
               <div className="grid grid-cols-3 gap-3">
                 <div><label className="text-[10px] text-slate-500 font-mono uppercase">Costo ($)</label><input type="number" step="0.01" value={cost} onChange={e => setCost(e.target.value)} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none" /></div>
                 <div><label className="text-[10px] text-slate-500 font-mono uppercase">Precio * ($)</label><input type="number" step="0.01" required value={price} onChange={e => setPrice(e.target.value)} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none" /></div>
+                <div><label className="text-[10px] text-slate-500 font-mono uppercase">Precio Mayorista ($)</label><input type="number" step="0.01" value={priceMayorista} onChange={e => setPriceMayorista(e.target.value)} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none" /></div>
                 <div><label className="text-[10px] text-slate-500 font-mono uppercase">Stock</label><input type="number" value={stock} onChange={e => setStock(e.target.value)} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none" /></div>
               </div>
 
@@ -363,7 +396,7 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
                 {customCat ? (
                   <div className="flex gap-2">
                     <input type="text" value={category} onChange={e => setCategory(e.target.value)} className="flex-1 bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" placeholder="Nueva categoría..." />
-                    <button type="button" onClick={() => { setCustomCat(false); setCategory(''); }} className="text-[10px] text-[#5aa6ec] hover:text-white">Usar existente</button>
+                    <button type="button" onClick={() => { setCustomCat(false); setCategory(''); }} className="text-[10px] text-[#A63A42] hover:text-white">Usar existente</button>
                   </div>
                 ) : (
                   <div className="flex gap-2">
@@ -371,14 +404,13 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
                       <option value="">Sin categoría</option>
                       {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                     </select>
-                    <button type="button" onClick={() => setCustomCat(true)} className="text-[10px] text-[#5aa6ec] hover:text-white whitespace-nowrap">Otra...</button>
+                    <button type="button" onClick={() => setCustomCat(true)} className="text-[10px] text-[#A63A42] hover:text-white whitespace-nowrap">Otra...</button>
                   </div>
                 )}
               </div>
 
               <div><label className="text-[10px] text-slate-500 font-mono uppercase">Descripción</label><textarea rows={2} value={desc} onChange={e => setDesc(e.target.value)} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
 
-              {/* Web fields */}
               <div className="border-t border-[#1f242e] pt-3">
                 <label className="flex items-center gap-2 text-xs text-slate-400 mb-3">
                   <input type="checkbox" checked={webVisible} onChange={e => setWebVisible(e.target.checked)} className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded" />
@@ -407,14 +439,13 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
                   <button type="button" onClick={() => { if (!confirm(`¿Eliminar "${name}"?`)) return; handleDelete(editingId, name); }} className="bg-red-800 hover:bg-red-700 text-white rounded-lg py-1.5 px-4 text-xs font-bold transition-all cursor-pointer">Eliminar</button>
                 )}
                 <button type="button" onClick={resetForm} className="bg-[#181a20] border border-[#2d3444] text-slate-300 hover:text-white rounded-lg py-1.5 px-4 text-xs font-bold transition-all cursor-pointer">Cancelar</button>
-                <button type="submit" className="bg-[#5aa6ec] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold transition-all cursor-pointer">{editingId ? 'GUARDAR' : 'CREAR'}</button>
+                <button type="submit" className="bg-[#A63A42] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold transition-all cursor-pointer">{editingId ? 'GUARDAR' : 'CREAR'}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Bulk Price Modal */}
       {bulkPriceOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => { setBulkPriceOpen(false); setBulkPercentage(''); }}>
           <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-6 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
@@ -439,6 +470,18 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
                   autoFocus
                 />
               </div>
+              <div>
+                <label className="text-[10px] text-slate-500 font-mono uppercase block mb-1">Lista a actualizar</label>
+                <select
+                  value={bulkTarget}
+                  onChange={e => setBulkTarget(e.target.value as 'minorista' | 'mayorista' | 'ambas')}
+                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-xs text-white focus:outline-none"
+                >
+                  <option value="minorista">Solo minorista</option>
+                  <option value="mayorista">Solo mayorista</option>
+                  <option value="ambas">Ambas listas</option>
+                </select>
+              </div>
               <div className="bg-[#181a20] border border-[#2d3444] rounded-lg p-3 text-slate-400 text-[10px] leading-relaxed">
                 <p><strong className="text-amber-400">Ejemplos:</strong></p>
                 <p>• <span className="text-white">+10%</span> → precio actual × 1.10</p>
@@ -450,6 +493,121 @@ const Articulos = React.memo(function Articulos({ products, categories, onRefres
                 <button onClick={handleBulkPriceUpdate} disabled={bulkApplying} className="bg-amber-700 hover:bg-amber-600 text-white rounded-lg py-1.5 px-4 text-xs font-bold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5">
                   {bulkApplying && <span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" />}
                   {bulkApplying ? 'Aplicando...' : 'Aplicar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {importOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => { setImportOpen(false); setImportData(''); }}>
+          <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-6 max-w-xl w-full mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Importar Artículos</h3>
+              <button onClick={() => { setImportOpen(false); setImportData(''); }} className="text-slate-500 hover:text-white cursor-pointer"><X size={16} /></button>
+            </div>
+            <div className="space-y-4 text-xs">
+              <p className="text-slate-400">
+                Copiá cada columna desde Excel/Sheets y pegalas en los recuadros de abajo.<br />
+                Cada línea se corresponde por orden: 1er nombre con 1er precio, etc.
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[10px] text-slate-500 font-mono uppercase block mb-1">Nombres</label>
+                  <textarea
+                    rows={10}
+                    value={importData}
+                    onChange={e => setImportData(e.target.value)}
+                    className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-xs text-white font-mono focus:outline-none resize-none"
+                    placeholder={'Malbec Reserva\nCabernet Sauvignon\nTorrontés\nChardonnay\nExtra Brut'}
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-500 font-mono uppercase block mb-1">Precios minoristas</label>
+                  <textarea
+                    rows={10}
+                    value={importPrices}
+                    onChange={e => setImportPrices(e.target.value)}
+                    className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-xs text-white font-mono focus:outline-none resize-none"
+                    placeholder={'2500\n900\n130\n80\n90'}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-500 font-mono uppercase block mb-1">Precios mayoristas (opcional)</label>
+                  <textarea
+                    rows={10}
+                    value={importMayorista}
+                    onChange={e => setImportMayorista(e.target.value)}
+                    className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-xs text-white font-mono focus:outline-none resize-none"
+                    placeholder={'2200\n800\n110\n70\n80'}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] text-slate-500 font-mono uppercase block mb-1">Categoría</label>
+                  <select value={importCat} onChange={e => setImportCat(e.target.value)} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-xs text-white focus:outline-none">
+                    <option value="">Sin categoría</option>
+                    {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <label className="flex items-center gap-2 text-xs text-slate-400 pb-2">
+                    <input type="checkbox" checked={importWeb} onChange={e => setImportWeb(e.target.checked)} className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded" />
+                    Mostrar en la Web
+                  </label>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button onClick={() => { setImportOpen(false); setImportData(''); setImportPrices(''); setImportMayorista(''); }} className="bg-[#181a20] border border-[#2d3444] text-slate-300 hover:text-white rounded-lg py-1.5 px-4 text-xs font-bold transition-all cursor-pointer">Cancelar</button>
+                <button
+                  onClick={async () => {
+                    const names = importData.split('\n').map(l => l.trim()).filter(Boolean);
+                    const prices = importPrices.split('\n').map(l => l.trim()).filter(Boolean);
+                    const mayoristas = importMayorista.split('\n').map(l => l.trim());
+                    const count = Math.max(names.length, prices.length);
+                    if (count === 0) { alert('Pegá al menos un nombre y un precio.'); return; }
+                    setImportingBulk(true);
+                    let ok = 0, err = 0;
+                    for (let i = 0; i < count; i++) {
+                      const name = names[i] || '';
+                      let price = prices[i] || '';
+                      price = price.replace(/[^0-9.,]/g, '').replace(',', '.');
+                      if (!name || !price) { err++; continue; }
+                      const mayRaw = (mayoristas[i] || '').replace(/[^0-9.,]/g, '').replace(',', '.');
+                      const code = 'IMP-' + Date.now().toString(36).toUpperCase() + '-' + String(Math.random()).slice(2, 6);
+                      try {
+                        const resp = await fetch('/api/products', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            code, name,
+                            price: parseFloat(price) || 0,
+                            price_mayorista: parseFloat(mayRaw) || 0,
+                            cost: 0, stock: 0, category: importCat || 'General',
+                            desc: '', image: '', oferta: false, nuevo: false,
+                            source: importWeb ? 'web' : 'local',
+                            webDesc: '', ofertaPrice: 0, fichaTecnica: '', fichaTecnicaFile: '',
+                          }),
+                        });
+                        if (resp.ok) ok++; else err++;
+                      } catch { err++; }
+                    }
+                    setImportingBulk(false);
+                    setImportOpen(false);
+                    setImportData('');
+                    setImportPrices('');
+                    setImportMayorista('');
+                    if (ok > 0) { onRefresh(); }
+                    alert(`Importación finalizada.\n✓ ${ok} artículos creados\n✗ ${err} errores`);
+                  }}
+                  disabled={importingBulk}
+                  className="bg-purple-700 hover:bg-purple-600 text-white rounded-lg py-1.5 px-4 text-xs font-bold transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                >
+                  {importingBulk && <span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" />}
+                  {importingBulk ? 'Importando...' : `Importar ${importData.split('\n').filter(l => l.trim()).length || 0} artículos`}
                 </button>
               </div>
             </div>

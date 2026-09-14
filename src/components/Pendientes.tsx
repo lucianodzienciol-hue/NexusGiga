@@ -154,7 +154,7 @@ export default function Pendientes({ products, onRefresh }: PendientesProps) {
                           onClick={() => { setSelectedProduct(p.id); setShowDropdown(false); setProductSearch(''); }}
                           onMouseEnter={() => setHighlightedIndex(idx)}
                           className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center justify-between ${
-                            idx === highlightedIndex ? 'bg-[#5aa6ec]/20 text-white' : selectedProduct === p.id ? 'bg-[#1b1f28] text-white' : 'text-slate-400 hover:bg-[#14171e] hover:text-white'
+                            idx === highlightedIndex ? 'bg-[#A63A42]/20 text-white' : selectedProduct === p.id ? 'bg-[#1b1f28] text-white' : 'text-slate-400 hover:bg-[#14171e] hover:text-white'
                           }`}
                         >
                           <span className="font-medium">{p.name}</span>
@@ -230,7 +230,7 @@ export default function Pendientes({ products, onRefresh }: PendientesProps) {
                           onChange={e => setEditQty(e.target.value)}
                           onBlur={() => handleUpdateQty(item.id)}
                           onKeyDown={e => { if (e.key === 'Enter') handleUpdateQty(item.id); if (e.key === 'Escape') setEditingId(null); }}
-                          className="w-16 bg-[#0d0e12] border border-[#5aa6ec] rounded py-0.5 px-1.5 text-xs text-white font-mono text-center focus:outline-none"
+                          className="w-16 bg-[#0d0e12] border border-[#A63A42] rounded py-0.5 px-1.5 text-xs text-white font-mono text-center focus:outline-none"
                           autoFocus
                         />
                       ) : (

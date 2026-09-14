@@ -5,9 +5,13 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --font-display: "Space Grotesk", sans-serif;
+  --color-vino: #A63A42;
+  --color-vino-dark: #6B1D24;
+  --color-vino-light: #C95A62;
+  --color-oro: #C49A6C;
+  --color-oro-dark: #A0794D;
 }
 
-/* Custom scrollbar styling to fit the dark theme */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -32,4 +36,3 @@ body {
   color: #f3f4f6;
   overflow-x: hidden;
 }
-

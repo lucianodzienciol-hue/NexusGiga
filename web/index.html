@@ -86,6 +86,12 @@
                 <a href="https://github.com/gigacomputers2025-bot/Web" target="_blank" class="nav-link"><i class="ph ph-github-logo"></i> GitHub</a>
                 <a href="#" id="btn-logout"><i class="ph ph-sign-out"></i> Salir</a>
             </div>
+
+            <!-- Cart Button (header) -->
+            <button class="nav-cart" id="nav-cart" aria-label="Ver carrito" onclick="Cart.toggle()">
+                <i class="ph ph-shopping-cart-simple"></i>
+                <span class="cart-badge" id="cart-badge" style="display:none;">0</span>
+            </button>
         </nav>
 
         <!-- Promotional Carousel Banner -->
@@ -124,7 +130,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 <span id="footer-company-name-bottom"></span>. Todos los derechos reservados.</p>
+                <p>&copy; <span id="footer-year">2024</span> <span id="footer-company-name-bottom"></span>. Todos los derechos reservados. | Desarrollado por Giga Computers</p>
             </div>
         </footer>
 
@@ -132,6 +138,53 @@
         <a href="#" class="floating-wa" id="floating-wa" aria-label="Contactar por WhatsApp">
             <i class="ph ph-whatsapp-logo"></i>
         </a>
+    </div>
+
+    <!-- Cart Drawer -->
+    <div class="cart-overlay" id="cart-overlay">
+        <div class="cart-drawer">
+            <div class="cart-header">
+                <h3><i class="ph ph-shopping-cart-simple"></i> Tu Carrito</h3>
+                <button class="cart-close" onclick="Cart.close()" aria-label="Cerrar"><i class="ph ph-x"></i></button>
+            </div>
+
+            <div id="cart-main">
+                <div class="cart-items" id="cart-items"></div>
+                <div class="cart-footer">
+                    <div class="cart-total-row"><span>Total:</span><strong id="cart-total">$0</strong></div>
+                    <button class="btn btn-primary w-100" id="cart-view-checkout" onclick="Cart.showCheckout()">Iniciar Pedido</button>
+                </div>
+            </div>
+
+            <div id="cart-checkout" style="display:none;">
+                <div class="checkout-fields">
+                    <label>Nombre *<input id="co-name" type="text" autocomplete="name" placeholder="Tu nombre"></label>
+                    <label>Teléfono *<input id="co-phone" type="tel" autocomplete="tel" placeholder="Ej: 11 2345 6789"></label>
+                    <label>Entrega
+                        <select id="co-delivery" onchange="document.getElementById('co-address-wrap').style.display=this.value==='envio'?'':'none'">
+                            <option value="retiro">Retiro en local</option>
+                            <option value="envio">Envío a domicilio</option>
+                        </select>
+                    </label>
+                    <div id="co-address-wrap" style="display:none;">
+                        <label>Dirección *<input id="co-address" type="text" placeholder="Calle, número, ciudad"></label>
+                    </div>
+                    <label>Notas<textarea id="co-notes" rows="2" placeholder="Detalles opcionales..."></textarea></label>
+                </div>
+                <div class="cart-footer">
+                    <div class="cart-total-row"><span>Total:</span><strong id="co-total">$0</strong></div>
+                    <button class="btn btn-primary w-100" id="co-submit" onclick="Cart.submit()">Enviar pedido</button>
+                    <button class="btn btn-secondary w-100" style="margin-top:.5rem;" onclick="Cart.showMain()">Volver al carrito</button>
+                </div>
+            </div>
+
+            <div id="cart-success" style="display:none;" class="cart-success">
+                <i class="ph ph-check-circle"></i>
+                <h4>¡Pedido enviado!</h4>
+                <p id="cart-success-msg"></p>
+                <button class="btn btn-primary" onclick="Cart.close()">Seguir viendo</button>
+            </div>
+        </div>
     </div>
 
     <!-- Modal Base Overlay -->

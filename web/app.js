@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Catálogo de Ventas de Computación - App Logic
  */
 
@@ -243,6 +243,7 @@ const DB = {
 
     // Sample Data
     defaultConfig: {
+        currency: 'ARS',
         companyName: 'TechStore Computación',
         address: 'Av. Corrientes 1234, CABA',
         phone: '011-1234-5678',
@@ -349,7 +350,7 @@ const WA = {
     sendRepairDetails(clientName, clientPhone, code, equipment) {
         if (!clientPhone) return;
         const config = DB.getConfig();
-        const msg = encodeURIComponent(`Hola ${clientName}! 👋\n\nRegistramos tu equipo *${equipment}* para reparación.\n\nPuedes seguir el estado desde nuestra web con esta clave:\n\n*${code}*\n\nGracias por confiar en *${config.companyName}*!`);
+        const msg = encodeURIComponent(`Hola ${clientName}! ðŸ‘‹\n\nRegistramos tu equipo *${equipment}* para reparación.\n\nPuedes seguir el estado desde nuestra web con esta clave:\n\n*${code}*\n\nGracias por confiar en *${config.companyName}*!`);
         window.open(`https://wa.me/${this.formatNumber(clientPhone)}?text=${msg}`, '_blank');
     },
 
@@ -438,18 +439,42 @@ const StatusBar = {
             </div>
             <div class="status-item">
                 <i class="ph ph-cloud-check"></i>
-                <strong>Último Sync GitHub:</strong> ${lastSync}
+                <strong>Ãšltimo Sync GitHub:</strong> ${lastSync}
             </div>
         `;
     }
 };
 
+const CURRENCIES = {
+    ARS: { label: 'Peso argentino (ARS $)', locale: 'es-AR', decimals: 0 },
+    USD: { label: 'Dólar estadounidense (USD $)', locale: 'en-US', decimals: 2 },
+    MXN: { label: 'Peso mexicano (MXN $)', locale: 'es-MX', decimals: 2 },
+    CLP: { label: 'Peso chileno (CLP $)', locale: 'es-CL', decimals: 0 },
+    COP: { label: 'Peso colombiano (COP $)', locale: 'es-CO', decimals: 0 },
+    PEN: { label: 'Sol peruano (PEN S/)', locale: 'es-PE', decimals: 2 },
+    UYU: { label: 'Peso uruguayo (UYU $)', locale: 'es-UY', decimals: 2 },
+    PYG: { label: 'Guaraní paraguayo (PYG ₲)', locale: 'es-PY', decimals: 0 },
+    BOB: { label: 'Boliviano (BOB Bs.)', locale: 'es-BO', decimals: 2 },
+    BRL: { label: 'Real brasileño (BRL R$)', locale: 'pt-BR', decimals: 2 }
+};
+const currencyOf = (config) => {
+    const code = config && typeof config.currency === 'string' ? config.currency.toUpperCase() : 'ARS';
+    return CURRENCIES[code] ? code : 'ARS';
+};
+const currencyOptions = (selected) => {
+    const cur = currencyOf({ currency: selected });
+    return Object.keys(CURRENCIES).map((code) =>
+        `<option value="${code}"${code === cur ? ' selected' : ''}>${CURRENCIES[code].label}</option>`
+    ).join('');
+};
 const formatMoney = (amount) => {
-    return new Intl.NumberFormat('es-AR', { 
-        style: 'currency', 
-        currency: 'ARS',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
+    const code = currencyOf(DB.getConfig());
+    const c = CURRENCIES[code];
+    return new Intl.NumberFormat(c.locale, {
+        style: 'currency',
+        currency: code,
+        minimumFractionDigits: c.decimals,
+        maximumFractionDigits: c.decimals
     }).format(amount);
 };
 
@@ -505,6 +530,9 @@ const UI = {
         
         const footerBottom = document.getElementById('footer-company-name-bottom');
         if (footerBottom) footerBottom.textContent = config.companyName;
+
+        const footerYear = document.getElementById('footer-year');
+        if (footerYear) footerYear.textContent = new Date().getFullYear();
 
         // --- SEO & Meta Tags ---
         if (config.siteTitle) {
@@ -604,7 +632,7 @@ const Pages = {
         // Si hay un ID para resaltar, scrollear hasta él
         if (highlightId) {
             setTimeout(() => {
-                const element = document.querySelector(`.product-card[data-id="${highlightId}"]`);
+                const element = document.querySelector(`.product-card[data-id="${(window.CSS && CSS.escape) ? CSS.escape(highlightId) : String(highlightId).replace(/"/g, '\\"')}"]`);
                 if (element) {
                     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     element.classList.add('highlight-pulse');
@@ -713,9 +741,13 @@ const Pages = {
                     ${!p.image ? '<div class="no-image-overlay">Sin Foto</div>' : ''}
                 </div>
                 <div class="product-content">
-                    <h3 class="product-title">${p.name}</h3>
+                    <h3 class="product-title">${esc(p.name)}</h3>
                     <div class="product-price ${p.oferta ? 'oferta' : ''}" style="margin: 0.5rem 0;">${formatMoney(p.price)}</div>
-                    <button class="btn btn-whatsapp mt-4 w-100" data-product="${p.name}">
+                    ${(DB.getConfig().priceListsEnabled && Number(p.price_mayorista) > 0) ? `<div class="product-wholesale" style="font-size: 0.85rem; color: var(--text-muted);">Mayorista: <strong>${formatMoney(p.price_mayorista)}</strong></div>` : ''}
+                    <button class="btn btn-cart w-100" data-cart-id="${esc(p.id)}">
+                        <i class="ph ph-shopping-cart-simple"></i> Agregar al carrito
+                    </button>
+                    <button class="btn btn-whatsapp w-100" data-product="${esc(p.name)}" style="margin-top: .5rem;">
                         <i class="ph ph-whatsapp-logo"></i> Consultar
                     </button>
                 </div>
@@ -728,6 +760,9 @@ const Pages = {
             btn.addEventListener('click', (e) => {
                 WA.openProduct(e.target.closest('button').dataset.product);
             });
+        });
+        document.querySelectorAll('[data-cart-id]').forEach(btn => {
+            btn.addEventListener('click', () => Cart.add(btn.dataset.cartId));
         });
     },
 
@@ -743,9 +778,9 @@ const Pages = {
                                 <i class="ph ${s.icon || 'ph-wrench'}"></i>
                             </div>
                             <div class="p-4" style="flex: 1; display: flex; flex-direction: column;">
-                                <h3 class="product-title" style="text-align: center;">${s.name}</h3>
-                                <p class="product-desc" style="text-align: center; flex: 1;">${s.desc}</p>
-                                <button class="btn btn-whatsapp w-100 mt-4" onclick="WA.openService('${s.name}')">
+                                <h3 class="product-title" style="text-align: center;">${esc(s.name)}</h3>
+                                <p class="product-desc" style="text-align: center; flex: 1;">${esc(s.desc)}</p>
+                                <button class="btn btn-whatsapp w-100 mt-4" data-wa-service="${esc(s.name)}">
                                     <i class="ph ph-whatsapp-logo"></i> Consultar
                                 </button>
                             </div>
@@ -754,6 +789,9 @@ const Pages = {
                 </div>
             </div>
         `;
+        document.querySelectorAll('[data-wa-service]').forEach(btn => {
+            btn.addEventListener('click', () => WA.openService(btn.dataset.waService));
+        });
     },
 
     renderRepairsPublic() {
@@ -782,23 +820,21 @@ const Pages = {
                 return;
             }
 
-            // Try API first (local proxy mode), fallback to local data (GitHub Pages)
+            // Consulta en línea; si el servidor no responde NO se muestran datos locales viejos.
             let repair = null;
+            let offline = false;
             try {
                 const res = await fetch('/api/repairs/lookup/' + encodeURIComponent(query));
                 if (res.ok) {
                     const data = await res.json();
                     repair = data.repair;
                 }
-            } catch {}
+            } catch { offline = true; }
 
             if (!repair) {
-                const repairs = DB.get('repairs') || [];
-                repair = repairs.find(r => r.code === query) || null;
-            }
-
-            if (!repair) {
-                resultDiv.innerHTML = `
+                resultDiv.innerHTML = offline
+                    ? `<div class="glass" style="padding: 1.5rem; border-radius: 1rem; color: var(--warning); text-align: center;">Servidor no disponible. Intent\u00e1 nuevamente en unos momentos.</div>`
+                    : `
                     <div class="glass" style="padding: 1.5rem; border-radius: 1rem; color: var(--danger); text-align: center;">
                         <i class="ph ph-warning" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
                         No se encontr\u00f3 ninguna orden con esa clave.
@@ -810,30 +846,31 @@ const Pages = {
             const clientName = repair.clientName || 'N/A';
             const clientPhone = repair.clientPhone || '';
 
-            const statusClass = 'status-' + repair.status.replace(/\\s+/g, '');
+            const statusClass = 'status-' + String(repair.status || '').replace(/\s+/g, '');
                 resultDiv.innerHTML = `
                     <div class="glass" style="padding: 1.5rem; border-radius: 1rem; text-align: left;">
                         <div style="background: var(--accent-blue); color: white; padding: 1rem; border-radius: 0.5rem; text-align: center; margin-bottom: 1.5rem;">
                             <div style="font-size: 0.8rem; opacity: 0.85;">CLAVE DE ORDEN</div>
-                            <div style="font-size: 2.5rem; font-weight: 900; letter-spacing: 0.5rem;">${repair.code}</div>
+                            <div style="font-size: 2.5rem; font-weight: 900; letter-spacing: 0.5rem;">${esc(repair.code)}</div>
                         </div>
                         <div class="flex justify-between items-center mb-4" style="margin-bottom: 1rem;">
-                            <span style="color: var(--text-muted); font-size: 0.85rem;">Orden Interna: ${repair.id}</span>
-                            <span class="status-badge ${statusClass}">${repair.status}</span>
+                            <span style="color: var(--text-muted); font-size: 0.85rem;">Orden Interna: ${esc(repair.id)}</span>
+                            <span class="status-badge ${esc(statusClass)}">${esc(repair.status)}</span>
                         </div>
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
-                            <tr><td style="padding: 0.5rem 0; color: var(--text-muted); width: 40%;">Cliente</td><td style="font-weight: 600;">${clientName}</td></tr>
-                            <tr><td style="padding: 0.5rem 0; color: var(--text-muted);">Equipo</td><td style="font-weight: 600;">${repair.equipment}${repair.marca ? ' (' + repair.marca + ')' : ''}${repair.modelo ? ' ' + repair.modelo : ''}</td></tr>
-                            <tr><td style="padding: 0.5rem 0; color: var(--text-muted);">Problema</td><td>${repair.problem}</td></tr>
-                            <tr><td style="padding: 0.5rem 0; color: var(--text-muted);">Fecha Ingreso</td><td>${repair.date}</td></tr>
-                            ${repair.notes ? '<tr><td style="padding: 0.5rem 0; color: var(--text-muted);">Notas</td><td>' + repair.notes + '</td></tr>' : ''}
+                            <tr><td style="padding: 0.5rem 0; color: var(--text-muted); width: 40%;">Cliente</td><td style="font-weight: 600;">${esc(clientName)}</td></tr>
+                            <tr><td style="padding: 0.5rem 0; color: var(--text-muted);">Equipo</td><td style="font-weight: 600;">${esc(repair.equipment)}${repair.marca ? ' (' + esc(repair.marca) + ')' : ''}${repair.modelo ? ' ' + esc(repair.modelo) : ''}</td></tr>
+                            <tr><td style="padding: 0.5rem 0; color: var(--text-muted);">Problema</td><td>${esc(repair.problem)}</td></tr>
+                            <tr><td style="padding: 0.5rem 0; color: var(--text-muted);">Fecha Ingreso</td><td>${esc(repair.date)}</td></tr>
+                            ${repair.notes ? '<tr><td style="padding: 0.5rem 0; color: var(--text-muted);">Notas</td><td>' + esc(repair.notes) + '</td></tr>' : ''}
                             <tr><td style="padding: 0.5rem 0; color: var(--text-muted); font-weight: 600;">Costo de Reparaci\u00f3n</td><td style="font-weight: 700; color: var(--success); font-size: 1.1rem;">${repair.price && repair.price > 0 ? formatMoney(repair.price) : 'A Confirmar'}</td></tr>
                         </table>
-                        <button class="btn btn-secondary" onclick="Pages.printRepairPDFPublic('${repair.code}')" style="width: 100%; margin-top: 1.5rem;">
+                        <button class="btn btn-secondary" id="btn-print-repair-public" data-code="${esc(repair.code)}" style="width: 100%; margin-top: 1.5rem;">
                             <i class="ph ph-printer"></i> Imprimir / Guardar como PDF
                         </button>
                     </div>
                 `;
+                document.getElementById('btn-print-repair-public').addEventListener('click', () => Pages.printRepairPDFPublic(repair.code));
         });
 
         document.getElementById('repair-search').addEventListener('keydown', (e) => {
@@ -850,11 +887,7 @@ const Pages = {
                 repair = data.repair;
             }
         } catch {}
-        if (!repair) {
-            const repairs = DB.get('repairs') || [];
-            repair = repairs.find(r => r.code === code) || null;
-        }
-        if (!repair) return;
+        if (!repair) { Toast.show('Servidor no disponible para obtener la orden.', 'error'); return; }
         const clientName = repair.clientName || 'N/A';
         const clientPhone = repair.clientPhone || '';
         const config = DB.getConfig();
@@ -1051,7 +1084,7 @@ const Pages = {
                     <div>
                         <div class="company-name">${config.companyName}</div>
                         <div class="company-info">${config.address}</div>
-                        <div class="company-info">${config.phone} • ${config.email}</div>
+                        <div class="company-info">${config.phone} â€¢ ${config.email}</div>
                     </div>
                     <div style="text-align: right;">
                         <div style="font-size: 1.5rem; font-weight: 800; color: var(--gray-700);">ORDEN DE SERVICIO</div>
@@ -1102,7 +1135,7 @@ const Pages = {
                 <div class="stamp">ORDEN<br>RECIBIDA</div>
 
                 <div class="footer">
-                    <p>Conserve este comprobante para retirar su equipo. | ${new Date().toLocaleDateString('es-AR')} — ${config.companyName}</p>
+                    <p>Conserve este comprobante para retirar su equipo. | ${new Date().toLocaleDateString('es-AR')} â€” ${config.companyName}</p>
                 </div>
             </div>
             <script>
@@ -1288,7 +1321,7 @@ const Pages = {
             if (visitsEl) visitsEl.textContent = hits;
         } catch (e) {
             const visitsEl = document.getElementById('dash-visits-count');
-            if (visitsEl) visitsEl.textContent = '—';
+            if (visitsEl) visitsEl.textContent = 'â€”';
         }
 
         // Double click listener to view/edit order
@@ -1435,7 +1468,6 @@ const Pages = {
                 <button class="modal-close" onclick="Modal.close()"><i class="ph ph-x"></i></button>
             </div>
             <form id="product-form">
-            <form id="product-form">
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Imagen del Producto</label>
@@ -1447,23 +1479,27 @@ const Pages = {
                             </div>
                             <input type="file" id="p-file" accept="image/*" style="display: none;">
                         </div>
-                        <input type="text" id="p-image" class="form-control mt-4" value="${isEdit ? (product.image || '') : ''}" placeholder="URL o ruta de imagen">
+                        <input type="text" id="p-image" class="form-control mt-4" value="${esc(isEdit ? (product.image || '') : '')}" placeholder="URL o ruta de imagen">
                     </div>
                     <div>
                         <div class="form-group">
                             <label class="form-label">Nombre</label>
-                            <input type="text" id="p-name" class="form-control" value="${isEdit ? product.name : ''}" required>
+                            <input type="text" id="p-name" class="form-control" value="${esc(isEdit ? product.name : '')}" required>
                         </div>
                         <div class="flex gap-2">
                             <div class="form-group" style="flex:1;">
                                 <label class="form-label">Categoría</label>
                                 <select id="p-category" class="form-control" required>
-                                    ${categories.map(cat => `<option value="${cat.name}" ${isEdit && product.category === cat.name ? 'selected' : ''}>${cat.name}</option>`).join('')}
+                                    ${categories.map(cat => `<option value="${esc(cat.name)}" ${isEdit && product.category === cat.name ? 'selected' : ''}>${cat.name}</option>`).join('')}
                                 </select>
                             </div>
                             <div class="form-group" style="flex:1;">
                                 <label class="form-label">Precio ($)</label>
-                                <input type="number" id="p-price" class="form-control" value="${isEdit ? product.price : ''}" required>
+                                <input type="number" id="p-price" class="form-control" value="${esc(isEdit ? product.price : '')}" required>
+                            </div>
+                            <div class="form-group" style="flex:1;">
+                                <label class="form-label">Precio Mayorista ($)</label>
+                                <input type="number" id="p-mayorista" class="form-control" value="${esc(isEdit && product.price_mayorista ? product.price_mayorista : '')}">
                             </div>
                         </div>
                         <div class="form-group">
@@ -1545,6 +1581,7 @@ const Pages = {
                 name: document.getElementById('p-name').value,
                 category: document.getElementById('p-category').value,
                 price: parseFloat(document.getElementById('p-price').value),
+                price_mayorista: parseFloat(document.getElementById('p-mayorista').value) || 0,
                 desc: document.getElementById('p-desc').value,
                 image: document.getElementById('p-image').value,
                 oferta: document.getElementById('p-oferta').checked,
@@ -1576,7 +1613,15 @@ const Pages = {
                     <label class="form-label">Categoría a afectar</label>
                     <select id="bulk-category" class="form-control" required>
                         <option value="all">Todas las categorías</option>
-                        ${categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('')}
+                        ${categories.map(cat => `<option value="${esc(cat.name)}">${cat.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Lista a actualizar</label>
+                    <select id="bulk-target" class="form-control">
+                        <option value="minorista">Solo minorista</option>
+                        <option value="mayorista">Solo mayorista</option>
+                        <option value="ambas">Ambas listas</option>
                     </select>
                 </div>
                 <div class="form-grid">
@@ -1622,15 +1667,21 @@ const Pages = {
                 return Math.round(p);
             };
 
+            const target = document.getElementById('bulk-target').value || 'minorista';
             const updatedProducts = products.map(p => {
                 if (category === 'all' || p.category === category) {
-                    const newPrice = roundPrice(p.price * (1 + percentage / 100), rounding);
-                    let update = { price: newPrice };
-                    
+                    let update = {};
+                    if (target === 'minorista' || target === 'ambas') {
+                        update.price = roundPrice(p.price * (1 + percentage / 100), rounding);
+                    }
+                    if (target === 'mayorista' || target === 'ambas') {
+                        update.price_mayorista = roundPrice((Number(p.price_mayorista) || 0) * (1 + percentage / 100), rounding);
+                    }
+
                     if (updateOld && p.oldPrice) {
                         update.oldPrice = roundPrice(p.oldPrice * (1 + percentage / 100), rounding);
                     }
-                    
+
                     count++;
                     return { ...p, ...update };
                 }
@@ -1665,17 +1716,21 @@ const Pages = {
                 <div class="form-group">
                     <label class="form-label">Categoría de destino</label>
                     <select id="import-category" class="form-control" required>
-                        ${categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('')}
+                        ${categories.map(cat => `<option value="${esc(cat.name)}">${cat.name}</option>`).join('')}
                     </select>
                 </div>
-                <div class="form-grid">
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
                     <div class="form-group">
                         <label class="form-label">Nombres de Producto</label>
                         <textarea id="import-names" class="form-control" placeholder="Producto A\nProducto B\n..." style="height: 180px; font-family: monospace; white-space: pre; overflow-wrap: normal;" required></textarea>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Precios ($)</label>
+                        <label class="form-label">Precios minoristas ($)</label>
                         <textarea id="import-prices" class="form-control" placeholder="15000\n25000\n..." style="height: 180px; font-family: monospace; white-space: pre; overflow-wrap: normal;" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Precios mayoristas ($, opcional)</label>
+                        <textarea id="import-mayorista" class="form-control" placeholder="13000\n22000\n..." style="height: 180px; font-family: monospace; white-space: pre; overflow-wrap: normal;"></textarea>
                     </div>
                 </div>
                 <div id="import-status" style="margin-bottom: 1rem; font-size: 0.85rem;"></div>
@@ -1722,14 +1777,17 @@ const Pages = {
                 return;
             }
 
+            const mayoristaLines = (document.getElementById('import-mayorista').value || '').split('\n').map(l => l.trim());
             let count = 0;
             names.forEach((name, i) => {
                 const price = parseFloat(prices[i].replace(/[^\d.-]/g, ''));
                 if (!isNaN(price)) {
+                    const may = parseFloat((mayoristaLines[i] || '').replace(/[^\d.-]/g, ''));
                     DB.add('products', {
                         name: name,
                         category: category,
                         price: price,
+                        price_mayorista: isNaN(may) ? 0 : may,
                         desc: 'Importado masivamente',
                         image: 'https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60',
                         oferta: false,
@@ -1866,7 +1924,7 @@ const Pages = {
             return `
                 <tr>
                     <td><strong>${r.id}</strong></td>
-                    <td><span style="font-size: 1.1rem; font-weight: 700; letter-spacing: 0.2rem; color: var(--accent-blue);">${r.code || '—'}</span></td>
+                    <td><span style="font-size: 1.1rem; font-weight: 700; letter-spacing: 0.2rem; color: var(--accent-blue);">${r.code || 'â€”'}</span></td>
                     <td>${client.name}</td>
                     <td>${r.equipment}</td>
                     <td><span class="status-badge ${statusClass}">${r.status}</span></td>
@@ -2069,17 +2127,17 @@ const Pages = {
                         
                         <div class="form-group">
                             <label class="form-label">Equipo</label>
-                            <input type="text" id="r-equipment" class="form-control" value="${isEdit ? repair.equipment : ''}" required>
+                            <input type="text" id="r-equipment" class="form-control" value="${esc(isEdit ? repair.equipment : '')}" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Estado</label>
                             <select id="r-status" class="form-control" required>
-                                ${statuses.map(s => `<option value="${s}" ${isEdit && repair.status===s ? 'selected' : ''}>${s}</option>`).join('')}
+                                ${statuses.map(s => `<option value="${esc(s)}" ${isEdit && repair.status===s ? 'selected' : ''}>${s}</option>`).join('')}
                             </select>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Costo / Presupuesto ($)</label>
-                            <input type="number" id="r-price" class="form-control" value="${isEdit ? (repair.price || 0) : 0}" step="0.01" min="0" ${isEdit && repair.id.startsWith('REP-SGT-') ? 'readonly title="Vinculado desde SGTaller"' : ''}>
+                            <input type="number" id="r-price" class="form-control" value="${esc(isEdit ? (repair.price || 0) : 0)}" step="0.01" min="0" ${isEdit && repair.id.startsWith('REP-SGT-') ? 'readonly title="Vinculado desde SGTaller"' : ''}>
                         </div>
                     </div>
                     <div>
@@ -2165,7 +2223,7 @@ const Pages = {
                             <div class="searchable-select-quick-create">
                                 <h4><i class="ph ph-plus-circle"></i> Crear Cliente Rápido</h4>
                                 <div class="quick-create-inputs">
-                                    <input type="text" id="quick-c-name" class="form-control" value="${escapeHtml(query)}" placeholder="Nombre Completo" required>
+                                    <input type="text" id="quick-c-name" class="form-control" value="${esc(escapeHtml(query))}" placeholder="Nombre Completo" required>
                                     <input type="text" id="quick-c-phone" class="form-control" placeholder="Teléfono (Obligatorio)" required>
                                 </div>
                                 <button type="button" id="btn-quick-create-client" class="btn btn-primary btn-sm searchable-select-quick-create-btn">
@@ -2335,11 +2393,11 @@ const Pages = {
                 setTimeout(() => {
                     Modal.open(`
                         <div class="modal-header">
-                            <h3>✅ Orden Creada Exitosamente</h3>
+                            <h3>âœ… Orden Creada Exitosamente</h3>
                             <button class="modal-close" onclick="Modal.close()"><i class="ph ph-x"></i></button>
                         </div>
                         <div style="text-align: center; padding: 1rem 0;">
-                            <p style="color: var(--text-muted); margin-bottom: 1rem;">Entregale esta clave al cliente para que pueda rastrear su reparación:</p>
+                            <p style="color: var(--text-muted); margin-bottom: 1rem;">Entrégale esta clave al cliente para que pueda rastrear su reparación:</p>
                             <div style="background: var(--accent-blue); color: white; padding: 1.5rem; border-radius: 1rem; margin: 1rem 0;">
                                 <div style="font-size: 0.8rem; opacity: 0.85; margin-bottom: 0.5rem;">CLAVE DE CONSULTA</div>
                                 <div style="font-size: 4rem; font-weight: 900; letter-spacing: 0.6rem;">${code}</div>
@@ -2347,11 +2405,11 @@ const Pages = {
                             <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Orden: <strong>${newId}</strong></p>
                             
                             <div class="flex gap-2">
-                                <button class="btn btn-primary" onclick="Pages.printRepairPDF('${code}'); Modal.close();" style="flex: 1;">
+                                <button class="btn btn-primary" id="btn-modal-print-repair" style="flex: 1;">
                                     <i class="ph ph-printer"></i> Imprimir / PDF
                                 </button>
                                 ${client.phone ? `
-                                <button class="btn btn-whatsapp" onclick="WA.sendRepairDetails('${client.name}', '${client.phone}', '${code}', '${data.equipment}'); Modal.close();" style="flex: 1;">
+                                <button class="btn btn-whatsapp" id="btn-modal-wa-repair" data-client-name="${esc(client.name)}" data-client-phone="${esc(client.phone)}" data-code="${esc(code)}" data-equipment="${esc(data.equipment)}" style="flex: 1;">
                                     <i class="ph ph-whatsapp-logo"></i> Enviar a Cliente
                                 </button>
                                 ` : ''}
@@ -2359,6 +2417,10 @@ const Pages = {
                             <button class="btn btn-secondary w-100 mt-4" onclick="Modal.close()">Cerrar</button>
                         </div>
                     `);
+                    const printBtn = document.getElementById('btn-modal-print-repair');
+                    if (printBtn) printBtn.addEventListener('click', () => { Pages.printRepairPDF(code); Modal.close(); });
+                    const waBtn = document.getElementById('btn-modal-wa-repair');
+                    if (waBtn) waBtn.addEventListener('click', () => { WA.sendRepairDetails(waBtn.dataset.clientName, waBtn.dataset.clientPhone, waBtn.dataset.code, waBtn.dataset.equipment); Modal.close(); });
                 }, 100);
             }
         });
@@ -2480,7 +2542,7 @@ const Pages = {
                     <div>
                         <div class="form-group">
                             <label class="form-label">Nombre del Servicio</label>
-                            <input type="text" id="s-name" class="form-control" value="${isEdit ? service.name : ''}" required>
+                            <input type="text" id="s-name" class="form-control" value="${esc(isEdit ? service.name : '')}" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Descripción</label>
@@ -2489,7 +2551,7 @@ const Pages = {
                     </div>
                     <div class="form-group">
                         <label class="form-label">Seleccionar Icono</label>
-                        <input type="hidden" id="s-icon" value="${selectedIcon}">
+                        <input type="hidden" id="s-icon" value="${esc(selectedIcon)}">
                         <div class="icon-grid" style="grid-template-columns: repeat(5, 1fr); gap: 0.5rem; max-height: 180px; overflow-y: auto; padding: 0.5rem; border: 1px solid var(--glass-border); border-radius: 0.5rem;">
                             ${availableIcons.map(icon => `
                                 <div class="icon-option ${icon === selectedIcon ? 'active' : ''}" data-icon="${icon}" style="padding: 0.5rem; font-size: 1.25rem;">
@@ -2628,19 +2690,19 @@ const Pages = {
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Nombre Completo</label>
-                        <input type="text" id="c-name" class="form-control" value="${isEdit ? client.name : ''}" required>
+                        <input type="text" id="c-name" class="form-control" value="${esc(isEdit ? client.name : '')}" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Teléfono</label>
-                        <input type="text" id="c-phone" class="form-control" value="${isEdit ? client.phone : ''}" required>
+                        <input type="text" id="c-phone" class="form-control" value="${esc(isEdit ? client.phone : '')}" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Email (Opcional)</label>
-                        <input type="email" id="c-email" class="form-control" value="${isEdit ? client.email : ''}">
+                        <input type="email" id="c-email" class="form-control" value="${esc(isEdit ? client.email : '')}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Dirección (Opcional)</label>
-                        <input type="text" id="c-address" class="form-control" value="${isEdit ? client.address : ''}">
+                        <input type="text" id="c-address" class="form-control" value="${esc(isEdit ? client.address : '')}">
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary w-100" style="width:100%;">${isEdit ? 'Guardar Cambios' : 'Crear Cliente'}</button>
@@ -2675,38 +2737,42 @@ const Pages = {
                     <form id="config-form">
                         <div class="form-group">
                             <label class="form-label">Nombre de la Empresa</label>
-                            <input type="text" id="cfg-name" class="form-control" value="${config.companyName}" required>
+                            <input type="text" id="cfg-name" class="form-control" value="${esc(config.companyName)}" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Dirección</label>
-                            <input type="text" id="cfg-address" class="form-control" value="${config.address}" required>
+                            <input type="text" id="cfg-address" class="form-control" value="${esc(config.address)}" required>
                         </div>
                         <div class="flex gap-2">
                             <div class="form-group" style="flex:1;">
                                 <label class="form-label">Teléfono (Fijo)</label>
-                                <input type="text" id="cfg-phone" class="form-control" value="${config.phone}" required>
+                                <input type="text" id="cfg-phone" class="form-control" value="${esc(config.phone)}" required>
                             </div>
                             <div class="form-group" style="flex:1;">
                                 <label class="form-label">Número de WhatsApp (con cód. país, ej: 5491100000000)</label>
-                                <input type="text" id="cfg-whatsapp" class="form-control" value="${config.whatsapp}" required>
+                                <input type="text" id="cfg-whatsapp" class="form-control" value="${esc(config.whatsapp)}" required>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Email de Contacto</label>
-                            <input type="email" id="cfg-email" class="form-control" value="${config.email}" required>
+                            <input type="email" id="cfg-email" class="form-control" value="${esc(config.email)}" required>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Horarios de Atención</label>
-                            <input type="text" id="cfg-hours" class="form-control" value="${config.hours || ''}" placeholder="Ej: Lun a Vie 9:00 a 18:00">
+                            <input type="text" id="cfg-hours" class="form-control" value="${esc(config.hours || '')}" placeholder="Ej: Lun a Vie 9:00 a 18:00">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Moneda (se aplica al POS y a la tienda online)</label>
+                            <select id="cfg-currency" class="form-control">${currencyOptions(config.currency)}</select>
                         </div>
                         <div class="flex gap-2">
                             <div class="form-group" style="flex:1;">
                                 <label class="form-label">Instagram (URL)</label>
-                                <input type="url" id="cfg-ig" class="form-control" value="${config.instagram || ''}" placeholder="https://instagram.com/tuusuario">
+                                <input type="url" id="cfg-ig" class="form-control" value="${esc(config.instagram || '')}" placeholder="https://instagram.com/tuusuario">
                             </div>
                             <div class="form-group" style="flex:1;">
                                 <label class="form-label">Facebook (URL)</label>
-                                <input type="url" id="cfg-fb" class="form-control" value="${config.facebook || ''}" placeholder="https://facebook.com/tupagina">
+                                <input type="url" id="cfg-fb" class="form-control" value="${esc(config.facebook || '')}" placeholder="https://facebook.com/tupagina">
                             </div>
                         </div>
 
@@ -2722,7 +2788,7 @@ const Pages = {
                             
                             <div class="form-group">
                                 <label class="form-label">Título del Sitio (SEO)</label>
-                                <input type="text" id="cfg-site-title" class="form-control" value="${config.siteTitle || ''}" placeholder="Ej: TechStore - Lo mejor en tecnología">
+                                <input type="text" id="cfg-site-title" class="form-control" value="${esc(config.siteTitle || '')}" placeholder="Ej: TechStore - Lo mejor en tecnología">
                             </div>
                             
                             <div class="form-group">
@@ -2733,11 +2799,11 @@ const Pages = {
                             <div class="flex gap-2">
                                 <div class="form-group" style="flex:1;">
                                     <label class="form-label">Google Analytics 4 ID</label>
-                                    <input type="text" id="cfg-ga-id" class="form-control" value="${config.googleAnalyticsId || ''}" placeholder="G-XXXXXXXXXX">
+                                    <input type="text" id="cfg-ga-id" class="form-control" value="${esc(config.googleAnalyticsId || '')}" placeholder="G-XXXXXXXXXX">
                                 </div>
                                 <div class="form-group" style="flex:1;">
                                     <label class="form-label">Google Tag Manager ID</label>
-                                    <input type="text" id="cfg-gtm-id" class="form-control" value="${config.gtmId || ''}" placeholder="GTM-XXXXXXX">
+                                    <input type="text" id="cfg-gtm-id" class="form-control" value="${esc(config.gtmId || '')}" placeholder="GTM-XXXXXXX">
                                 </div>
                             </div>
                             <small style="color: var(--text-muted);">El seguimiento se activará automáticamente al guardar.</small>
@@ -2748,7 +2814,7 @@ const Pages = {
                             <div class="flex gap-4 items-center" style="flex-wrap: wrap;">
                                 <div class="form-group" style="flex: 1; min-width: 200px;">
                                     <label class="form-label">Productos visibles en Inicio</label>
-                                    <input type="number" id="cfg-home-limit" class="form-control" value="${config.homeProductLimit || 0}" min="0">
+                                    <input type="number" id="cfg-home-limit" class="form-control" value="${esc(config.homeProductLimit || 0)}" min="0">
                                     <small style="color: var(--text-muted);">0 = Mostrar todos</small>
                                 </div>
                                 <div class="form-group flex items-center gap-2" style="padding-top: 1rem;">
@@ -2768,12 +2834,12 @@ const Pages = {
                             </div>
                             <div style="flex:1;">
                                 <label class="form-label" style="margin-bottom: 0.25rem;">Duración (segundos)</label>
-                                <input type="number" id="cfg-popup-duration" class="form-control" value="${config.popupDuration || 10}" min="0">
+                                <input type="number" id="cfg-popup-duration" class="form-control" value="${esc(config.popupDuration || 10)}" min="0">
                                 <small style="color: var(--text-muted); font-size: 0.75rem;">0 = Manual</small>
                             </div>
                             <div style="flex:1;">
                                 <label class="form-label" style="margin-bottom: 0.25rem;">Retraso Inicio (seg)</label>
-                                <input type="number" id="cfg-popup-delay" class="form-control" value="${config.popupDelay || 1}" min="0">
+                                <input type="number" id="cfg-popup-delay" class="form-control" value="${esc(config.popupDelay || 1)}" min="0">
                                 <small style="color: var(--text-muted); font-size: 0.75rem;">Espera para aparecer</small>
                             </div>
                         </div>
@@ -2790,7 +2856,7 @@ const Pages = {
                                     <span>Arrastra una imagen o clic para subir</span>
                                 </div>
                                 <input type="file" id="cfg-popup-file" accept="image/*" style="display: none;">
-                                <input type="hidden" id="cfg-popup-image" value="${config.popupImage || ''}">
+                                <input type="hidden" id="cfg-popup-image" value="${esc(config.popupImage || '')}">
                             </div>
                         </div>
 
@@ -2897,22 +2963,22 @@ const Pages = {
                                 </div>
                                 <input type="file" class="banner-file-input" accept="image/*" style="display: none;">
                             </div>
-                            <input type="text" class="form-control banner-image-url" placeholder="O URL" value="${(b.image || '').startsWith('data:') ? '' : (b.image || '')}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin-top: 0.25rem;">
+                            <input type="text" class="form-control banner-image-url" placeholder="O URL" value="${esc((b.image || '').startsWith('data:') ? '' : (b.image || ''))}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin-top: 0.25rem;">
                         </div>
                         <div style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 0.5rem;">
                             <div class="flex gap-2">
                                 <div style="flex: 1;">
                                     <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Título (Opcional)</label>
-                                    <input type="text" class="form-control banner-title" placeholder="Título" value="${b.title || ''}" style="font-size: 0.8rem; padding: 0.4rem 0.75rem;">
+                                    <input type="text" class="form-control banner-title" placeholder="Título" value="${esc(b.title || '')}" style="font-size: 0.8rem; padding: 0.4rem 0.75rem;">
                                 </div>
                                 <div style="flex: 1;">
                                     <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Link de Destino (Opcional)</label>
-                                    <input type="text" class="form-control banner-link" placeholder="Ej: #/ofertas" value="${b.link || ''}" style="font-size: 0.8rem; padding: 0.4rem 0.75rem;">
+                                    <input type="text" class="form-control banner-link" placeholder="Ej: #/ofertas" value="${esc(b.link || '')}" style="font-size: 0.8rem; padding: 0.4rem 0.75rem;">
                                 </div>
                             </div>
                             <div>
                                 <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.25rem;">Subtítulo / Descripción (Opcional)</label>
-                                <input type="text" class="form-control banner-desc" placeholder="Descripción" value="${b.description || ''}" style="font-size: 0.8rem; padding: 0.4rem 0.75rem;">
+                                <input type="text" class="form-control banner-desc" placeholder="Descripción" value="${esc(b.description || '')}" style="font-size: 0.8rem; padding: 0.4rem 0.75rem;">
                             </div>
                         </div>
                     </div>
@@ -3009,6 +3075,7 @@ const Pages = {
                 whatsapp: document.getElementById('cfg-whatsapp').value,
                 email: document.getElementById('cfg-email').value,
                 hours: document.getElementById('cfg-hours').value,
+                currency: document.getElementById('cfg-currency').value,
                 instagram: document.getElementById('cfg-ig').value,
                 facebook: document.getElementById('cfg-fb').value,
                 popupActive: document.getElementById('cfg-popup-active').checked,
@@ -3367,7 +3434,29 @@ const Carousel = {
             newRight.addEventListener('click', () => {
                 this.nextSlide(banners.length);
             });
+
+            // Swipe táctil en mobile
+            const carouselEl = document.getElementById('promotional-carousel');
+            if (carouselEl && !carouselEl.dataset.swipeBound) {
+                carouselEl.dataset.swipeBound = '1';
+                let touchX = null;
+                carouselEl.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, { passive: true });
+                carouselEl.addEventListener('touchend', (e) => {
+                    if (touchX === null) return;
+                    const dx = e.changedTouches[0].clientX - touchX;
+                    if (Math.abs(dx) > 40) {
+                        if (dx < 0) this.nextSlide(banners.length); else this.prevSlide(banners.length);
+                    }
+                    touchX = null;
+                }, { passive: true });
+            }
         }
+
+        // Pausar autoplay mientras la pestaña está en segundo plano
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) this.stopAutoplay();
+            else if (banners.length > 1 && document.getElementById('carousel-track')) this.startAutoplay(banners.length);
+        });
 
         this.startAutoplay(banners.length);
     },
@@ -3403,8 +3492,10 @@ const Carousel = {
     },
 
     startAutoplay(total) {
+        if (document.hidden || total <= 1) return;
+        this.stopAutoplay();
         this.timer = setInterval(() => {
-            this.nextSlide(total);
+            if (!document.hidden) this.nextSlide(total);
         }, 5000); // 5 seconds autoplay
     },
 
@@ -3515,11 +3606,215 @@ const Router = {
 };
 
 // --- Initialization ---
+// ===== CARRITO DE COMPRAS =====
+// Escape HTML global (usado por carrito, vistas públicas y formularios admin).
+function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+const Cart = {
+    KEY: 'nexus_cart_v1',
+    PENDING_KEY: 'nexus_pending_orders',
+    items: [],
+
+    init() {
+        try { this.items = JSON.parse(localStorage.getItem(this.KEY) || '[]'); } catch { this.items = []; }
+        if (!Array.isArray(this.items)) this.items = [];
+        this.updateBadge();
+        this.retryPending();
+    },
+
+    save() {
+        localStorage.setItem(this.KEY, JSON.stringify(this.items));
+        this.updateBadge();
+    },
+
+    updateBadge() {
+        const badge = document.getElementById('cart-badge');
+        if (!badge) return;
+        const count = this.items.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+        badge.textContent = String(count);
+        badge.style.display = count > 0 ? 'flex' : 'none';
+    },
+
+    add(id) {
+        const p = (DB.get('products') || []).find(x => x.id === id);
+        if (!p) return;
+        const existing = this.items.find(i => i.id === id);
+        if (existing) existing.qty += 1;
+        else this.items.push({ id: p.id, name: p.name, price: Number(p.price) || 0, category: p.category || '', image: p.image || '', qty: 1 });
+        this.save();
+        Toast.show(p.name + ' agregado al carrito', 'success');
+        this.render();
+    },
+
+    changeQty(idx, delta) {
+        if (!this.items[idx]) return;
+        this.items[idx].qty += delta;
+        if (this.items[idx].qty <= 0) this.items.splice(idx, 1);
+        this.save();
+        this.render();
+    },
+
+    remove(idx) {
+        this.items.splice(idx, 1);
+        this.save();
+        this.render();
+    },
+
+    total() {
+        return this.items.reduce((s, i) => s + i.price * i.qty, 0);
+    },
+
+    toggle() {
+        const ov = document.getElementById('cart-overlay');
+        if (!ov) return;
+        const open = ov.classList.toggle('open');
+        document.body.style.overflow = open ? 'hidden' : '';
+        if (open) { this.showMain(); this.render(); }
+    },
+
+    close() {
+        const ov = document.getElementById('cart-overlay');
+        if (ov) ov.classList.remove('open');
+        document.body.style.overflow = '';
+        this.showMain();
+    },
+
+    render() {
+        const listEl = document.getElementById('cart-items');
+        if (!listEl) return;
+        if (this.items.length === 0) {
+            listEl.innerHTML = '<div class="cart-empty"><i class="ph ph-shopping-cart-simple"></i><p>El carrito est\u00e1 vac\u00edo</p><p style="font-size:.85rem;">Agreg\u00e1 productos desde el cat\u00e1logo</p></div>';
+        } else {
+            listEl.innerHTML = this.items.map((i, idx) => `
+                <div class="cart-item">
+                    <img class="cart-item-img" src="${esc(i.image || '')}" alt="" onerror="this.style.visibility='hidden'">
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${esc(i.name)}</div>
+                        <div class="cart-item-cat">${esc(i.category || '')}</div>
+                        <div class="cart-item-price">${formatMoney(i.price)}</div>
+                        <div class="cart-item-actions">
+                            <button class="cart-qty-btn" onclick="Cart.changeQty(${idx},-1)" aria-label="Menos">&minus;</button>
+                            <span class="cart-qty">${i.qty}</span>
+                            <button class="cart-qty-btn" onclick="Cart.changeQty(${idx},1)" aria-label="Más">+</button>
+                            <span class="cart-item-subtotal">${formatMoney(i.price * i.qty)}</span>
+                            <button class="cart-item-remove" onclick="Cart.remove(${idx})" title="Eliminar">&times;</button>
+                        </div>
+                    </div>
+                </div>`).join('');
+        }
+        const t = document.getElementById('cart-total');
+        if (t) t.textContent = formatMoney(this.total());
+        const btn = document.getElementById('cart-view-checkout');
+        if (btn) btn.disabled = this.items.length === 0;
+    },
+
+    showCheckout() {
+        if (this.items.length === 0) return;
+        document.getElementById('cart-main').style.display = 'none';
+        const s = document.getElementById('cart-success'); if (s) s.style.display = 'none';
+        document.getElementById('cart-checkout').style.display = '';
+        const t = document.getElementById('co-total');
+        if (t) t.textContent = formatMoney(this.total());
+    },
+
+    showMain() {
+        const c = document.getElementById('cart-checkout'); if (c) c.style.display = 'none';
+        const s = document.getElementById('cart-success'); if (s) s.style.display = 'none';
+        const m = document.getElementById('cart-main'); if (m) m.style.display = '';
+    },
+
+    async submit() {
+        const name = document.getElementById('co-name').value.trim();
+        const phone = document.getElementById('co-phone').value.trim();
+        const delivery = document.getElementById('co-delivery').value;
+        const address = document.getElementById('co-address').value.trim();
+        const notes = document.getElementById('co-notes').value.trim();
+        if (!name || !phone) { Toast.show('Complet\u00e1 tu nombre y tel\u00e9fono', 'error'); return; }
+        if (delivery === 'envio' && !address) { Toast.show('Ingres\u00e1 la direcci\u00f3n de env\u00edo', 'error'); return; }
+
+        const btn = document.getElementById('co-submit');
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+
+        const payload = {
+            items: this.items.map(i => ({ productId: i.id, name: i.name, quantity: i.qty, price: i.price })),
+            total: this.total(),
+            clientName: name,
+            clientPhone: phone,
+            notes: [notes, address ? 'Direcci\u00f3n: ' + address : '', delivery === 'envio' ? 'Env\u00edo a domicilio' : 'Retiro en local'].filter(Boolean).join(' | '),
+            deliveryType: delivery
+        };
+
+        let order = null;
+        let retriable = false;
+        try {
+            const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (r.ok) {
+                order = await r.json();
+            } else if (r.status >= 500 || r.status === 0) {
+                retriable = true; // error del servidor: vale la pena reintentar luego
+            } else {
+                // 4xx (validación/rate-limit): reintentar no va a cambiar el resultado.
+                let msg = 'El servidor rechazó el pedido (código ' + r.status + ').';
+                try { const eb = await r.json(); if (eb && eb.error) msg = eb.error; } catch {}
+                Toast.show(msg, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Enviar pedido';
+                return;
+            }
+        } catch { retriable = true; } // sin conexión
+
+        const finish = (msg) => {
+            this.items = [];
+            this.save();
+            ['co-name', 'co-phone', 'co-address', 'co-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            document.getElementById('cart-checkout').style.display = 'none';
+            document.getElementById('cart-success-msg').textContent = msg;
+            document.getElementById('cart-success').style.display = '';
+            Toast.show('\u00a1Pedido enviado!', 'success');
+            btn.disabled = false;
+            btn.textContent = 'Enviar pedido';
+        };
+
+        if (order && order.id) {
+            finish('Pedido ' + order.id + ' recibido. Te contactaremos a la brevedad.');
+        } else if (retriable) {
+            this.savePending(payload);
+            finish('Tu pedido qued\u00f3 registrado y se enviar\u00e1 autom\u00e1ticamente cuando el servidor est\u00e9 disponible.');
+        }
+    },
+
+    savePending(payload) {
+        let pending = [];
+        try { pending = JSON.parse(localStorage.getItem(this.PENDING_KEY) || '[]'); } catch {}
+        pending.push({ payload, date: new Date().toISOString() });
+        localStorage.setItem(this.PENDING_KEY, JSON.stringify(pending));
+    },
+
+    async retryPending() {
+        let pending = [];
+        try { pending = JSON.parse(localStorage.getItem(this.PENDING_KEY) || '[]'); } catch {}
+        if (!Array.isArray(pending) || pending.length === 0) return;
+        const kept = [];
+        for (const p of pending) {
+            try {
+                const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p.payload) });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+            } catch { kept.push(p); }
+        }
+        localStorage.setItem(this.PENDING_KEY, JSON.stringify(kept));
+    }
+};
+window.Cart = Cart;
+
 document.addEventListener('DOMContentLoaded', async () => {
     await DB.init();
     WA.updateFloatingButton();
     UI.updateConfig();
     Stats.increment();
+    Cart.init();
     
     // Listen for hash changes
     window.addEventListener('hashchange', () => Router.handleRoute());

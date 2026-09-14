@@ -13,13 +13,14 @@ export interface Product {
   nuevo?: boolean;
   webDesc?: string;
   ofertaPrice?: number;
+  price_mayorista?: number;
   fichaTecnica?: string;
   fichaTecnicaFile?: string;
 }
 
 export interface Client {
   id: string;
-  document: string; // RUC/DNI
+  document: string;
   name: string;
   phone?: string;
   email?: string;
@@ -35,11 +36,19 @@ export interface CompanyConfig {
   address: string;
   phone: string;
   email: string;
-  whatsapp?: string;
   hours?: string;
-  gitToken?: string;
-  gitRepo?: string;
+  whatsapp?: string;
+  facebook?: string;
+  instagram?: string;
+  tiktok?: string;
+  youtube?: string;
+  twitter?: string;
+  linkedin?: string;
   backupPassword?: string;
+  priceListsEnabled?: boolean;
+  currency?: string;
+  printMode?: 'a4' | 'ticket80';
+  autoPrint?: boolean;
 }
 
 export interface PaymentMethod {
@@ -47,7 +56,7 @@ export interface PaymentMethod {
   name: string;
   requiresCash?: boolean;
   icon?: string;
-  adjustment?: number; // porcentaje de ajuste: positivo=recargo, negativo=descuento
+  adjustment?: number;
 }
 
 export interface Sale {
@@ -80,6 +89,7 @@ export interface Purchase {
   date: string;
   providerId: string;
   providerName: string;
+  paymentMethod: string;
   items: {
     productId: string;
     productName: string;
@@ -157,11 +167,15 @@ export interface WebConfig {
   companyName?: string;
   address?: string;
   phone?: string;
-  whatsapp?: string;
   email?: string;
   hours?: string;
-  instagram?: string;
+  whatsapp?: string;
   facebook?: string;
+  instagram?: string;
+  tiktok?: string;
+  youtube?: string;
+  twitter?: string;
+  linkedin?: string;
   siteTitle?: string;
   metaDescription?: string;
   ga4Id?: string;
@@ -174,6 +188,7 @@ export interface WebConfig {
   popupDelay?: number;
   popupText?: string;
   popupImage?: string;
+  headerLogo?: string;
   banners?: WebBanner[];
   categories?: WebCategory[];
 }

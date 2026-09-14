@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Search, Printer, Trash2, Plus, Minus, X, CreditCard, DollarSign, ArrowRight, UserPlus, ShoppingCart, Eye } from 'lucide-react';
 import { Product, Client, CartItem, PaymentMethod, CompanyConfig } from '../types';
-import ticketTemplate from '../ticketTemplate';
+import { formatMoney, currencyCodeOf, currencySymbol } from '../lib/currency';
+import { printSale } from '../lib/print';
 
 
 interface TerminalVentaProps {
@@ -34,7 +35,8 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
   const [ticketPrinted, setTicketPrinted] = useState(false);
   const [lastFinishedSale, setLastFinishedSale] = useState<any | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [saleDate, setSaleDate] = useState(new Date().toISOString().slice(0, 10));
+  const [saleDate, setSaleDate] = useState(new Date().toLocaleDateString('sv-SE'));
+  const [saving, setSaving] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -76,9 +78,18 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
     .sort((a, b) => a.name.localeCompare(b.name)),
   [products, selectedCategory, searchQuery]);
 
+  const priceListsOn = companyConfig?.priceListsEnabled === true;
+  const cur = currencyCodeOf(companyConfig?.currency);
+  const [priceList, setPriceList] = useState<'minorista' | 'mayorista'>('minorista');
+
+  const listPrice = (p: Product) => {
+    if (priceList === 'mayorista' && (Number(p.price_mayorista) || 0) > 0) return Number(p.price_mayorista);
+    return p.price;
+  };
+
   const getEffectivePrice = (item: CartItem) => {
     const cp = customPrices[item.product.id];
-    return cp !== undefined ? (parseFloat(cp) || 0) : item.product.price;
+    return cp !== undefined ? (parseFloat(cp) || 0) : listPrice(item.product);
   };
 
   const cartTotal = cart.reduce((sum, item) => sum + (getEffectivePrice(item) * item.quantity), 0);
@@ -184,6 +195,8 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
   };
 
   const submitSale = async () => {
+    if (saving) return;
+    setSaving(true);
     const cash = parseFloat(cashReceived) || adjustedTotal;
     const change = Math.max(0, cash - adjustedTotal);
     const clientObj = clients.find(c => c.id === selectedClient);
@@ -217,12 +230,12 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
         setCart([]);
         setCustomPrices({});
         onSaleCompleted();
+        if (companyConfig?.autoPrint === true) printSale(finishedSale, false, companyConfig);
       } else {
         alert('Error al registrar la venta.');
       }
-    } catch (err) {
-      console.error('Error submitting sale:', err);
-      alert('Error de conexión con el servidor.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -231,13 +244,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
       alert('No hay ninguna venta reciente para imprimir ticket.');
       return;
     }
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      alert('El navegador bloqueó la ventana emergente de impresión. Por favor permita popups.');
-      return;
-    }
-    printWindow.document.write(ticketTemplate(lastFinishedSale, false, companyConfig || undefined));
-    printWindow.document.close();
+    printSale(lastFinishedSale, false, companyConfig);
   };
 
   const showFullScreenTicket = () => {
@@ -250,7 +257,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
       <tr>
         <td style="padding:6px 8px;border-bottom:1px solid #1f242e;color:#e2e8f0">${it.productName}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #1f242e;color:#94a3b8;text-align:center">${it.quantity}</td>
-        <td style="padding:6px 8px;border-bottom:1px solid #1f242e;color:#fbbf24;text-align:right;font-weight:bold">$${(it.price * it.quantity).toFixed(0)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #1f242e;color:#fbbf24;text-align:right;font-weight:bold">${formatMoney(it.price * it.quantity, cur)}</td>
       </tr>
     `).join('');
     w.document.write(`
@@ -276,7 +283,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
 </style></head><body>
 <div class="receipt">
   <div class="header">
-    <h1>${c.companyName || 'NEXUS POS'}</h1>
+    <h1>${c.companyName || 'NEXUS FULL'}</h1>
     ${c.address ? `<p>${c.address}${c.phone ? ' · '+c.phone : ''}</p>` : ''}
   </div>
   <div class="meta">
@@ -286,12 +293,12 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
   <div class="client"><strong style="color:#e2e8f0">Cliente:</strong> ${s.clientName || 'Cliente General'}</div>
   <table><thead><tr><th>Producto</th><th style="text-align:center">Cant</th><th style="text-align:right">Total</th></tr></thead><tbody>${itemsHtml}</tbody></table>
   <div class="total-box">
-    <div class="total-row"><span>TOTAL A PAGAR</span><span>$${s.total.toFixed(0)}</span></div>
+    <div class="total-row"><span>TOTAL A PAGAR</span><span>${formatMoney(s.total, cur)}</span></div>
   </div>
   <div class="pay-row"><span>Método de pago</span><span><strong style="color:#e2e8f0">${s.paymentMethod}</strong></span></div>
-  <div class="pay-row"><span>Recibido</span><span>$${Number(s.cashReceived || s.total).toFixed(0)}</span></div>
-  <div class="pay-row"><span>Cambio</span><span style="color:#fbbf24">$${Number(s.change || 0).toFixed(0)}</span></div>
-  <div class="footer"><div class="thanks">✦ Gracias por su compra ✦</div><div>${c.companyName || 'NEXUS POS'} · ${new Date().getFullYear()}</div></div>
+    <div class="pay-row"><span>Recibido</span><span>${formatMoney(Number(s.cashReceived || s.total), cur)}</span></div>
+    <div class="pay-row"><span>Cambio</span><span style="color:#fbbf24">${formatMoney(Number(s.change || 0), cur)}</span></div>
+  <div class="footer"><div class="thanks">âœ¦ Gracias por su compra âœ¦</div><div>${c.companyName || 'NEXUS FULL'} · ${new Date().getFullYear()}</div></div>
 </div></body></html>
     `);
     w.document.close();
@@ -312,7 +319,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
               id="nexus-pos-search-input"
               ref={searchInputRef}
               type="text"
-              className="w-full pl-10 pr-3 py-2 text-sm bg-[#181a20] border border-[#2d3444] rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 font-mono transition-all"
+              className="w-full pl-10 pr-3 py-2 text-sm bg-[#181a20] border border-[#2d3444] rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 font-mono transition-all"
               placeholder="Buscar producto (F1)..."
               value={searchQuery}
               onChange={(e) => {
@@ -343,14 +350,14 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                       data-index={idx}
                       onClick={() => { addToCart(p); setHighlightedIndex(-1); }}
                       className={`w-full text-left p-2.5 text-xs border-b border-[#242b38] last:border-0 flex items-center justify-between group transition-colors ${
-                        idx === highlightedIndex ? 'bg-[#212631] border-l-2 border-l-[#5aa6ec]' : 'hover:bg-[#212631]'
+                        idx === highlightedIndex ? 'bg-[#212631] border-l-2 border-l-[#A63A42]' : 'hover:bg-[#212631]'
                       }`}
                     >
                       <div className="flex flex-col">
-                        <span className={`font-semibold ${idx === highlightedIndex ? 'text-blue-400' : 'text-white'} group-hover:text-blue-400`}>{p.name}</span>
+                        <span className={`font-semibold ${idx === highlightedIndex ? 'text-red-400' : 'text-white'} group-hover:text-red-400`}>{p.name}</span>
                         <span className="text-[10px] text-slate-500 font-mono">COD: {p.code} | Stock: {p.stock}</span>
                       </div>
-                      <span className="font-mono text-emerald-400 text-sm">${p.price.toFixed(0)}</span>
+                      <span className="font-mono text-emerald-400 text-sm">{formatMoney(listPrice(p), cur)}</span>
                     </button>
                   ))
                 )}
@@ -358,12 +365,24 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
             )}
           </div>
 
+          {priceListsOn && (
+            <div className="flex items-center gap-1 bg-[#181a20] border border-[#2d3444] rounded-lg p-1">
+              <button
+                onClick={() => setPriceList('minorista')}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${priceList === 'minorista' ? 'bg-emerald-700 text-white' : 'text-slate-400 hover:text-white'}`}
+              >Minorista</button>
+              <button
+                onClick={() => setPriceList('mayorista')}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${priceList === 'mayorista' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'}`}
+              >Mayorista</button>
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-mono">Categoría:</span>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-[#181a20] text-xs text-white border border-[#2d3444] rounded-lg py-1.5 px-3 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="bg-[#181a20] text-xs text-white border border-[#2d3444] rounded-lg py-1.5 px-3 focus:outline-none focus:ring-1 focus:ring-red-500"
             >
               {categories.map(c => (
                 <option key={c} value={c}>{c}</option>
@@ -378,7 +397,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
             <div className="h-full flex flex-col items-center justify-center p-12 text-slate-500 select-none">
               <ShoppingCart size={48} className="text-[#262b35] mb-4" />
               <p className="text-sm">La Terminal de Venta está vacía.</p>
-              <p className="text-xs text-slate-600 mt-1">Busca artículos con F1, navegá con ↑↓ y seleccioná con ENTER.</p>
+              <p className="text-xs text-slate-600 mt-1">Busca artículos con F1, navegá con â†‘â†“ y seleccioná con ENTER.</p>
             </div>
           ) : (
             <table className="w-full text-left border-collapse">
@@ -405,9 +424,9 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                         </div>
                       </td>
                       <td className="py-3.5 px-4 text-right font-mono">
-                        <input type="text" value={customPrices[item.product.id] !== undefined ? customPrices[item.product.id] : item.product.price.toFixed(0)} onChange={(e) => { const val = e.target.value; setCustomPrices(prev => ({ ...prev, [item.product.id]: val })); }} className="w-24 bg-[#181a20] border border-[#2d3444] rounded py-1 px-2 text-xs text-right text-slate-300 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" />
+                        <input type="text" value={customPrices[item.product.id] !== undefined ? customPrices[item.product.id] : listPrice(item.product).toFixed(0)} onChange={(e) => { const val = e.target.value; setCustomPrices(prev => ({ ...prev, [item.product.id]: val })); }} className="w-24 bg-[#181a20] border border-[#2d3444] rounded py-1 px-2 text-xs text-right text-slate-300 font-mono focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500" />
                       </td>
-                      <td className="py-3.5 px-4 text-right font-mono font-semibold text-blue-400">${(getEffectivePrice(item) * item.quantity).toFixed(0)}</td>
+                      <td className="py-3.5 px-4 text-right font-mono font-semibold text-red-400">{formatMoney(getEffectivePrice(item) * item.quantity, cur)}</td>
                       <td className="py-3.5 px-4 text-center">
                         <button onClick={() => removeFromCart(item.product.id)} className="text-slate-500 hover:text-red-400 p-1 rounded hover:bg-[#211417] transition-all"><Trash2 size={14} /></button>
                       </td>
@@ -426,7 +445,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
           <div>
             <div className="border-b border-[#1f242e] pb-3 mb-4">
               <h2 className="text-base font-semibold text-white tracking-tight font-display">Acciones Rápidas</h2>
-              <p className="text-xs text-slate-500 font-mono mt-0.5">Terminal 01 — Usuario: Admin</p>
+              <p className="text-xs text-slate-500 font-mono mt-0.5">Terminal 01 â€” Usuario: Admin</p>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -436,7 +455,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                 className={`w-full py-4 px-4 rounded-lg font-bold text-sm tracking-wide text-white uppercase shadow-md flex items-center justify-center gap-2 transform active:scale-[0.98] transition-all cursor-pointer ${
                   cart.length === 0
                     ? 'bg-[#1b222d] text-slate-500 border border-[#252e3d] cursor-not-allowed'
-                    : 'bg-[#5aa6ec] hover:bg-[#4691db] text-slate-900 font-extrabold shadow-[0_0_15px_rgba(90,166,236,0.15)]'
+                    : 'bg-[#A63A42] hover:bg-[#4691db] text-slate-900 font-extrabold shadow-[0_0_15px_rgba(90,166,236,0.15)]'
                 }`}
               >
                 REALIZAR VENTA
@@ -487,8 +506,8 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
           {/* TOTAL CARD */}
           <div className="mt-8 bg-[#0d0e12] border border-[#1b1e26] rounded-xl p-5 shadow-inner">
             <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">Total a Pagar</span>
-            <div className="text-4xl lg:text-4xl xl:text-5xl font-extrabold font-mono text-[#5aa6ec] mt-2 tracking-tight drop-shadow-[0_0_12px_rgba(90,166,236,0.2)]">
-              ${cartTotal.toFixed(0)}
+            <div className="text-4xl lg:text-4xl xl:text-5xl font-extrabold font-mono text-[#A63A42] mt-2 tracking-tight drop-shadow-[0_0_12px_rgba(90,166,236,0.2)]">
+              {formatMoney(cartTotal, cur)}
             </div>
           </div>
         </div>
@@ -501,7 +520,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
             >
               {/* Header */}
               <div className="bg-[#181a20] px-6 py-4 border-b border-[#2d3444] flex items-center justify-between">
-                <div className="flex items-center gap-2 text-[#5aa6ec]">
+                <div className="flex items-center gap-2 text-[#A63A42]">
                   <CreditCard size={20} />
                   <span className="font-semibold text-white font-display">Registrar Transacción</span>
                 </div>
@@ -520,19 +539,19 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                     <div className="bg-[#0d0e12] rounded-lg p-4 flex flex-col gap-1 border border-[#1c222d]">
                       <div className="flex justify-between items-center">
                         <span className="text-slate-400 text-xs">Subtotal:</span>
-                        <span className="font-mono text-slate-400 text-sm">${cartTotal.toFixed(0)}</span>
+                        <span className="font-mono text-slate-400 text-sm">{formatMoney(cartTotal, cur)}</span>
                       </div>
                       {adjustmentPct !== 0 && (
                         <div className="flex justify-between items-center">
                           <span className="text-slate-400 text-xs">Ajuste ({adjustmentPct > 0 ? '+' : ''}{adjustmentPct}%):</span>
                           <span className={`font-mono text-sm ${adjustmentPct > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                            {adjustmentPct > 0 ? '+' : ''}{(cartTotal * adjustmentPct / 100).toFixed(0)}
+                            {adjustmentPct > 0 ? '+' : ''}{formatMoney(cartTotal * adjustmentPct / 100, cur)}
                           </span>
                         </div>
                       )}
                       <div className="flex justify-between items-center border-t border-[#1f242e] pt-1 mt-1">
                         <span className="text-slate-300 text-xs font-semibold">Total del pedido:</span>
-                        <span className="text-2xl font-bold font-mono text-[#5aa6ec]">${adjustedTotal.toFixed(0)}</span>
+                        <span className="text-2xl font-bold font-mono text-[#A63A42]">{formatMoney(adjustedTotal, cur)}</span>
                       </div>
                     </div>
 
@@ -543,7 +562,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                         type="date"
                         value={saleDate}
                         onChange={e => setSaleDate(e.target.value)}
-                        className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-sm text-white font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-sm text-white font-mono focus:outline-none focus:ring-1 focus:ring-red-500"
                       />
                     </div>
 
@@ -553,7 +572,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                         <label className="text-slate-300 font-medium">Asignar Cliente</label>
                         <button 
                           onClick={() => { setCheckoutOpen(false); onNavigateToClients(); }}
-                          className="text-[#5aa6ec] hover:underline flex items-center gap-1"
+                          className="text-[#A63A42] hover:underline flex items-center gap-1"
                         >
                           <UserPlus size={12} />
                           Listado de clientes
@@ -562,7 +581,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                       <select
                         value={selectedClient}
                         onChange={(e) => setSelectedClient(e.target.value)}
-                        className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500"
                       >
                         <option value="">Cliente General</option>
                         {clients.map(c => (
@@ -588,7 +607,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                             }}
                             className={`py-2 px-3 text-xs rounded-lg font-semibold border transition-all text-center ${
                               paymentMethod === method.name
-                                ? 'bg-[#5aa6ec]/10 border-[#5aa6ec] text-[#5aa6ec]'
+                                ? 'bg-[#A63A42]/10 border-[#A63A42] text-[#A63A42]'
                                 : 'bg-transparent border-[#2d3444] text-slate-400 hover:bg-[#181a20]'
                             }`}
                           >
@@ -608,10 +627,10 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                         <div className="space-y-1.5">
                           <label className="text-slate-300 text-xs font-medium block">Paga Con:</label>
                           <div className="relative">
-                            <span className="absolute left-3 inset-y-0 flex items-center text-slate-500 text-xs font-mono">$</span>
+                            <span className="absolute left-3 inset-y-0 flex items-center text-slate-500 text-xs font-mono">{currencySymbol(cur)}</span>
                             <input
                               type="text"
-                              className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 pl-7 pr-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+                              className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-2 pl-7 pr-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500 font-mono"
                               placeholder="0.00"
                               value={cashReceived}
                               onChange={(e) => setCashReceived(e.target.value)}
@@ -622,7 +641,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                         <div className="space-y-1.5">
                           <label className="text-slate-300 text-xs font-medium block">Devolver Cambio:</label>
                           <div className="bg-[#181a20] border border-[#2d3444] rounded-lg py-2 px-3 text-sm text-amber-400 font-semibold font-mono h-[38px] flex items-center">
-                            ${Math.max(0, (parseFloat(cashReceived) || 0) - adjustedTotal).toFixed(0)}
+                            {formatMoney(Math.max(0, (parseFloat(cashReceived) || 0) - adjustedTotal), cur)}
                           </div>
                         </div>
                       </div>
@@ -639,9 +658,10 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                       <button
                         type="button"
                         onClick={submitSale}
-                        className="flex-1 py-2 rounded-lg bg-[#238636] hover:bg-[#2ea043] font-bold text-xs text-white uppercase tracking-wide"
+                        disabled={saving}
+                        className="flex-1 py-2 rounded-lg bg-[#238636] hover:bg-[#2ea043] font-bold text-xs text-white uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Confirmar Venta
+                        {saving ? 'Registrando...' : 'Confirmar Venta'}
                       </button>
                     </div>
                   </div>
@@ -661,13 +681,13 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                       {lastFinishedSale?.items.map((it: any, idx: number) => (
                         <div key={idx} className="flex justify-between text-slate-300">
                           <span>{it.productName} x{it.quantity}</span>
-                          <span>${(it.price * it.quantity).toFixed(0)}</span>
+                          <span>{formatMoney(it.price * it.quantity, cur)}</span>
                         </div>
                       ))}
                       <div className="border-b border-dashed border-slate-800 my-1.5"></div>
                       <div className="flex justify-between font-bold text-white text-xs">
                         <span>TOTAL PAID:</span>
-                        <span>${lastFinishedSale?.total.toFixed(0)}</span>
+                        <span>{formatMoney(lastFinishedSale?.total, cur)}</span>
                       </div>
                       <div className="flex justify-between text-[10px] text-slate-400">
                         <span>Forma de Pago:</span>
@@ -675,18 +695,18 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                       </div>
                       <div className="flex justify-between text-[10px] text-slate-400">
                         <span>Recibido:</span>
-                        <span>${Number(lastFinishedSale?.cashReceived || 0).toFixed(0)}</span>
+                        <span>{formatMoney(Number(lastFinishedSale?.cashReceived || 0), cur)}</span>
                       </div>
                       <div className="flex justify-between text-[10px] text-amber-400 font-semibold">
                         <span>Cambio:</span>
-                        <span>${Number(lastFinishedSale?.change || 0).toFixed(0)}</span>
+                        <span>{formatMoney(Number(lastFinishedSale?.change || 0), cur)}</span>
                       </div>
                     </div>
 
                     <div className="flex gap-3 max-w-sm mx-auto">
                       <button
                         onClick={simulatePrintTicket}
-                        className="flex-1 py-2 rounded-lg bg-[#5aa6ec] hover:bg-[#4691db] text-slate-900 font-bold text-xs"
+                        className="flex-1 py-2 rounded-lg bg-[#A63A42] hover:bg-[#4691db] text-slate-900 font-bold text-xs"
                       >
                         Imprimir Ticket
                       </button>
@@ -716,7 +736,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
             <div className="bg-[#111318] border border-[#2d3444] rounded-xl max-w-md w-full overflow-hidden shadow-2xl">
               <div className="bg-[#181a20] px-6 py-4 border-b border-[#2d3444] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Eye size={18} className="text-[#5aa6ec]" />
+                  <Eye size={18} className="text-[#A63A42]" />
                   <span className="font-semibold text-white font-display">Previsualizar Venta</span>
                 </div>
                 <button
@@ -730,7 +750,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
               <div className="p-6">
                 <div className="bg-[#0d0e12] border border-[#1c222d] rounded-xl p-5 font-mono text-xs leading-relaxed">
                   <div className="text-center font-bold text-white text-sm pb-3 border-b border-dashed border-slate-700">
-                    PREVISUALIZACIÓN DE TICKET
+                    PREVISUALIZACIÃ“N DE TICKET
                   </div>
                   <div className="mt-3 text-slate-400">
                     <div>Fecha: {new Date().toLocaleString()}</div>
@@ -742,13 +762,13 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                   {cart.map((item, idx) => (
                     <div key={idx} className="flex justify-between py-1 border-b border-[#1f242e] last:border-0">
                       <span className="text-slate-300">{item.product.name} <span className="text-slate-500">x{item.quantity}</span></span>
-                      <span className="text-[#5aa6ec] font-semibold">${(getEffectivePrice(item) * item.quantity).toFixed(0)}</span>
+                      <span className="text-[#A63A42] font-semibold">{formatMoney(getEffectivePrice(item) * item.quantity, cur)}</span>
                     </div>
                   ))}
                   <div className="border-b border-dashed border-slate-800 my-3"></div>
                   <div className="flex justify-between font-bold text-white text-base">
                     <span>TOTAL:</span>
-                    <span>${cartTotal.toFixed(0)}</span>
+                    <span>{formatMoney(cartTotal, cur)}</span>
                   </div>
                 </div>
 
@@ -761,7 +781,7 @@ export default function TerminalVenta({ products, clients, paymentMethods, compa
                   </button>
                   <button
                     onClick={() => { setShowPreview(false); handleOpenCheckout(); }}
-                    className="flex-1 py-2 rounded-lg bg-[#5aa6ec] hover:bg-[#4691db] text-slate-900 font-bold text-xs flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2 rounded-lg bg-[#A63A42] hover:bg-[#4691db] text-slate-900 font-bold text-xs flex items-center justify-center gap-1.5"
                   >
                     Ir a Cobrar
                     <ArrowRight size={14} />

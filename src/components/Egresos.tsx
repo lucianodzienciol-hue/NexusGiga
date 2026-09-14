@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Plus, Trash2, Search, Calendar, Filter, ArrowUpFromLine, ArrowDownToLine } from 'lucide-react';
 import { Expense } from '../types';
+import { formatMoney } from '../lib/currency';
 
 interface EgresosProps {
   expenses: Expense[];
   onRefresh: () => void;
+  currency?: string;
 }
 
-export default function Egresos({ expenses, onRefresh }: EgresosProps) {
-  const today = new Date().toISOString().slice(0, 10);
+export default function Egresos({ expenses, onRefresh, currency }: EgresosProps) {
+  const today = new Date().toLocaleDateString('sv-SE');
   const [type, setType] = useState<'efectivo' | 'transferencia'>('efectivo');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -74,7 +76,7 @@ export default function Egresos({ expenses, onRefresh }: EgresosProps) {
         <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
           <span className="text-[10px] tracking-widest text-slate-400 font-mono block uppercase">Total Egresos (Filtro)</span>
           <div className="text-3xl font-extrabold font-display text-red-400 mt-2">
-            -${totalEgresos.toFixed(0)}
+            -{formatMoney(totalEgresos, currency)}
           </div>
           <span className="text-[10px] text-slate-500 font-mono mt-1">Suma de egresos en pantalla</span>
         </div>
@@ -97,7 +99,7 @@ export default function Egresos({ expenses, onRefresh }: EgresosProps) {
               <button type="button" onClick={() => setType('efectivo')} className={`py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${type === 'efectivo' ? 'bg-red-700 text-white' : 'bg-[#181a20] border border-[#2d3444] text-slate-400 hover:text-white'}`}>
                 <ArrowUpFromLine size={12} className="inline mr-1" />Efectivo
               </button>
-              <button type="button" onClick={() => setType('transferencia')} className={`py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${type === 'transferencia' ? 'bg-blue-700 text-white' : 'bg-[#181a20] border border-[#2d3444] text-slate-400 hover:text-white'}`}>
+              <button type="button" onClick={() => setType('transferencia')} className={`py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${type === 'transferencia' ? 'bg-red-700 text-white' : 'bg-[#181a20] border border-[#2d3444] text-slate-400 hover:text-white'}`}>
                 <ArrowDownToLine size={12} className="inline mr-1" />Transferencia
               </button>
             </div>
@@ -140,7 +142,7 @@ export default function Egresos({ expenses, onRefresh }: EgresosProps) {
           <div className="flex items-center gap-2">
             <Calendar size={13} className="text-slate-500" />
             <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none" title="Desde" />
-            <span className="text-[10px] text-slate-500">→</span>
+            <span className="text-[10px] text-slate-500">â†’</span>
             <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none" title="Hasta" />
           </div>
           <div className="flex items-center gap-1.5">
@@ -164,9 +166,9 @@ export default function Egresos({ expenses, onRefresh }: EgresosProps) {
           ) : (
             <div className="divide-y divide-[#1b1e26]">
               <div className="grid grid-cols-12 bg-[#181a20] px-4 py-3 text-[10px] tracking-wider text-slate-400 font-mono uppercase font-bold text-left">
-                <div className="col-span-2">CÓDIGO</div>
+                <div className="col-span-2">CÃ“DIGO</div>
                 <div className="col-span-3">FECHA</div>
-                <div className="col-span-4">DESCRIPCIÓN</div>
+                <div className="col-span-4">DESCRIPCIÃ“N</div>
                 <div className="col-span-1 text-center">TIPO</div>
                 <div className="col-span-2 text-right">MONTO</div>
               </div>
@@ -182,13 +184,13 @@ export default function Egresos({ expenses, onRefresh }: EgresosProps) {
                     {e.description}
                   </div>
                   <div className="col-span-1 text-center">
-                    <span className={`font-mono border rounded px-1.5 py-0.5 text-[9px] uppercase inline-flex items-center gap-1 ${e.type === 'efectivo' ? 'bg-red-900/30 border-red-800/40 text-red-400' : 'bg-blue-900/30 border-blue-800/40 text-blue-400'}`}>
+                    <span className={`font-mono border rounded px-1.5 py-0.5 text-[9px] uppercase inline-flex items-center gap-1 ${e.type === 'efectivo' ? 'bg-red-900/30 border-red-800/40 text-red-400' : 'bg-red-900/30 border-red-800/40 text-red-400'}`}>
                       {e.type === 'efectivo' ? <ArrowUpFromLine size={10} /> : <ArrowDownToLine size={10} />}
                       {e.type === 'efectivo' ? 'EFE' : 'TRANSF'}
                     </span>
                   </div>
                   <div className="col-span-2 text-right font-mono font-bold text-red-400 flex items-center justify-end gap-2">
-                    -${e.amount.toFixed(0)}
+                    -{formatMoney(e.amount, currency)}
                     <button onClick={() => handleDelete(e.id)} className="text-slate-500 hover:text-red-400 transition-colors cursor-pointer" title="Eliminar">
                       <Trash2 size={12} />
                     </button>

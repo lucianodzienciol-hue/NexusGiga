@@ -73,7 +73,6 @@ export default function ProcessMonitor({ onClose }: { onClose: () => void }) {
         {data && !error && (
           <div className="space-y-3 text-xs">
 
-            {/* Proceso Node */}
             <div className="bg-[#0d0f14] rounded-lg p-3 border border-[#1b1e26]">
               <p className="text-slate-500 font-semibold mb-2 uppercase tracking-wider text-[10px]">Servidor</p>
               <div className="grid grid-cols-2 gap-2">
@@ -86,7 +85,6 @@ export default function ProcessMonitor({ onClose }: { onClose: () => void }) {
               </div>
             </div>
 
-            {/* Memoria */}
             <div className="bg-[#0d0f14] rounded-lg p-3 border border-[#1b1e26]">
               <p className="text-slate-500 font-semibold mb-2 uppercase tracking-wider text-[10px]">Memoria RAM</p>
               <div className="grid grid-cols-3 gap-2">
@@ -96,7 +94,6 @@ export default function ProcessMonitor({ onClose }: { onClose: () => void }) {
               </div>
             </div>
 
-            {/* Registros en BD */}
             <div className="bg-[#0d0f14] rounded-lg p-3 border border-[#1b1e26]">
               <p className="text-slate-500 font-semibold mb-2 uppercase tracking-wider text-[10px]">Registros en Base de Datos</p>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -109,7 +106,6 @@ export default function ProcessMonitor({ onClose }: { onClose: () => void }) {
               </div>
             </div>
 
-            {/* Procesos hijos */}
             {data.children.length > 0 && (
               <div className="bg-[#0d0f14] rounded-lg p-3 border border-[#1b1e26]">
                 <p className="text-slate-500 font-semibold mb-2 uppercase tracking-wider text-[10px]">Procesos Hijos (Node)</p>
@@ -122,7 +118,6 @@ export default function ProcessMonitor({ onClose }: { onClose: () => void }) {
               </div>
             )}
 
-            {/* Sincronización */}
             <div className="bg-[#0d0f14] rounded-lg p-3 border border-[#1b1e26]">
               <p className="text-slate-500 font-semibold mb-2 uppercase tracking-wider text-[10px]">GitHub Sync</p>
               <div className="space-y-1">

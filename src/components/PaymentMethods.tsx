@@ -84,7 +84,7 @@ export default function PaymentMethods({ paymentMethods, onRefresh }: PaymentMet
         <div className="flex gap-2">
           <button
             onClick={() => { resetForm(); setFormOpen(true); }}
-            className="bg-[#5aa6ec] hover:bg-[#4691db] text-slate-900 font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+            className="bg-[#A63A42] hover:bg-[#4691db] text-slate-900 font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
           >
             <Plus size={14} />
             Nuevo Método
@@ -137,7 +137,7 @@ export default function PaymentMethods({ paymentMethods, onRefresh }: PaymentMet
                         <span className={`font-mono text-[10px] font-semibold px-2 py-0.5 rounded ${
                           p.requiresCash
                             ? 'bg-amber-950/40 text-amber-400 border border-amber-900/50'
-                            : 'bg-blue-950/40 text-blue-400 border border-blue-900/50'
+                            : 'bg-red-950/40 text-red-400 border border-red-900/50'
                         }`}>
                           {p.requiresCash ? 'Sí' : 'No'}
                         </span>
@@ -157,7 +157,7 @@ export default function PaymentMethods({ paymentMethods, onRefresh }: PaymentMet
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleEdit(p)}
-                            className="p-1 rounded text-slate-400 hover:text-[#5aa6ec] hover:bg-[#1f242e] transition-all"
+                            className="p-1 rounded text-slate-400 hover:text-[#A63A42] hover:bg-[#1f242e] transition-all"
                           >
                             <Edit2 size={13} />
                           </button>
@@ -193,7 +193,7 @@ export default function PaymentMethods({ paymentMethods, onRefresh }: PaymentMet
                   type="text"
                   required
                   placeholder="Ej: Efectivo, Tarjeta, Transferencia..."
-                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-red-500"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -206,7 +206,7 @@ export default function PaymentMethods({ paymentMethods, onRefresh }: PaymentMet
                     type="number"
                     step="0.1"
                     placeholder="0"
-                    className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+                    className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-red-500 font-mono"
                     value={adjustment}
                     onChange={(e) => setAdjustment(parseFloat(e.target.value) || 0)}
                   />

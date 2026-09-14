@@ -1,40 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import { Store, Search, RefreshCw, Download, Upload, Globe, Image, Settings, Plus, Trash2, MessageCircle, TrendingUp, X } from 'lucide-react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
+import { Store, Image, Settings, Plus, Trash2, MessageCircle, CheckCircle, AlertTriangle, ListOrdered } from 'lucide-react';
 
 interface PanelWebProps {
   webData: any;
   onRefresh: () => void;
+  products?: { id: string; category: string }[];
 }
 
-export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
-  const config = webData?.config || {};
+export default function PanelWeb({ webData, onRefresh, products }: PanelWebProps) {
+  const config = useMemo(() => webData?.config || {}, [webData]);
   const categories = webData?.categories || [];
   const banners = config.banners || [];
   const [activeSection, setActiveSection] = useState(() => {
     const saved = localStorage.getItem('nexus_pw_section');
-    const valid = ['config', 'seo', 'visitas', 'servicios', 'popup', 'banners', 'categorias', 'sync'];
+    const valid = ['config', 'popup', 'banners', 'categorias', 'maestros'];
     return valid.includes(saved) ? saved : 'config';
   });
-  const [visitStats, setVisitStats] = useState<{ total: number; today: number; lastDays: { date: string; count: number }[] } | null>(null);
   const [draftConfig, setDraftConfig] = useState<any>(config);
   const [draftBanners, setDraftBanners] = useState<any[]>(banners);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const showToast = (type: 'success' | 'error', text: string) => {
+    setToast({ type, text });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   useEffect(() => { setDraftConfig(config); }, [config]);
   useEffect(() => { setDraftBanners(banners); }, [banners]);
 
   useEffect(() => { localStorage.setItem('nexus_pw_section', activeSection); }, [activeSection]);
 
-  useEffect(() => {
-    if (activeSection === 'visitas') {
-      fetch('/api/visits').then(r => r.ok && r.json()).then(d => setVisitStats(d)).catch(() => {});
-    }
-  }, [activeSection]);
-
   const handleSave = async (updated: any) => {
     try {
-      await fetch('/api/web-save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+      const r = await fetch('/api/web-save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+      if (!r.ok) {
+        const errData = await r.json().catch(() => ({}));
+        showToast('error', errData.error || 'Error al guardar (código ' + r.status + ')');
+        return;
+      }
+      showToast('success', 'Cambios guardados correctamente');
       onRefresh();
-    } catch { alert('Error al guardar'); }
+    } catch { showToast('error', 'Error de conexión al guardar'); }
   };
 
   const saveDraft = () => {
@@ -43,60 +49,9 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
 
   const updateFull = (updated: any) => handleSave(updated);
 
-  const handleSync = async () => {
-    if (!window.confirm('¿Sincronizar todo con GitHub? Se hará push forzado.')) return;
-    try {
-      const res = await fetch('/api/web-sync-full', { method: 'POST' });
-      const data = await res.json();
-      alert(data.success ? 'Sincronización exitosa' : 'Error: ' + (data.error || ''));
-    } catch { alert('Error de conexión'); }
-  };
-
-  const handleExport = () => {
-    const blob = new Blob([JSON.stringify(webData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `web-backup-${new Date().toISOString().slice(0, 10)}.json`; a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImport = () => {
-    const input = document.createElement('input'); input.type = 'file'; input.accept = '.json';
-    input.onchange = async (e: any) => {
-      const file = e.target.files[0]; if (!file) return;
-      const text = await file.text();
-      try {
-        const data = JSON.parse(text);
-        if (!data.products) throw new Error('Formato inválido');
-        await fetch('/api/web-save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-        onRefresh();
-        alert('Datos importados correctamente');
-      } catch { alert('Archivo inválido'); }
-    };
-    input.click();
-  };
-
-  const services = webData?.services || [];
-  const [editingService, setEditingService] = useState<any | null>(null);
-  const [svcForm, setSvcForm] = useState<any>({});
-
-  const openServiceModal = (s: any | null) => {
-    setEditingService(s);
-    setSvcForm(s ? { ...s } : { name: '', desc: '', icon: '', price: 0 });
-  };
-
-  const saveServiceModal = () => {
-    let updated;
-    if (editingService) {
-      updated = services.map((x: any) => x.id === editingService.id ? { ...x, ...svcForm } : x);
-    } else {
-      const maxId = services.length > 0 ? Math.max(...services.map((x: any) => x.id)) : 0;
-      updated = [...services, { ...svcForm, id: maxId + 1 }];
-    }
-    handleSave({ ...webData, services: updated });
-    setEditingService(null);
-  };
-
-  const SERVICE_ICONS = ['ph-wrench','ph-cpu','ph-desktop','ph-laptop','ph-device-mobile','ph-monitor','ph-keyboard','ph-mouse','ph-hard-drive','ph-memory','ph-fan','ph-plug','ph-wifi-high','ph-shield-check','ph-database','ph-cloud-arrow-up','ph-broom','ph-gear','ph-printer','ph-headset'];
+  const catImg = (name: string) => (draftConfig.categoryImages || {})[name] || '';
+  const setCatImage = (name: string, value: string) => setDraftConfig((p: any) => ({ ...p, categoryImages: { ...(p.categoryImages || {}), [name]: value } }));
+  const clearCatImage = (name: string) => setDraftConfig((p: any) => { const ci = { ...(p.categoryImages || {}) }; delete ci[name]; return { ...p, categoryImages: ci }; });
 
   const imgSrc = (path: string) => {
     if (!path) return '';
@@ -108,26 +63,30 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
 
   const tabs = [
     { id: 'config', label: 'Empresa', icon: <Store size={13} /> },
-    { id: 'seo', label: 'SEO', icon: <Search size={13} /> },
-    { id: 'visitas', label: 'Visitas', icon: <TrendingUp size={13} /> },
-    { id: 'servicios', label: 'Servicios', icon: <Settings size={13} /> },
     { id: 'popup', label: 'Popup', icon: <MessageCircle size={13} /> },
     { id: 'banners', label: 'Banners', icon: <Image size={13} /> },
     { id: 'categorias', label: 'Categorías', icon: <Settings size={13} /> },
-    { id: 'sync', label: 'Sync', icon: <RefreshCw size={13} /> },
+    { id: 'maestros', label: 'Maestros', icon: <ListOrdered size={13} /> },
   ];
 
   return (
     <div className="space-y-6">
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg text-xs font-bold shadow-lg border transition-all ${
+          toast.type === 'success' ? 'bg-emerald-900/90 text-emerald-300 border-emerald-700' : 'bg-red-900/90 text-red-300 border-red-700'
+        }`}>
+          {toast.type === 'success' ? <CheckCircle size={16} /> : <AlertTriangle size={16} />}
+          {toast.text}
+        </div>
+      )}
       <div className="flex items-center gap-2">
         <h2 className="text-sm font-bold uppercase tracking-wider text-white">Panel Web</h2>
         <span className="text-[10px] text-slate-500 font-mono">Configuración de la tienda online</span>
       </div>
 
-      {/* Sub-tabs */}
       <div className="flex gap-1 flex-wrap">
         {tabs.map(t => (
-          <button key={t.id} onClick={() => setActiveSection(t.id)} className={`flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeSection === t.id ? 'bg-[#5aa6ec] text-[#0c0d10]' : 'bg-[#181a20] border border-[#2d3444] text-slate-400 hover:text-white'}`}>
+          <button key={t.id} onClick={() => setActiveSection(t.id)} className={`flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeSection === t.id ? 'bg-[#A63A42] text-[#0c0d10]' : 'bg-[#181a20] border border-[#2d3444] text-slate-400 hover:text-white'}`}>
             {t.icon}{t.label}
           </button>
         ))}
@@ -135,113 +94,73 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
 
       <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5">
         {activeSection === 'config' && (
-          <div className="space-y-4 max-w-xl">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">Datos de la Empresa</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Nombre</label><input type="text" value={draftConfig.companyName || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, companyName: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Dirección</label><input type="text" value={draftConfig.address || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, address: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Teléfono</label><input type="text" value={draftConfig.phone || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, phone: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">WhatsApp</label><input type="text" value={draftConfig.whatsapp || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, whatsapp: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Email</label><input type="text" value={draftConfig.email || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, email: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Horario</label><input type="text" value={draftConfig.hours || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, hours: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Instagram</label><input type="text" value={draftConfig.instagram || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, instagram: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Facebook</label><input type="text" value={draftConfig.facebook || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, facebook: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-            </div>
-            <button onClick={saveDraft} className="bg-[#5aa6ec] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold hover:brightness-110 transition-all cursor-pointer">Guardar Cambios</button>
-          </div>
-        )}
-
-        {activeSection === 'seo' && (
-          <div className="space-y-4 max-w-xl">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">SEO y Métricas</h3>
-            <div><label className="text-[10px] text-slate-500 font-mono uppercase">Título del Sitio</label><input type="text" value={draftConfig.siteTitle || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, siteTitle: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-            <div><label className="text-[10px] text-slate-500 font-mono uppercase">Meta Descripción</label><textarea rows={2} value={draftConfig.metaDescription || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, metaDescription: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Google Analytics ID</label><input type="text" value={draftConfig.ga4Id || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, ga4Id: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none" placeholder="G-XXXXXXXXXX" /></div>
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Google Tag Manager</label><input type="text" value={draftConfig.gtmId || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, gtmId: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none" placeholder="GTM-XXXXXXX" /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><label className="text-[10px] text-slate-500 font-mono uppercase">Productos en Inicio</label><input type="number" value={draftConfig.homeProductLimit ?? draftConfig.productLimit ?? ''} onChange={e => setDraftConfig((p: any) => ({ ...p, homeProductLimit: parseInt(e.target.value) || 0, productLimit: parseInt(e.target.value) || 0 }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-              <div className="flex items-end pb-2"><label className="flex items-center gap-2 text-xs text-slate-400"><input type="checkbox" checked={draftConfig.homeRandomOrder ?? draftConfig.randomOrder ?? false} onChange={e => setDraftConfig((p: any) => ({ ...p, homeRandomOrder: e.target.checked, randomOrder: e.target.checked }))} className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded" />Orden aleatorio</label></div>
-            </div>
-            <button onClick={saveDraft} className="bg-[#5aa6ec] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold hover:brightness-110 transition-all cursor-pointer">Guardar Cambios</button>
-          </div>
-        )}
-
-
-
-        {activeSection === 'servicios' && (
-          <div className="space-y-4 max-w-xl">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Servicios Web</h3>
-              <button onClick={() => openServiceModal(null)} className="bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg py-1.5 px-3 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"><Plus size={13} />Agregar</button>
-            </div>
-            {services.length === 0 ? (
-              <p className="text-xs text-slate-500 italic">Sin servicios configurados.</p>
-            ) : (
-              <div className="bg-[#0d0e12] border border-[#1f242e] rounded-lg overflow-hidden">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="bg-[#181a20] text-[10px] tracking-wider text-slate-400 font-mono uppercase font-bold text-left">
-                      <th className="px-3 py-2">Nombre</th>
-                      <th className="px-3 py-2">Descripción</th>
-                      <th className="px-3 py-2">Icono</th>
-                      <th className="px-3 py-2">Precio</th>
-                      <th className="px-3 py-2 w-20">Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {services.map((s: any) => (
-                      <tr key={s.id} className="border-t border-[#1b1e26] cursor-pointer hover:bg-[#181a20]/50" onDoubleClick={() => openServiceModal(s)}>
-                        <td className="px-3 py-2 text-slate-200 font-medium">{s.name}</td>
-                        <td className="px-3 py-2 text-slate-400 max-w-[200px] truncate">{s.desc || '—'}</td>
-                        <td className="px-3 py-2 text-slate-400"><i className={`ph ${s.icon || ''}`}></i> {s.icon || '—'}</td>
-                        <td className="px-3 py-2 text-white font-semibold">{s.price ? `$${s.price}` : '—'}</td>
-                        <td className="px-3 py-2">
-                          <button onClick={() => openServiceModal(s)} className="text-[#5aa6ec] hover:text-white cursor-pointer text-[10px] font-bold uppercase tracking-wider mr-2">Editar</button>
-                          <button onClick={() => { if (!window.confirm(`¿Eliminar servicio "${s.name}"?`)) return; handleSave({ ...webData, services: services.filter((x: any) => x.id !== s.id) }); }} className="text-red-400 hover:text-red-300 cursor-pointer text-[10px] font-bold uppercase tracking-wider">Eliminar</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            <div className="space-y-4 max-w-xl">
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Datos de la Empresa</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-[10px] text-slate-500 font-mono uppercase">Nombre</label><input type="text" value={draftConfig.companyName || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, companyName: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+                <div><label className="text-[10px] text-slate-500 font-mono uppercase">Dirección</label><input type="text" value={draftConfig.address || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, address: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+                <div><label className="text-[10px] text-slate-500 font-mono uppercase">Teléfono</label><input type="text" value={draftConfig.phone || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, phone: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+                <div><label className="text-[10px] text-slate-500 font-mono uppercase">Email</label><input type="text" value={draftConfig.email || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, email: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+                <div><label className="text-[10px] text-slate-500 font-mono uppercase">Horario</label><input type="text" value={draftConfig.hours || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, hours: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+                <div><label className="text-[10px] text-slate-500 font-mono uppercase">WhatsApp</label><input type="text" value={draftConfig.whatsapp || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, whatsapp: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+                <div><label className="text-[10px] text-slate-500 font-mono uppercase">Facebook</label><input type="text" value={draftConfig.facebook || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, facebook: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+                <div><label className="text-[10px] text-slate-500 font-mono uppercase">Instagram</label><input type="text" value={draftConfig.instagram || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, instagram: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+                <div><label className="text-[10px] text-slate-500 font-mono uppercase">TikTok</label><input type="text" value={draftConfig.tiktok || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, tiktok: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+                <div><label className="text-[10px] text-slate-500 font-mono uppercase">YouTube</label><input type="text" value={draftConfig.youtube || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, youtube: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+                <div><label className="text-[10px] text-slate-500 font-mono uppercase">Twitter / X</label><input type="text" value={draftConfig.twitter || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, twitter: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+                <div><label className="text-[10px] text-slate-500 font-mono uppercase">LinkedIn</label><input type="text" value={draftConfig.linkedin || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, linkedin: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
               </div>
-            )}
-          </div>
-        )}
-
-        {/* Modal de Servicio */}
-        {editingService !== null && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setEditingService(null)}>
-            <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">{editingService ? 'Editar Servicio' : 'Nuevo Servicio'}</h3>
-                <button onClick={() => setEditingService(null)} className="text-slate-500 hover:text-white cursor-pointer"><X size={16} /></button>
+              <div className="flex items-center gap-3 mt-3">
+                <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
+                  <input type="checkbox" checked={draftConfig.cartEnabled !== false} onChange={e => setDraftConfig((p: any) => ({ ...p, cartEnabled: e.target.checked }))} className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded" />
+                  Carrito de compras habilitado
+                </label>
+                <span className="text-[10px] text-slate-500">(Si desactivas, solo se mostrará Consultar por WhatsApp)</span>
               </div>
-              <div className="space-y-3 mb-4">
-                <div><label className="text-[10px] text-slate-500 font-mono uppercase">Nombre</label><input type="text" value={svcForm.name || ''} onChange={e => setSvcForm((p: any) => ({ ...p, name: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-                <div><label className="text-[10px] text-slate-500 font-mono uppercase">Descripción</label><textarea rows={2} value={svcForm.desc || ''} onChange={e => setSvcForm((p: any) => ({ ...p, desc: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
-                <div><label className="text-[10px] text-slate-500 font-mono uppercase">Precio</label><input type="number" value={svcForm.price || ''} onChange={e => setSvcForm((p: any) => ({ ...p, price: parseFloat(e.target.value) || 0 }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
+                  <input type="checkbox" checked={draftConfig.showOffersButton !== false} onChange={e => setDraftConfig((p: any) => ({ ...p, showOffersButton: e.target.checked }))} className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded" />
+                  Mostrar botón "Ofertas" en la tienda
+                </label>
               </div>
-              <div className="mb-4">
-                <label className="text-[10px] text-slate-500 font-mono uppercase block mb-2">Icono</label>
-                <div className="grid grid-cols-5 gap-2">
-                  {SERVICE_ICONS.map(icon => (
-                    <div key={icon} onClick={() => setSvcForm((p: any) => ({ ...p, icon }))} className={`flex items-center justify-center p-2 rounded-lg border cursor-pointer transition-all text-lg ${svcForm.icon === icon ? 'bg-[#5aa6ec] text-[#0c0d10] border-[#5aa6ec]' : 'bg-[#181a20] border-[#2d3444] text-slate-400 hover:text-white hover:border-slate-500'}`}>
-                      <i className={`ph ${icon}`}></i>
-                    </div>
-                  ))}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] text-slate-500 font-mono uppercase">Productos en la página principal</label>
+                  <select value={Number(draftConfig.maxHomeProducts) || 0} onChange={e => setDraftConfig((p: any) => ({ ...p, maxHomeProducts: Number(e.target.value) }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none">
+                    <option value={0}>Todos</option>
+                    <option value={8}>8</option>
+                    <option value={12}>12</option>
+                    <option value={16}>16</option>
+                    <option value={24}>24</option>
+                    <option value={32}>32</option>
+                    <option value={48}>48</option>
+                  </select>
+                  <span className="text-[10px] text-slate-500">(La búsqueda y las categorías muestran todo)</span>
                 </div>
               </div>
-              <div className="flex justify-end gap-2">
-                {editingService && (
-                  <button onClick={() => { if (!window.confirm(`¿Eliminar servicio "${editingService.name}"?`)) return; handleSave({ ...webData, services: services.filter((x: any) => x.id !== editingService.id) }); setEditingService(null); }} className="bg-red-800 hover:bg-red-700 text-white rounded-lg py-1.5 px-4 text-xs font-bold transition-all cursor-pointer">Eliminar</button>
-                )}
-                <button onClick={() => setEditingService(null)} className="bg-[#181a20] border border-[#2d3444] text-slate-300 hover:text-white rounded-lg py-1.5 px-4 text-xs font-bold transition-all cursor-pointer">Cancelar</button>
-                <button onClick={saveServiceModal} className="bg-[#5aa6ec] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold transition-all cursor-pointer">Guardar</button>
+              <div>
+                <label className="text-[10px] text-slate-500 font-mono uppercase">Logo del header</label>
+                <div className="relative border-2 border-dashed border-[#2d3444] rounded-lg p-3 mt-1 text-center cursor-pointer hover:border-[#A63A42] transition-colors"
+                  onClick={() => { const inp = document.getElementById('header-logo-file-input') as HTMLInputElement; inp?.click(); }}
+                  onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-[#A63A42]'); }}
+                  onDragLeave={e => { e.currentTarget.classList.remove('border-[#A63A42]'); }}
+                  onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-[#A63A42]'); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => setDraftConfig((p: any) => ({ ...p, headerLogo: ev.target?.result as string })); r.readAsDataURL(f); } }}
+                >
+                  <input id="header-logo-file-input" type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => setDraftConfig((p: any) => ({ ...p, headerLogo: ev.target?.result as string })); r.readAsDataURL(f); } }} />
+                  {draftConfig.headerLogo ? (
+                    <img src={draftConfig.headerLogo.startsWith('data:') || draftConfig.headerLogo.startsWith('http') ? draftConfig.headerLogo : imgSrc(draftConfig.headerLogo)} alt="" className="max-h-16 mx-auto rounded object-contain" />
+                  ) : (
+                    <div className="text-slate-500 text-xs py-3"><Image size={20} className="mx-auto mb-1 opacity-50" />Arrastrá el logo o hacé clic</div>
+                  )}
+                </div>
+                <div className="flex gap-2 items-center mt-2">
+                  <input type="text" value={draftConfig.headerLogo && !draftConfig.headerLogo.startsWith('data:') ? draftConfig.headerLogo : ''} onChange={e => setDraftConfig((p: any) => ({ ...p, headerLogo: e.target.value }))} placeholder="O URL externa" className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white flex-1 focus:outline-none" />
+                  {draftConfig.headerLogo && <button onClick={() => setDraftConfig((p: any) => ({ ...p, headerLogo: '' }))} title="Quitar logo" className="text-red-400 hover:text-red-300 cursor-pointer flex-none"><Trash2 size={14} /></button>}
+                </div>
+                <span className="text-[10px] text-slate-500">(En blanco = se usa el logo por defecto de la tienda)</span>
               </div>
+              <button onClick={saveDraft} className="bg-[#A63A42] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold hover:brightness-110 transition-all cursor-pointer">Guardar Cambios</button>
             </div>
-          </div>
         )}
 
         {activeSection === 'popup' && (
@@ -258,11 +177,11 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
             <div><label className="text-[10px] text-slate-500 font-mono uppercase">Texto</label><textarea rows={2} value={draftConfig.popupText || ''} onChange={e => setDraftConfig((p: any) => ({ ...p, popupText: e.target.value }))} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
             <div>
               <label className="text-[10px] text-slate-500 font-mono uppercase">Imagen</label>
-              <div className="relative border-2 border-dashed border-[#2d3444] rounded-lg p-3 mt-1 text-center cursor-pointer hover:border-[#5aa6ec] transition-colors"
+              <div className="relative border-2 border-dashed border-[#2d3444] rounded-lg p-3 mt-1 text-center cursor-pointer hover:border-[#A63A42] transition-colors"
                 onClick={() => { const inp = document.getElementById('popup-file-input') as HTMLInputElement; inp?.click(); }}
-                onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-[#5aa6ec]'); }}
-                onDragLeave={e => { e.currentTarget.classList.remove('border-[#5aa6ec]'); }}
-                onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-[#5aa6ec]'); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => setDraftConfig((p: any) => ({ ...p, popupImage: ev.target?.result as string })); r.readAsDataURL(f); } }}
+                onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-[#A63A42]'); }}
+                onDragLeave={e => { e.currentTarget.classList.remove('border-[#A63A42]'); }}
+                onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-[#A63A42]'); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => setDraftConfig((p: any) => ({ ...p, popupImage: ev.target?.result as string })); r.readAsDataURL(f); } }}
               >
                 <input id="popup-file-input" type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => setDraftConfig((p: any) => ({ ...p, popupImage: ev.target?.result as string })); r.readAsDataURL(f); } }} />
                 {draftConfig.popupImage ? (
@@ -273,51 +192,7 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
               </div>
               <input type="text" value={draftConfig.popupImage && !draftConfig.popupImage.startsWith('data:') ? draftConfig.popupImage : ''} onChange={e => setDraftConfig((p: any) => ({ ...p, popupImage: e.target.value }))} placeholder="O URL externa" className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white mt-2 focus:outline-none" />
             </div>
-            <button onClick={saveDraft} className="bg-[#5aa6ec] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold hover:brightness-110 transition-all cursor-pointer">Guardar Cambios</button>
-          </div>
-        )}
-
-        {activeSection === 'visitas' && (
-          <div className="space-y-4 max-w-xl">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">Métrica de Visitas</h3>
-            <p className="text-[10px] text-slate-500">Visitas registradas en la tienda online (<span className="text-slate-300">www.gigacomputers.com.ar</span>).</p>
-            {!visitStats ? (
-              <div className="text-xs text-slate-500 italic">Cargando...</div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-[#0d0e12] border border-[#1f242e] rounded-lg p-4 text-center">
-                  <div className="text-[10px] text-slate-500 font-mono uppercase mb-1">Total</div>
-                  <div className="text-3xl font-bold text-white">{visitStats.total.toLocaleString()}</div>
-                </div>
-                <div className="bg-[#0d0e12] border border-[#1f242e] rounded-lg p-4 text-center">
-                  <div className="text-[10px] text-slate-500 font-mono uppercase mb-1">Hoy</div>
-                  <div className="text-3xl font-bold text-emerald-400">{visitStats.today.toLocaleString()}</div>
-                </div>
-              </div>
-            )}
-            {visitStats && visitStats.lastDays.length > 0 && (
-              <div>
-                <h4 className="text-[10px] text-slate-500 font-mono uppercase font-bold mb-2">Últimos 7 días</h4>
-                <div className="bg-[#0d0e12] border border-[#1f242e] rounded-lg overflow-hidden">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="bg-[#181a20] text-[10px] tracking-wider text-slate-400 font-mono uppercase font-bold text-left">
-                        <th className="px-4 py-2">Fecha</th>
-                        <th className="px-4 py-2 text-right">Visitas</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {visitStats.lastDays.map((d: any) => (
-                        <tr key={d.date} className="border-t border-[#1b1e26]">
-                          <td className="px-4 py-2 text-slate-300">{d.date}</td>
-                          <td className="px-4 py-2 text-right text-white font-semibold">{d.count.toLocaleString()}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+            <button onClick={saveDraft} className="bg-[#A63A42] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold hover:brightness-110 transition-all cursor-pointer">Guardar Cambios</button>
           </div>
         )}
 
@@ -336,11 +211,11 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
                 </div>
                 <div>
                   <label className="text-[10px] text-slate-500 font-mono">Imagen</label>
-                  <div className="relative border-2 border-dashed border-[#2d3444] rounded-lg p-2 mt-1 text-center cursor-pointer hover:border-[#5aa6ec] transition-colors"
+                  <div className="relative border-2 border-dashed border-[#2d3444] rounded-lg p-2 mt-1 text-center cursor-pointer hover:border-[#A63A42] transition-colors"
                     onClick={() => { const inp = document.getElementById('banner-file-' + i) as HTMLInputElement; inp?.click(); }}
-                    onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-[#5aa6ec]'); }}
-                    onDragLeave={e => { e.currentTarget.classList.remove('border-[#5aa6ec]'); }}
-                    onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-[#5aa6ec]'); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => { setDraftBanners((p: any[]) => { const bs = [...p]; bs[i] = { ...bs[i], image: ev.target?.result as string }; return bs; }); }; r.readAsDataURL(f); } }}
+                    onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-[#A63A42]'); }}
+                    onDragLeave={e => { e.currentTarget.classList.remove('border-[#A63A42]'); }}
+                    onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-[#A63A42]'); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => { setDraftBanners((p: any[]) => { const bs = [...p]; bs[i] = { ...bs[i], image: ev.target?.result as string }; return bs; }); }; r.readAsDataURL(f); } }}
                   >
                     <input id={'banner-file-' + i} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => { setDraftBanners((p: any[]) => { const bs = [...p]; bs[i] = { ...bs[i], image: ev.target?.result as string }; return bs; }); }; r.readAsDataURL(f); } }} />
                     {b.image ? (
@@ -354,7 +229,7 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
                 <div><label className="text-[10px] text-slate-500 font-mono">Descripción</label><input type="text" value={b.description || ''} onChange={e => setDraftBanners((p: any[]) => { const bs = [...p]; bs[i] = { ...bs[i], description: e.target.value }; return bs; })} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none" /></div>
               </div>
             ))}
-            <button onClick={saveDraft} className="bg-[#5aa6ec] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold hover:brightness-110 transition-all cursor-pointer">Guardar Cambios</button>
+            <button onClick={saveDraft} className="bg-[#A63A42] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold hover:brightness-110 transition-all cursor-pointer">Guardar Cambios</button>
           </div>
         )}
 
@@ -363,31 +238,79 @@ export default function PanelWeb({ webData, onRefresh }: PanelWebProps) {
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-white uppercase tracking-wider">Categorías</h3>
             </div>
+            <p className="text-[10px] text-slate-500">Subí una foto para cada categoría. Si no tiene foto propia, la tienda usa la de un producto o una imagen genérica.</p>
             <div className="flex gap-2">
               <input type="text" id="new-cat-input" placeholder="Nueva categoría..." className="flex-1 bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white placeholder-slate-500 focus:outline-none" />
-              <button onClick={() => { const inp = document.getElementById('new-cat-input') as HTMLInputElement; if (!inp.value.trim()) return; updateFull({ ...webData, categories: [...categories, { id: Date.now().toString(), name: inp.value.trim() }] }); inp.value = ''; }} className="bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg py-1.5 px-3 text-xs font-bold transition-all cursor-pointer"><Plus size={13} /></button>
+              <button onClick={() => { const inp = document.getElementById('new-cat-input') as HTMLInputElement; if (!inp.value.trim()) return; updateFull({ ...webData, config: { ...config, ...draftConfig, banners: draftBanners }, categories: [...categories, { id: Date.now().toString(), name: inp.value.trim() }] }); inp.value = ''; }} className="bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg py-1.5 px-3 text-xs font-bold transition-all cursor-pointer"><Plus size={13} /></button>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {categories.map((c: any) => (
-                <div key={c.id} className="flex items-center gap-2 bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white">
-                  {c.name}
-                  <button onClick={() => updateFull({ ...webData, categories: categories.filter((x: any) => x.id !== c.id) })} className="text-slate-500 hover:text-red-400 cursor-pointer"><Trash2 size={11} /></button>
-                </div>
-              ))}
+            <div className="grid grid-cols-2 gap-3">
+              {categories.map((c: any) => {
+                const count = (products || []).filter(p => p.category === c.name).length;
+                const img = catImg(c.name);
+                return (
+                  <div key={c.id} className="bg-[#181a20] border border-[#2d3444] rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-white font-semibold">{c.name}</span>
+                      <span className="text-[10px] text-slate-500 font-mono">({count})</span>
+                    </div>
+                    <div className="relative border-2 border-dashed border-[#2d3444] rounded-lg p-1 text-center cursor-pointer hover:border-[#A63A42] transition-colors"
+                      onClick={() => { const inp = document.getElementById('cat-file-' + c.id) as HTMLInputElement; inp?.click(); }}
+                      onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-[#A63A42]'); }}
+                      onDragLeave={e => { e.currentTarget.classList.remove('border-[#A63A42]'); }}
+                      onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-[#A63A42]'); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => setCatImage(c.name, ev.target?.result as string); r.readAsDataURL(f); } }}
+                    >
+                      <input id={'cat-file-' + c.id} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f && f.type.startsWith('image/')) { const r = new FileReader(); r.onload = (ev) => setCatImage(c.name, ev.target?.result as string); r.readAsDataURL(f); } }} />
+                      {img ? (
+                        <img src={img.startsWith('data:') || img.startsWith('http') ? img : imgSrc(img)} alt="" className="h-20 w-full object-cover rounded" />
+                      ) : (
+                        <div className="text-slate-500 text-[10px] py-6"><Image size={18} className="mx-auto mb-1 opacity-50" />Subir foto</div>
+                      )}
+                    </div>
+                    <div className="flex gap-1.5">
+                      <input type="text" value={img && !img.startsWith('data:') ? img : ''} onChange={e => setCatImage(c.name, e.target.value)} placeholder="O URL externa" className="flex-1 bg-[#0d0e12] border border-[#2d3444] rounded-lg py-1 px-2 text-[10px] text-white placeholder-slate-600 focus:outline-none" />
+                      {img && <button onClick={() => clearCatImage(c.name)} className="text-red-400 hover:text-red-300 cursor-pointer" title="Quitar foto"><Trash2 size={12} /></button>}
+                    </div>
+                    <button onClick={async () => {
+                      if (count > 0 && !window.confirm(`Hay ${count} producto(s) con la categoría "${c.name}". Se reasignarán a "General". ¿Eliminar de todas formas?`)) return;
+                      if (count > 0) {
+                        for (const p of (products || []).filter(p => p.category === c.name)) {
+                          try { await fetch(`/api/products/${p.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...p, category: 'General' }) }); } catch {}
+                        }
+                      }
+                      clearCatImage(c.name);
+                      updateFull({ ...webData, config: { ...config, ...draftConfig, banners: draftBanners }, categories: categories.filter((x: any) => x.id !== c.id) });
+                    }} className="text-[10px] text-slate-500 hover:text-red-400 cursor-pointer flex items-center gap-1"><Trash2 size={11} />Eliminar categoría</button>
+                  </div>
+                );
+              })}
             </div>
+            <button onClick={saveDraft} className="bg-[#A63A42] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold hover:brightness-110 transition-all cursor-pointer">Guardar Cambios</button>
+            {categories.length > 0 && (
+              <p className="text-[10px] text-slate-500">{products?.length || 0} producto(s) en total</p>
+            )}
           </div>
         )}
 
-        {activeSection === 'sync' && (
+        {activeSection === 'maestros' && (
           <div className="space-y-4 max-w-xl">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">Sincronización y Backup</h3>
-            <div className="flex flex-wrap gap-3">
-              <button onClick={handleSync} className="flex items-center gap-1.5 bg-blue-700 hover:bg-blue-600 text-white rounded-lg py-2 px-4 text-xs font-bold transition-all cursor-pointer"><RefreshCw size={13} />Sync GitHub</button>
-              <button onClick={handleExport} className="flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg py-2 px-4 text-xs font-bold transition-all cursor-pointer"><Download size={13} />Exportar Backup</button>
-              <button onClick={handleImport} className="flex items-center gap-1.5 bg-amber-700 hover:bg-amber-600 text-white rounded-lg py-2 px-4 text-xs font-bold transition-all cursor-pointer"><Upload size={13} />Importar Backup</button>
-              <a href="/web/" target="_blank" className="flex items-center gap-1.5 bg-[#181a20] border border-[#2d3444] text-slate-300 hover:text-white rounded-lg py-2 px-4 text-xs font-bold transition-all cursor-pointer"><Globe size={13} />Ver Tienda</a>
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider">Maestros â€” Numeración de Pedidos</h3>
+            <p className="text-[10px] text-slate-500 leading-relaxed">
+              Los pedidos nuevos se numerarán de forma <strong className="text-white">correlativa y ascendente</strong> a partir del número inicial que definas: PED-000001, PED-000002, PED-000003... Solo afecta a los pedidos nuevos; los existentes no se re-numeran.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] text-slate-500 font-mono uppercase">Número inicial de pedidos</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={draftConfig.orderStartNumber ?? 1}
+                  onChange={e => setDraftConfig((p: any) => ({ ...p, orderStartNumber: Math.max(1, parseInt(e.target.value) || 1) }))}
+                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none"
+                />
+                <span className="text-[10px] text-slate-500">Ej: 1 â†’ PED-000001 · 1000 â†’ PED-001000</span>
+              </div>
             </div>
-            <p className="text-[10px] text-slate-500">El sync completo sube todos los archivos a GitHub (push forzado).<br/>El backup exporta data.json completo.</p>
+            <button onClick={saveDraft} className="bg-[#A63A42] text-[#0c0d10] rounded-lg py-1.5 px-4 text-xs font-bold hover:brightness-110 transition-all cursor-pointer">Guardar Cambios</button>
           </div>
         )}
       </div>

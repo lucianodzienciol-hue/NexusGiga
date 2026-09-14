@@ -95,7 +95,9 @@ export default function Clientes({ clients, onRefresh }: ClientesProps) {
       if (resp.ok) {
         onRefresh();
       } else {
-        alert('Ocurrió un error al eliminar el cliente.');
+        let msg = 'Ocurrió un error al eliminar el cliente.';
+        try { const b = await resp.json(); if (b && b.error) msg = b.error; } catch { /* noop */ }
+        alert(msg);
       }
     } catch (err) {
       console.error('Error deleting client:', err);
@@ -130,7 +132,7 @@ export default function Clientes({ clients, onRefresh }: ClientesProps) {
           </button>
           <button
             onClick={() => { resetForm(); setFormOpen(true); }}
-            className="bg-[#5aa6ec] hover:bg-[#4691db] text-slate-900 font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+            className="bg-[#A63A42] hover:bg-[#4691db] text-slate-900 font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
           >
             <Plus size={14} />
             Nuevo Cliente
@@ -180,7 +182,7 @@ export default function Clientes({ clients, onRefresh }: ClientesProps) {
                 >
                   <td className="py-3 px-4 font-mono font-semibold text-slate-400">{c.document}</td>
                   <td className="py-3 px-4 font-medium text-white flex items-center gap-1.5">
-                    {c.id === 'c1' && <ShieldCheck size={14} className="text-[#5aa6ec]" />}
+                    {c.id === 'c1' && <ShieldCheck size={14} className="text-[#A63A42]" />}
                     {c.name}
                   </td>
                   <td className="py-3 px-4 font-mono text-slate-300">{c.phone || '-'}</td>
@@ -195,7 +197,7 @@ export default function Clientes({ clients, onRefresh }: ClientesProps) {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleEditClick(c)}
-                          className="p-1 rounded text-slate-400 hover:text-[#5aa6ec] hover:bg-[#1f242e] transition-all"
+                          className="p-1 rounded text-slate-400 hover:text-[#A63A42] hover:bg-[#1f242e] transition-all"
                         >
                           <Edit2 size={13} />
                         </button>
@@ -236,7 +238,7 @@ export default function Clientes({ clients, onRefresh }: ClientesProps) {
                   type="text"
                   required
                   placeholder="Ej: 12345678 o RUC de 11 dig."
-                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-red-500 font-mono"
                   value={document}
                   onChange={(e) => setDocument(e.target.value)}
                 />
@@ -248,7 +250,7 @@ export default function Clientes({ clients, onRefresh }: ClientesProps) {
                   type="text"
                   required
                   placeholder="Ej: Juan Pérez o Distribuidora S.A."
-                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-red-500"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -259,7 +261,7 @@ export default function Clientes({ clients, onRefresh }: ClientesProps) {
                 <input
                   type="text"
                   placeholder="Ej: 987654321"
-                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-red-500 font-mono"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                 />
@@ -270,7 +272,7 @@ export default function Clientes({ clients, onRefresh }: ClientesProps) {
                 <input
                   type="email"
                   placeholder="Ej: nombre@empresa.com"
-                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-red-500 font-mono"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />

@@ -96,7 +96,7 @@ export default function Notas({ onRefresh }: NotasProps) {
         </div>
         <button
           onClick={() => { resetForm(); setFormOpen(true); }}
-          className="bg-[#5aa6ec] hover:bg-[#4691db] text-slate-900 font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+          className="bg-[#A63A42] hover:bg-[#872A32] text-slate-900 font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
         >
           <Plus size={14} />
           Nueva Nota
@@ -120,7 +120,7 @@ export default function Notas({ onRefresh }: NotasProps) {
           <Folder size={13} className="text-slate-500" />
           <button
             onClick={() => setFilterCat('')}
-            className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${!filterCat ? 'bg-[#5aa6ec] text-slate-950' : 'bg-[#1f242e] text-slate-400 hover:text-white'}`}
+            className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${!filterCat ? 'bg-[#A63A42] text-slate-950' : 'bg-[#1f242e] text-slate-400 hover:text-white'}`}
           >
             Todas
           </button>
@@ -128,7 +128,7 @@ export default function Notas({ onRefresh }: NotasProps) {
             <button
               key={cat}
               onClick={() => setFilterCat(cat)}
-              className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${filterCat === cat ? 'bg-[#5aa6ec] text-slate-950' : 'bg-[#1f242e] text-slate-400 hover:text-white'}`}
+              className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${filterCat === cat ? 'bg-[#A63A42] text-slate-950' : 'bg-[#1f242e] text-slate-400 hover:text-white'}`}
             >
               {cat}
             </button>
@@ -150,7 +150,7 @@ export default function Notas({ onRefresh }: NotasProps) {
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => handleEditClick(note)}
-                  className="p-1 rounded text-slate-500 hover:text-[#5aa6ec] hover:bg-[#1f242e] transition-all cursor-pointer"
+                  className="p-1 rounded text-slate-500 hover:text-[#A63A42] hover:bg-[#1f242e] transition-all cursor-pointer"
                 >
                   <Edit2 size={12} />
                 </button>
@@ -185,7 +185,7 @@ export default function Notas({ onRefresh }: NotasProps) {
           <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-6 w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <StickyNote size={16} className="text-[#5aa6ec]" />
+                <StickyNote size={16} className="text-[#A63A42]" />
                 {editingId ? 'Editar Nota' : 'Nueva Nota'}
               </h3>
               <button onClick={resetForm} className="text-slate-500 hover:text-white text-xs cursor-pointer">
@@ -229,7 +229,7 @@ export default function Notas({ onRefresh }: NotasProps) {
                       onClick={() => setFormCategory(cat)}
                       className={`text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
                         formCategory === cat
-                          ? 'bg-[#5aa6ec] text-slate-950'
+                          ? 'bg-[#A63A42] text-slate-950'
                           : 'bg-[#1f242e] text-slate-400 hover:text-white'
                       }`}
                     >

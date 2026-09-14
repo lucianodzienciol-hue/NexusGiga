@@ -8,7 +8,7 @@ interface CambiosProps {
 
 const STATUSES = [
   { value: 'recibido', label: 'Recibido', icon: AlertTriangle, color: 'text-amber-400', bg: 'bg-amber-900/30 border-amber-700' },
-  { value: 'esperando', label: 'Esperando', icon: Clock, color: 'text-blue-400', bg: 'bg-blue-900/30 border-blue-700' },
+  { value: 'esperando', label: 'Esperando', icon: Clock, color: 'text-red-400', bg: 'bg-red-900/30 border-red-700' },
   { value: 'entregado', label: 'Entregado', icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-900/30 border-emerald-700' },
 ];
 
@@ -174,7 +174,7 @@ export default function Cambios({ onRefresh }: CambiosProps) {
         </div>
         <button
           onClick={() => { resetForm(); setFormOpen(true); }}
-          className="bg-[#5aa6ec] hover:bg-[#4691db] text-slate-900 font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+          className="bg-[#A63A42] hover:bg-[#4691db] text-slate-900 font-bold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
         >
           <Plus size={14} />
           Nuevo Cambio
@@ -223,7 +223,7 @@ export default function Cambios({ onRefresh }: CambiosProps) {
                       key={ex.id}
                       className="border-b border-[#1b1e26] hover:bg-[#14171e] text-xs transition-colors"
                     >
-                      <td className="py-3 px-4 font-mono font-bold text-[#5aa6ec]">#{ex.id.slice(-6)}</td>
+                      <td className="py-3 px-4 font-mono font-bold text-[#A63A42]">#{ex.id.slice(-6)}</td>
                       <td className="py-3 px-4 text-white font-medium">{ex.clientName}</td>
                       <td className="py-3 px-4 text-slate-300">{ex.productName}</td>
                       <td className="py-3 px-4">
@@ -244,7 +244,7 @@ export default function Cambios({ onRefresh }: CambiosProps) {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleEditClick(ex)}
-                            className="p-1 rounded text-slate-400 hover:text-[#5aa6ec] hover:bg-[#1f242e] transition-all"
+                            className="p-1 rounded text-slate-400 hover:text-[#A63A42] hover:bg-[#1f242e] transition-all"
                           >
                             <Edit2 size={13} />
                           </button>
@@ -290,7 +290,7 @@ export default function Cambios({ onRefresh }: CambiosProps) {
                     type="text"
                     required
                     placeholder="Buscar cliente..."
-                    className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-red-500"
                     value={clientSearch}
                     onChange={e => {
                       setClientSearch(e.target.value);
@@ -333,7 +333,7 @@ export default function Cambios({ onRefresh }: CambiosProps) {
                     type="text"
                     required
                     placeholder="Buscar producto..."
-                    className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-red-500"
                     value={productSearch}
                     onChange={e => {
                       setProductSearch(e.target.value);
@@ -399,7 +399,7 @@ export default function Cambios({ onRefresh }: CambiosProps) {
                 <textarea
                   rows={3}
                   placeholder="Motivo del cambio, observaciones..."
-                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                  className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-red-500 resize-none"
                   value={formNotes}
                   onChange={e => setFormNotes(e.target.value)}
                 />
@@ -409,7 +409,7 @@ export default function Cambios({ onRefresh }: CambiosProps) {
                 {editingId && (
                   <div className="bg-[#181a20] border border-[#2d3444] rounded-lg p-3 text-[10px]">
                     <span className="text-slate-500">Código para informar al cliente: </span>
-                    <span className="text-[#5aa6ec] font-bold font-mono">#{editingId.slice(-6)}</span>
+                    <span className="text-[#A63A42] font-bold font-mono">#{editingId.slice(-6)}</span>
                   </div>
                 )}
                 <button

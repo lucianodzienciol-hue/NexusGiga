@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="es" translate="no">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nexus — Panel de clientes online</title>
+<style>
+  :root{ --bg:#0a0c10; --bg2:#0f1218; --bg3:#161a22; --line:#232936; --txt:#e6e9ef; --muted:#98a1b3; --ok:#34d399; --err:#f87171; --warn:#fbbf24; --full:#6C63FF; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5;min-height:100vh}
+  .wrap{max-width:1100px;margin:0 auto;padding:28px 18px 60px}
+  h1{font-size:22px;font-weight:800;margin:6px 0}
+  .sub{color:var(--muted);font-size:14px}
+  .card{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:16px}
+  label{display:block;font-size:11px;color:var(--muted);font-weight:700;margin:12px 0 6px;letter-spacing:.04em;text-transform:uppercase}
+  input,select{width:100%;background:#0c0e13;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:11px 12px;font-size:14px;font-family:inherit}
+  input:focus,select:focus{outline:none;border-color:var(--full)}
+  button{background:var(--bg3);border:1px solid var(--line);color:var(--txt);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px}
+  button:hover{background:#1e2430}
+  button.primary{background:linear-gradient(135deg,var(--full),#A63A42);border-color:transparent;color:#fff}
+  button.danger{border-color:rgba(239,68,68,.5);color:var(--err)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .row{display:grid;grid-template-columns:2fr 2fr auto;gap:12px;align-items:end}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:end}
+  .toolbar .grow{flex:1;min-width:160px}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  tr:hover td{background:#10131a}
+  code{background:#0c0e13;padding:2px 6px;border-radius:6px;font-size:12px;color:#c7d2fe;word-break:break-all}
+  .badge{display:inline-block;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800}
+  .b-ok{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.35);color:var(--ok)}
+  .b-err{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);color:var(--err)}
+  .b-warn{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);color:var(--warn)}
+  .b-mut{background:var(--bg3);border:1px solid var(--line);color:var(--muted)}
+  .alerts{display:grid;gap:8px;margin-top:12px}
+  .alert{padding:10px 14px;border-radius:10px;font-size:13px}
+  .alert.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);color:var(--err)}
+  .alert.warn{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.35);color:var(--warn)}
+  .actions{display:flex;gap:6px;flex-wrap:wrap}
+  .actions button{padding:6px 10px;font-size:12px}
+  .status{margin-top:12px;padding:12px 14px;border-radius:10px;font-size:14px;display:none}
+  .status.ok{display:block;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.35);color:var(--ok)}
+  .status.err{display:block;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);color:var(--err)}
+  .status.info{display:block;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);color:#a5b4fc}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+  .modal.open{display:flex}
+  .modal .box{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;max-width:460px;width:100%}
+  .modal .out{background:#07080b;border:1px solid var(--line);border-radius:10px;padding:12px;font-family:ui-monospace,monospace;font-size:12px;word-break:break-all;margin:12px 0;max-height:140px;overflow:auto;user-select:all}
+  .small{font-size:12px;color:var(--muted);margin-top:10px}
+  @media(max-width:700px){.row{grid-template-columns:1fr}table{font-size:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Nexus · Clientes online</h1>
+  <p class="sub">Estado de tiendas en Cloudflare. Alta nueva con el botón <b>＋ Alta de cliente</b> o con <code>clientes.mjs nuevo</code>.</p>
+
+  <div class="card">
+    <h2 style="font-size:15px">Conexión</h2>
+    <div class="row">
+      <div><label>Worker</label><input id="cfgWorker" value="https://nexus-tenants.lucianodzienciol.workers.dev" /></div>
+      <div><label>Panel token</label><input id="cfgToken" type="password" placeholder="PANEL_TOKEN del Worker" /></div>
+      <div><label>&nbsp;</label><button class="primary" id="btnLoad" style="width:100%">Actualizar</button></div>
+    </div>
+    <div class="status" id="cfgStatus"></div>
+    <p class="small" id="lastRead"></p>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:15px">Tiendas <span id="count" style="color:var(--muted);font-weight:400"></span></h2>
+    <div class="alerts" id="alerts"></div>
+    <div class="toolbar">
+      <div class="grow"><label>Buscar</label><input id="fSearch" placeholder="comercio, slug, contacto…" /></div>
+      <div><label>Estado</label><select id="fEstado"><option value="">Todos</option><option value="activo">Activos</option><option value="suspendido">Suspendidos</option></select></div>
+      <div><label>Orden</label><select id="fSort"><option value="sync">Último sync</option><option value="comercio">Comercio</option><option value="pend">Pendientes</option></select></div>
+      <div><label>&nbsp;</label><button id="btnCsv">Exportar CSV</button></div>
+      <div><label>&nbsp;</label><button class="primary" id="btnAlta">＋ Alta de cliente</button></div>
+    </div>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>Comercio / slug</th><th>Contacto</th><th>Estado</th><th>Último sync</th><th>Pend.</th><th>Salud</th><th>Acciones</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="7" style="color:var(--muted)">Pegá el token y tocá Actualizar.</td></tr></tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="box">
+  <h3 id="mTitle" style="font-size:17px"></h3>
+  <p class="small" id="mText"></p>
+  <div class="out" id="mOut" style="display:none"></div>
+  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px">
+    <button id="mCancel">Cancelar</button>
+    <button class="primary" id="mOk">Confirmar</button>
+  </div>
+</div></div>
+
+<div class="modal" id="wmodal"><div class="box" style="max-width:560px">
+  <h3 style="font-size:17px">Alta de cliente <span id="wStep" style="color:var(--muted);font-weight:400;font-size:13px"></span></h3>
+  <div id="wBody" style="margin-top:12px"></div>
+  <div class="status" id="wStatus"></div>
+  <div style="display:flex;gap:10px;justify-content:space-between;margin-top:12px">
+    <button id="wBack">← Atrás</button>
+    <div style="display:flex;gap:10px">
+      <button id="wCancel">Cancelar</button>
+      <button class="primary" id="wNext">Siguiente →</button>
+    </div>
+  </div>
+</div></div>
+
+<div class="modal" id="dmodal"><div class="box" style="max-width:500px">
+  <h3 style="font-size:17px">Dominio propio · <span id="dSlug"></span></h3>
+  <div style="margin-top:12px">
+    <label>Hostname (vacío = quitar)</label>
+    <input id="dInput" placeholder="tienda.cliente.com" />
+    <div class="out" id="dHelp" style="display:block"></div>
+  </div>
+  <div class="status" id="dStatus"></div>
+  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px">
+    <button id="dCancel">Cancelar</button>
+    <button id="dSave" class="primary">Guardar</button>
+  </div>
+</div></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const setStatus = (msg, type) => { const el = $('cfgStatus'); el.className = 'status ' + (type || 'info'); el.textContent = msg; };
+let DATA = [];
+
+function cfg() {
+  return {
+    worker: $('cfgWorker').value.trim().replace(/\/+$/, ''),
+    token: $('cfgToken').value,
+  };
+}
+function saveCfg() {
+  try { localStorage.setItem('nexus_panel_cfg', JSON.stringify({ worker: $('cfgWorker').value.trim() })); } catch (e) {}
+}
+function loadCfg() {
+  try {
+    const v = JSON.parse(localStorage.getItem('nexus_panel_cfg') || '{}');
+    if (v.worker && v.worker.indexOf('tuuser') === -1) $('cfgWorker').value = v.worker;
+  } catch (e) {}
+}
+async function api(path, method, body) {
+  const c = cfg();
+  const r = await fetch(c.worker + path, {
+    method: method || 'GET',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + c.token },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error((j && j.error) || ('HTTP ' + r.status));
+  return j;
+}
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return Number.isFinite(d.getTime()) ? d.toISOString().slice(0, 10) : '—';
+}
+function daysSince(iso) {
+  if (!iso) return Infinity;
+  const t = new Date(iso).getTime();
+  return Number.isFinite(t) ? (Date.now() - t) / 86400000 : Infinity;
+}
+
+async function refresh() {
+  const c = cfg();
+  if (!c.worker || !c.token) { setStatus('Completá worker y token.', 'err'); return; }
+  saveCfg();
+  setStatus('Leyendo…', 'info');
+  try {
+    DATA = await api('/vendor/clients', 'GET');
+    setStatus('OK: ' + DATA.length + ' tienda(s).', 'ok');
+    $('lastRead').textContent = 'Última lectura: ' + new Date().toLocaleString();
+    render();
+  } catch (e) { setStatus('Error: ' + e.message, 'err'); }
+}
+
+function filtered() {
+  const q = $('fSearch').value.trim().toLowerCase();
+  const e = $('fEstado').value;
+  const s = $('fSort').value;
+  let rows = DATA.filter((c) => {
+    if (e && (c.estado || '') !== e) return false;
+    if (!q) return true;
+    return ((c.comercio || '') + ' ' + (c.slug || '') + ' ' + (c.contacto || '')).toLowerCase().indexOf(q) !== -1;
+  });
+  rows = rows.slice().sort((a, b) => {
+    if (s === 'comercio') return String(a.comercio || '').localeCompare(String(b.comercio || ''));
+    if (s === 'pend') return (b.pendientes || 0) - (a.pendientes || 0);
+    const da = a.lastSync ? new Date(a.lastSync).getTime() : 0;
+    const db = b.lastSync ? new Date(b.lastSync).getTime() : 0;
+    return db - da;
+  });
+  return rows;
+}
+
+function render() {
+  const rows = filtered();
+  $('count').textContent = '(' + rows.length + ')';
+  const alerts = [];
+  rows.forEach((c) => {
+    if (daysSince(c.lastSync) > 7) alerts.push({ t: 'err', m: c.slug + ': sin sync hace más de 7 días.' });
+    else if ((c.pendientes || 0) > 10) alerts.push({ t: 'warn', m: c.slug + ': ' + c.pendientes + ' pedidos pendientes.' });
+  });
+  $('alerts').innerHTML = alerts.slice(0, 8).map((a) => `<div class="alert ${a.t}">${esc(a.m)}</div>`).join('');
+  if (!rows.length) {
+    $('rows').innerHTML = '<tr><td colspan="7" style="color:var(--muted)">Sin resultados.</td></tr>';
+    return;
+  }
+  $('rows').innerHTML = rows.map((c) => {
+    const badge = (c.estado || '') === 'suspendido' ? 'b-err' : 'b-ok';
+    const health = (c.health || '') === 'ok' ? '<span class="badge b-ok">ok</span>' : '<span class="badge b-mut">?</span>';
+    const url = c.dominio ? ('https://' + c.dominio + '/') : '';
+    const storeUrl = c.dominio ? ('https://' + c.dominio + '/') : ('https://' + c.slug + '.nexuspos.com.ar/');
+    const slug = esc(c.slug);
+    return `<tr>
+      <td><b>${esc(c.comercio) || slug}</b><br><code>${slug}</code>${url ? `<br><a href="${esc(url)}" target="_blank" rel="noopener" style="color:var(--full);font-size:12px">${esc(c.dominio)}</a>` : ''}</td>
+      <td>${esc(c.contacto)}${c.email ? `<br><span style="color:var(--muted);font-size:12px">${esc(c.email)}</span>` : ''}</td>
+      <td><span class="badge ${badge}">${esc(c.estado || '?')}</span></td>
+      <td>${fmtDate(c.lastSync)}</td>
+      <td><b>${c.pendientes || 0}</b></td>
+      <td>${health}</td>
+      <td><div class="actions">
+        <a href="${esc(storeUrl)}" target="_blank" rel="noopener"><button type="button">Abrir tienda</button></a>
+        <button data-act="verificar" data-slug="${slug}">Verificar</button>
+        ${(c.estado || '') === 'suspendido'
+          ? `<button data-act="reactivar" data-slug="${slug}">Reactivar</button>`
+          : `<button data-act="suspender" data-slug="${slug}">Suspender</button>`}
+        <button data-act="dominio" data-slug="${slug}">Dominio</button>
+        <button data-act="rotar" data-slug="${slug}">Rotar token</button>
+        <button data-act="desvincular" data-slug="${slug}">Desvincular PC</button>
+        <button data-act="baja" data-slug="${slug}" class="danger">Baja</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  $('rows').querySelectorAll('button[data-act]').forEach((b) => {
+    b.addEventListener('click', () => onAction(b.getAttribute('data-act'), b.getAttribute('data-slug')));
+  });
+}
+
+let modalFn = null;
+function ask(title, text, out, okLabel, fn, extra) {
+  $('mTitle').textContent = title;
+  $('mText').textContent = text;
+  const o = $('mOut');
+  if (out) { o.style.display = 'block'; o.textContent = out; } else { o.style.display = 'none'; o.textContent = ''; }
+  $('mOk').textContent = okLabel || 'Confirmar';
+  modalFn = fn;
+  const old = document.getElementById('mExtra');
+  if (old) old.remove();
+  if (extra) {
+    const b = document.createElement('button');
+    b.id = 'mExtra';
+    b.textContent = extra.label;
+    b.className = 'danger';
+    b.addEventListener('click', async () => {
+      $('modal').classList.remove('open');
+      modalFn = null;
+      await extra.fn();
+    });
+    $('mOk').insertAdjacentElement('afterend', b);
+  }
+  $('modal').classList.add('open');
+}
+$('mCancel').addEventListener('click', () => { $('modal').classList.remove('open'); modalFn = null; });
+$('modal').addEventListener('click', (e) => { if (e.target === $('modal')) { $('modal').classList.remove('open'); modalFn = null; } });
+$('mOk').addEventListener('click', async () => {
+  $('modal').classList.remove('open');
+  const fn = modalFn; modalFn = null;
+  if (fn) await fn();
+});
+
+async function onAction(act, slug) {
+  try {
+    if (act === 'verificar') {
+      const r = await api('/vendor/action', 'POST', { action: 'verificar', slug });
+      setStatus(slug + ': existe=' + r.existe + ' catálogo=' + r.catalogo + ' estado=' + r.estado, 'ok');
+      return;
+    }
+    if (act === 'suspender' || act === 'reactivar') {
+      const label = act === 'suspender' ? 'Suspender' : 'Reactivar';
+      ask(label + ' ' + slug, act === 'suspender'
+        ? 'La tienda mostrará mantenimiento y el buzón se cierra. Los datos quedan intactos.'
+        : 'La tienda vuelve a operar con normalidad.', null, label, async () => {
+        await api('/vendor/action', 'POST', { action: act, slug });
+        setStatus(slug + ' → ' + (act === 'suspender' ? 'suspendido' : 'activo'), 'ok');
+        await refresh();
+      });
+      return;
+    }
+    if (act === 'rotar') {
+      ask('Rotar token de ' + slug, 'El token actual deja de funcionar. Vas a tener que cargarlo en la PC del cliente.', null, 'Rotar', async () => {
+        const r = await api('/vendor/action', 'POST', { action: 'rotar', slug });
+        ask('Token nuevo de ' + slug, 'Copialo ahora a la PC del cliente:', r.syncToken, 'Listo', async () => {});
+      });
+      return;
+    }
+    if (act === 'dominio') { dOpen(slug); return; }
+    if (act === 'desvincular') {
+      ask('Desvincular PC de ' + slug, 'Libera el amarre a la PC actual. El próximo sync vinculará la PC que sincronice. El token no cambia.', null, 'Desvincular', async () => {
+        await api('/vendor/action', 'POST', { action: 'desvincular', slug });
+        setStatus(slug + ': PC desvinculada.', 'ok');
+        await refresh();
+      });
+      return;
+    }
+    if (act === 'baja') {
+      ask('Baja de ' + slug, 'Se suspende. Los datos quedan intactos salvo borrado explícito.', null, 'Suspender (conservar datos)', async () => {
+        await api('/vendor/action', 'POST', { action: 'baja', slug });
+        setStatus(slug + ' dado de baja (suspendido).', 'ok');
+        await refresh();
+      }, {
+        label: 'Borrar todo',
+        fn: async () => {
+          if (!window.confirm('IRREVERSIBLE: borra catálogo, buzón y registro de ' + slug + '. ¿Seguro?')) return;
+          await api('/vendor/action', 'POST', { action: 'baja', slug, borrar: true });
+          setStatus(slug + ' eliminado por completo.', 'ok');
+          await refresh();
+        },
+      });
+      return;
+    }
+  } catch (e) { setStatus('Error: ' + e.message, 'err'); }
+}
+
+function toCsv(rows) {
+  const esc2 = (v) => {
+    const s = String(v == null ? '' : v);
+    return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  const head = ['slug', 'comercio', 'contacto', 'email', 'estado', 'lastSync', 'pendientes', 'dominio', 'alta'];
+  const lines = [head.join(';')];
+  rows.forEach((c) => lines.push([c.slug, c.comercio, c.contacto, c.email, c.estado, c.lastSync, c.pendientes, c.dominio, c.alta].map(esc2).join(';')));
+  return '﻿' + lines.join('\n');
+}
+$('btnCsv').addEventListener('click', () => {
+  const blob = new Blob([toCsv(filtered())], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'clientes-' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+
+/* ===== Wizard de alta ===== */
+const WZ = { step: 1, slug: '', comercio: '', contacto: '', email: '', dominio: '', store: null, storeName: '', deploy: true, created: false, token: '' };
+const WZ_TITLES = { 1: 'Paso 1/4 · Datos', 2: 'Paso 2/4 · Catálogo', 3: 'Paso 3/4 · Confirmar', 4: 'Paso 4/4 · Kit listo' };
+function wStatus(msg, type) { const el = $('wStatus'); el.className = 'status ' + (type || 'info'); el.textContent = msg; }
+function wClearStatus() { $('wStatus').className = 'status'; $('wStatus').textContent = ''; }
+function wOpen() {
+  WZ.step = 1; WZ.created = false; WZ.token = ''; WZ.store = null; WZ.storeName = '';
+  wClearStatus();
+  wRender();
+  $('wmodal').classList.add('open');
+}
+function wClose() { $('wmodal').classList.remove('open'); }
+function slugOk(s) { return /^[a-z0-9][a-z0-9-]{0,62}$/.test(s); }
+function deployCmd() {
+  return 'npx wrangler pages project create nexus-t-' + WZ.slug + ' --production-branch main; if ($?) { npx wrangler pages deploy "tenant\\dist\\' + WZ.slug + '" --project-name=nexus-t-' + WZ.slug + ' }';
+}
+function wRender() {
+  $('wStep').textContent = '· ' + WZ_TITLES[WZ.step];
+  $('wBack').disabled = WZ.step === 1 || WZ.step === 4;
+  $('wNext').style.display = WZ.step === 4 ? 'none' : '';
+  $('wNext').textContent = WZ.step === 3 ? 'Crear tienda' : 'Siguiente →';
+  const B = $('wBody');
+  wClearStatus();
+  if (WZ.step === 1) {
+    B.innerHTML =
+      '<label>Slug (minúsculas, números, guiones)</label>' +
+      '<div style="display:flex;gap:8px"><input id="wSlug" placeholder="kiosco-don-pepe" style="flex:1" />' +
+      '<button id="wCheck" type="button">Comprobar</button></div>' +
+      '<div class="small" id="wSlugMsg">Define la URL: https://&lt;slug&gt;.nexuspos.com.ar/</div>' +
+      '<label>Comercio *</label><input id="wComercio" placeholder="Kiosco Don Pepe" />' +
+      '<label>Contacto</label><input id="wContacto" placeholder="Nombre / teléfono" />' +
+      '<label>Email</label><input id="wEmail" type="email" placeholder="cliente@mail.com" />' +
+      '<label>Dominio propio (opcional)</label><input id="wDominio" placeholder="tienda.cliente.com" />' +
+      '<div class="small">El dominio se registra acá, pero el CNAME y el custom domain en Pages se hacen aparte (ver botón Dominio en el listado).</div>';
+    $('wSlug').value = WZ.slug; $('wComercio').value = WZ.comercio;
+    $('wContacto').value = WZ.contacto; $('wEmail').value = WZ.email; $('wDominio').value = WZ.dominio;
+    $('wCheck').addEventListener('click', async () => {
+      const s = $('wSlug').value.trim().toLowerCase();
+      if (!slugOk(s)) { $('wSlugMsg').textContent = 'Slug inválido.'; return; }
+      $('wSlugMsg').textContent = 'Comprobando…';
+      try {
+        const r = await api('/vendor/action', 'POST', { action: 'verificar', slug: s });
+        $('wSlugMsg').textContent = r.existe ? ('⚠ Ya existe (' + (r.estado || '?') + '). Elegí otro slug.') : '✔ Disponible.';
+      } catch (e) { $('wSlugMsg').textContent = 'Error: ' + e.message; }
+    });
+  } else if (WZ.step === 2) {
+    B.innerHTML =
+      '<p class="small">Soltá el <b>data.json</b> del cliente (opcional). Si lo omitís, la tienda arranca vacía.</p>' +
+      '<label>Archivo data.json</label><input id="wFile" type="file" accept=".json,application/json" />' +
+      '<div class="small" id="wFileMsg">' + (WZ.store ? esc('Cargado: ' + WZ.storeName) : 'Sin archivo: tienda vacía.') + '</div>';
+    $('wFile').addEventListener('change', () => {
+      const f = $('wFile').files[0];
+      if (!f) return;
+      const rd = new FileReader();
+      rd.onload = () => {
+        try {
+          const j = JSON.parse(rd.result);
+          if (!j || typeof j !== 'object' || !Array.isArray(j.products)) throw new Error('formato');
+          WZ.store = {
+            products: j.products.slice(0, 2000),
+            categories: Array.isArray(j.categories) ? j.categories.slice(0, 500) : [],
+            services: Array.isArray(j.services) ? j.services.slice(0, 500) : [],
+            config: (j.config && typeof j.config === 'object') ? j.config : {},
+          };
+          WZ.storeName = f.name + ' (' + WZ.store.products.length + ' productos)';
+          $('wFileMsg').textContent = 'Cargado: ' + WZ.storeName;
+        } catch (e) { $('wFileMsg').textContent = 'Archivo inválido: debe ser un data.json con "products".'; WZ.store = null; }
+      };
+      rd.readAsText(f);
+    });
+  } else if (WZ.step === 3) {
+    const prods = WZ.store ? WZ.store.products.length : 0;
+    B.innerHTML =
+      '<div class="out" style="display:block">' +
+      'Slug: ' + esc(WZ.slug) + '<br>URL: https://' + esc(WZ.slug) + '.nexuspos.com.ar/<br>' +
+      'Comercio: ' + esc(WZ.comercio || '—') + '<br>Catálogo: ' + prods + ' productos' +
+      (WZ.dominio ? '<br>Dominio: ' + esc(WZ.dominio) : '') + '</div>' +
+      '<label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--txt);text-transform:none;letter-spacing:0">' +
+      '<input type="checkbox" id="wDeploy" ' + (WZ.deploy ? 'checked' : '') + ' style="width:auto" /> Publicar ahora (necesita wrangler en tu PC; si no, te doy el comando)</label>' +
+      '<div class="out" style="display:block">' + esc(deployCmd()) + ' <button id="wCopyCmd" type="button" style="padding:4px 10px;font-size:12px">Copiar</button></div>';
+    $('wDeploy').addEventListener('change', (e) => { WZ.deploy = e.target.checked; });
+    $('wCopyCmd').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(deployCmd()); wStatus('Comando copiado.', 'ok'); }
+      catch (e) { wStatus('No se pudo copiar: ' + e.message, 'err'); }
+    });
+  } else {
+    B.innerHTML = '<p class="small">La tienda está creada. El token se muestra <b>una sola vez</b>:</p>' +
+      '<div class="out" id="wTokenOut" style="display:block"></div>' +
+      '<p class="small">Tienda: <a id="wStoreLink" href="https://' + esc(WZ.slug) + '.nexuspos.com.ar/" target="_blank" rel="noopener">https://' + esc(WZ.slug) + '.nexuspos.com.ar/</a> (abre tras el deploy)</p>' +
+      '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+      '<button id="wDlJson">Descargar .json</button>' +
+      '<button id="wDlTxt">Descargar .txt</button>' +
+      '<button id="wCopyTok">Copiar token</button></div>' +
+      '<p class="small">Enviá el .txt por WhatsApp al cliente. Con el .json puede vincular desde Configuración → Vincular tienda.</p>';
+    $('wTokenOut').textContent = WZ.token;
+    const base = 'vincular-' + WZ.slug;
+    const dl = (name, text, type) => {
+      const blob = new Blob([text], { type: type || 'application/json;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    };
+    $('wDlJson').addEventListener('click', () => dl(base + '.json', JSON.stringify({ slug: WZ.slug, worker: cfg().worker, token: WZ.token }, null, 2)));
+    $('wDlTxt').addEventListener('click', () => dl(base + '.txt',
+      'NEXUS - Vincular tu tienda online\n' +
+      '================================\n' +
+      'Tienda: ' + WZ.slug + '\n' +
+      'URL: https://' + WZ.slug + '.nexuspos.com.ar/\n' +
+      'Token: ' + WZ.token + '\n\n' +
+      'Opción 1 (fácil): guardá el archivo vincular-' + WZ.slug + '.json en Descargas y abrí la app: se vincula sola.\n' +
+      'Opción 2: en la app, Configuración → Vincular tienda, pegá estos datos.\n', 'text/plain;charset=utf-8'));
+    $('wCopyTok').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(WZ.token); wStatus('Token copiado.', 'ok'); }
+      catch (e) { wStatus('No se pudo copiar: ' + e.message, 'err'); }
+    });
+  }
+}
+function wCollect1() {
+  WZ.slug = $('wSlug').value.trim().toLowerCase();
+  WZ.comercio = $('wComercio').value.trim();
+  WZ.contacto = $('wContacto').value.trim();
+  WZ.email = $('wEmail').value.trim();
+  WZ.dominio = $('wDominio').value.trim().toLowerCase();
+  if (!slugOk(WZ.slug)) { wStatus('Slug inválido: minúsculas, números y guiones.', 'err'); return false; }
+  if (!WZ.comercio) { wStatus('El comercio es obligatorio.', 'err'); return false; }
+  if (WZ.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(WZ.email)) { wStatus('Email inválido.', 'err'); return false; }
+  return true;
+}
+async function wCreate() {
+  wStatus('Creando tienda…', 'info');
+  $('wNext').disabled = true;
+  try {
+    const body = {
+      action: 'alta', slug: WZ.slug,
+      comercio: WZ.comercio, contacto: WZ.contacto, email: WZ.email,
+      store: WZ.store || { products: [], categories: [], services: [], config: {} },
+    };
+    if (WZ.dominio) body.dominio = WZ.dominio;
+    const r = await api('/vendor/action', 'POST', body);
+    WZ.token = r.syncToken;
+    WZ.created = true;
+    WZ.step = 4;
+    wRender();
+    refresh();
+  } catch (e) {
+    if (/ya existe/i.test(e.message || '')) {
+      wStatus('Ese slug ya existe. Volvé al paso 1 y elegí otro.', 'err');
+    } else {
+      wStatus('Error: ' + e.message, 'err');
+      if (WZ.created) {
+        wStatus('Error: ' + e.message + ' (la tienda se creó igual; revisá el listado).', 'err');
+      }
+    }
+  } finally {
+    $('wNext').disabled = false;
+  }
+}
+$('wBack').addEventListener('click', () => { if (WZ.step > 1 && WZ.step < 4) { WZ.step--; wRender(); } });
+$('wNext').addEventListener('click', async () => {
+  const c = cfg();
+  if (!c.worker || !c.token) { wStatus('Completá worker y token arriba primero.', 'err'); return; }
+  if (WZ.step === 1) { if (wCollect1()) { WZ.step = 2; wRender(); } }
+  else if (WZ.step === 2) { WZ.step = 3; wRender(); }
+  else if (WZ.step === 3) { await wCreate(); }
+});
+$('wCancel').addEventListener('click', () => $('wmodal').classList.remove('open'));
+$('wmodal').addEventListener('click', (e) => { if (e.target === $('wmodal')) $('wmodal').classList.remove('open'); });
+/* ===== Dominio propio ===== */
+let dSlugCur = '';
+function dStatus(msg, type) { const el = $('dStatus'); el.className = 'status ' + (type || 'info'); el.textContent = msg; }
+function dHelp(host) {
+  $('dHelp').innerHTML = 'Pasos fuera del panel:<br>1) DNS: CNAME <b>' + esc(host || 'tienda.cliente.com') +
+    '</b> → <b>nexus-t-' + esc(dSlugCur) + '.pages.dev</b> (si la zona está en Cloudflare, Pages lo crea solo).<br>' +
+    '2) Cloudflare → Pages → <b>nexus-t-' + esc(dSlugCur) + '</b> → Custom domains → agregar el dominio.<br>' +
+    '3) Guardar acá para que el panel lo use en Abrir tienda.';
+}
+function dOpen(slug) {
+  dSlugCur = slug;
+  const c = DATA.find((x) => x.slug === slug);
+  $('dSlug').textContent = slug;
+  $('dInput').value = (c && c.dominio) || '';
+  dHelp($('dInput').value.trim());
+  $('dStatus').className = 'status'; $('dStatus').textContent = '';
+  $('dmodal').classList.add('open');
+}
+$('dInput').addEventListener('input', (e) => dHelp(e.target.value.trim().toLowerCase()));
+$('dCancel').addEventListener('click', () => $('dmodal').classList.remove('open'));
+$('dmodal').addEventListener('click', (e) => { if (e.target === $('dmodal')) $('dmodal').classList.remove('open'); });
+$('dSave').addEventListener('click', async () => {
+  const v = $('dInput').value.trim().toLowerCase();
+  dStatus('Guardando…', 'info');
+  try {
+    const r = await api('/vendor/action', 'POST', { action: 'dominio', slug: dSlugCur, dominio: v });
+    dStatus(r.dominio ? ('Dominio: ' + r.dominio) : 'Dominio quitado.', 'ok');
+    await refresh();
+  } catch (e) { dStatus('Error: ' + e.message, 'err'); }
+});
+
+$('btnAlta').addEventListener('click', wOpen);
+
+$('btnLoad').addEventListener('click', refresh);
+['fSearch', 'fEstado', 'fSort'].forEach((id) => {
+  $(id).addEventListener('input', render);
+  $(id).addEventListener('change', render);
+});
+loadCfg();
+</script>
+</body>
+</html>

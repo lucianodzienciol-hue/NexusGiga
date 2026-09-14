@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { BarChart3, TrendingUp, TrendingDown, RefreshCw, Database, Download, CalendarDays } from 'lucide-react';
 
 interface MonthlyStat {
@@ -11,9 +11,9 @@ interface MonthlyStat {
 export default function Estadisticas() {
   const [stats, setStats] = useState<MonthlyStat[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState<'ventas' | 'caja' | 'diario'>(() => {
+  const [selectedTab, setSelectedTab] = useState<'ventas' | 'caja' | 'diario' | 'ganancia'>(() => {
     const saved = localStorage.getItem('nexus_e_tab');
-    return saved === 'caja' ? 'caja' : saved === 'diario' ? 'diario' : 'ventas';
+    return saved === 'caja' ? 'caja' : saved === 'diario' ? 'diario' : saved === 'ganancia' ? 'ganancia' : 'ventas';
   });
   const [dailyData, setDailyData] = useState<any[]>([]);
   const [dailyLoading, setDailyLoading] = useState(false);
@@ -32,6 +32,9 @@ export default function Estadisticas() {
 
   const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
+  const [salesAll, setSalesAll] = useState<any[]>([]);
+  const [costMap, setCostMap] = useState<Map<string, number>>(new Map());
+
   const loadStats = async () => {
     setLoading(true);
     try {
@@ -39,28 +42,57 @@ export default function Estadisticas() {
       if (r.ok) {
         const data: MonthlyStat[] = await r.json();
         setStats(data);
-        if (data.length === 0 && !seeded.current) {
-          seeded.current = true;
-          await fetch('/api/stats/seed', { method: 'POST' });
-          const r2 = await fetch('/api/stats');
-          if (r2.ok) {
-            const data2: MonthlyStat[] = await r2.json();
-            setStats(data2);
-            if (data2.length > 0) {
-              const maxYear = Math.max(...data2.map(d => d.year));
-              setSelectedYear(maxYear);
-              setChartYear(maxYear);
-            }
-          }
-        } else if (data.length > 0) {
+        if (data.length > 0) {
           const maxYear = Math.max(...data.map(d => d.year));
           setSelectedYear(maxYear);
           setChartYear(maxYear);
         }
       }
     } catch {}
+    try {
+      const [sr, pr] = await Promise.all([fetch('/api/sales'), fetch('/api/products')]);
+      if (sr.ok) {
+        const s = await sr.json();
+        setSalesAll(Array.isArray(s) ? s : []);
+      }
+      if (pr.ok) {
+        const p = await pr.json();
+        setCostMap(new Map((Array.isArray(p) ? p : []).map((x: any) => [String(x.id), Number(x.cost) || 0])));
+      }
+    } catch {}
     setLoading(false);
   };
+
+  const profitOfItems = (items: any[]) => (Array.isArray(items) ? items : []).reduce((sum, it) => {
+    const cost = costMap.has(String(it.productId)) ? (costMap.get(String(it.productId)) as number) : 0;
+    return sum + ((Number(it.price) || 0) - cost) * (Number(it.quantity) || 0);
+  }, 0);
+
+  const profitByMonth = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const s of salesAll) {
+      const d = new Date(s.date);
+      if (!Number.isFinite(d.getTime())) continue;
+      const k = `${d.getFullYear()}-${d.getMonth() + 1}`;
+      map.set(k, (map.get(k) || 0) + profitOfItems(s.items));
+    }
+    return map;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [salesAll, costMap]);
+
+  const profitOfMonth = (year: number, month: number) => Math.round(profitByMonth.get(`${year}-${month}`) || 0);
+
+  const profitByDay = useMemo(() => {
+    const map = new Map<number, number>();
+    for (const s of salesAll) {
+      const d = new Date(s.date);
+      if (d.getFullYear() !== dailyYear || d.getMonth() + 1 !== dailyMonth) continue;
+      const k = d.getDate();
+      map.set(k, (map.get(k) || 0) + profitOfItems(s.items));
+    }
+    return map;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [salesAll, costMap, dailyYear, dailyMonth]);
 
   useEffect(() => { loadStats(); }, []);
 
@@ -101,17 +133,26 @@ export default function Estadisticas() {
   };
 
   const handleCellSave = async (year: number, month: number, field: 'sales_count' | 'cash_amount', value: string) => {
-    const num = parseInt(value.replace(/\./g, ''));
-    if (isNaN(num)) return;
     try {
-      await fetch('/api/stats/update', {
+      // Permite formato es-AR: puntos de miles y coma decimal ("1.250,50" -> 1250.5)
+      const clean = value.trim().replace(/\./g, '').replace(',', '.');
+      const num = Number(clean);
+      if (value.trim() === '' || isNaN(num) || num < 0) {
+        alert('Ingrese un número válido (mayor o igual a 0).');
+        return;
+      }
+      const r = await fetch('/api/stats/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ year, month, field, value: num })
       });
-      setEditingCell(null);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
       loadStats();
-    } catch {}
+    } catch {
+      alert('No se pudo guardar el valor.');
+    } finally {
+      setEditingCell(null);
+    }
   };
 
   const handleAddYear = async () => {
@@ -145,23 +186,34 @@ export default function Estadisticas() {
   const getHeatColor = (val: number, max: number) => {
     if (max === 0) return 'bg-transparent';
     const ratio = val / max;
-    if (selectedTab === 'ventas') {
+    if (selectedTab === 'ventas' || selectedTab === 'ganancia') {
       if (ratio > 0.9) return 'bg-emerald-900/50 text-emerald-300';
       if (ratio > 0.7) return 'bg-emerald-800/30 text-emerald-400';
       if (ratio > 0.5) return 'bg-emerald-700/20 text-emerald-400';
       if (ratio > 0.3) return 'bg-emerald-600/10 text-slate-300';
       return 'text-slate-400';
     } else {
-      if (ratio > 0.9) return 'bg-blue-900/50 text-blue-300';
-      if (ratio > 0.7) return 'bg-blue-800/30 text-blue-400';
-      if (ratio > 0.5) return 'bg-blue-700/20 text-blue-400';
-      if (ratio > 0.3) return 'bg-blue-600/10 text-slate-300';
+      if (ratio > 0.9) return 'bg-red-900/50 text-red-300';
+      if (ratio > 0.7) return 'bg-red-800/30 text-red-400';
+      if (ratio > 0.5) return 'bg-red-700/20 text-red-400';
+      if (ratio > 0.3) return 'bg-red-600/10 text-slate-300';
       return 'text-slate-400';
     }
   };
 
   const getMonthlyTotal = (data: MonthlyStat[], field: 'sales_count' | 'cash_amount') =>
     data.reduce((sum, d) => sum + d[field], 0);
+
+  const monthVal = (year: number, month: number): number => {
+    if (selectedTab === 'ganancia') return profitOfMonth(year, month);
+    const d = stats.find(s => s.year === year && s.month === month);
+    return d ? d[selectedTab === 'ventas' ? 'sales_count' : 'cash_amount'] : 0;
+  };
+  const yearProfit = (year: number) => {
+    let s = 0;
+    for (let m = 1; m <= 12; m++) s += profitOfMonth(year, m);
+    return s;
+  };
 
   const formatNumber = (n: number) => n.toLocaleString('es-AR');
 
@@ -171,7 +223,7 @@ export default function Estadisticas() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
-            <BarChart3 size={16} className="text-[#5aa6ec]" />
+            <BarChart3 size={16} className="text-[#A63A42]" />
             Estadísticas de Ventas
           </h2>
           <p className="text-[11px] text-slate-500">Historial mensual de ventas y caja</p>
@@ -199,13 +251,16 @@ export default function Estadisticas() {
 
       {/* Tabs: Ventas / Caja / Diario */}
       <div className="flex gap-1 bg-[#0d0e12] rounded-lg p-1 border border-[#1f242e] w-fit">
-        <button onClick={() => setSelectedTab('ventas')} className={`py-1.5 px-4 rounded-md text-xs font-semibold transition-all ${selectedTab === 'ventas' ? 'bg-[#5aa6ec] text-slate-900' : 'text-slate-400 hover:text-white'}`}>
+        <button onClick={() => setSelectedTab('ventas')} className={`py-1.5 px-4 rounded-md text-xs font-semibold transition-all ${selectedTab === 'ventas' ? 'bg-[#A63A42] text-slate-900' : 'text-slate-400 hover:text-white'}`}>
           Ventas
         </button>
-        <button onClick={() => setSelectedTab('caja')} className={`py-1.5 px-4 rounded-md text-xs font-semibold transition-all ${selectedTab === 'caja' ? 'bg-[#5aa6ec] text-slate-900' : 'text-slate-400 hover:text-white'}`}>
-          Caja ($)
+        <button onClick={() => setSelectedTab('caja')} className={`py-1.5 px-4 rounded-md text-xs font-semibold transition-all ${selectedTab === 'caja' ? 'bg-[#A63A42] text-slate-900' : 'text-slate-400 hover:text-white'}`}>
+          Caja
         </button>
-        <button onClick={() => setSelectedTab('diario')} className={`py-1.5 px-4 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 ${selectedTab === 'diario' ? 'bg-[#5aa6ec] text-slate-900' : 'text-slate-400 hover:text-white'}`}>
+        <button onClick={() => setSelectedTab('ganancia')} className={`py-1.5 px-4 rounded-md text-xs font-semibold transition-all ${selectedTab === 'ganancia' ? 'bg-[#A63A42] text-slate-900' : 'text-slate-400 hover:text-white'}`}>
+          Ganancia
+        </button>
+        <button onClick={() => setSelectedTab('diario')} className={`py-1.5 px-4 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 ${selectedTab === 'diario' ? 'bg-[#A63A42] text-slate-900' : 'text-slate-400 hover:text-white'}`}>
           <CalendarDays size={13} /> Diario
         </button>
       </div>
@@ -238,6 +293,7 @@ export default function Estadisticas() {
                       <th className="py-2.5 px-3 font-bold">Día</th>
                       <th className="py-2.5 px-3 text-right font-bold">Ventas</th>
                       <th className="py-2.5 px-3 text-right font-bold">Ingresos ($)</th>
+                      <th className="py-2.5 px-3 text-right font-bold">Ganancia ($)</th>
                       <th className="py-2.5 px-3 text-right font-bold">Egresos ($)</th>
                       <th className="py-2.5 px-3 text-right font-bold">Balance ($)</th>
                     </tr>
@@ -245,11 +301,13 @@ export default function Estadisticas() {
                   <tbody>
                     {dailyData.map((d: any) => {
                       const balance = d.income - d.expenses;
+                      const dayProfit = Math.round(profitByDay.get(d.day) || 0);
                       return (
                         <tr key={d.day} className="border-b border-[#1b1e26] hover:bg-[#14171e] text-xs transition-all">
                           <td className="py-2 px-3 font-medium text-slate-300">{d.day}</td>
                           <td className="py-2 px-3 text-right font-mono font-semibold text-slate-300">{d.salesCount}</td>
                           <td className="py-2 px-3 text-right font-mono font-semibold text-emerald-400">${d.income.toLocaleString('es-AR')}</td>
+                          <td className="py-2 px-3 text-right font-mono font-semibold text-cyan-300">${dayProfit.toLocaleString('es-AR')}</td>
                           <td className="py-2 px-3 text-right font-mono font-semibold text-red-400">${d.expenses.toLocaleString('es-AR')}</td>
                           <td className={`py-2 px-3 text-right font-mono font-bold ${balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                             ${balance.toLocaleString('es-AR')}
@@ -266,6 +324,9 @@ export default function Estadisticas() {
                       </td>
                       <td className="py-2.5 px-3 text-right text-emerald-400">
                         ${dailyData.reduce((s: number, d: any) => s + d.income, 0).toLocaleString('es-AR')}
+                      </td>
+                      <td className="py-2.5 px-3 text-right text-cyan-300">
+                        ${dailyData.reduce((s: number, d: any) => s + Math.round(profitByDay.get(d.day) || 0), 0).toLocaleString('es-AR')}
                       </td>
                       <td className="py-2.5 px-3 text-right text-red-400">
                         ${dailyData.reduce((s: number, d: any) => s + d.expenses, 0).toLocaleString('es-AR')}
@@ -294,7 +355,7 @@ export default function Estadisticas() {
           <div className="flex flex-wrap gap-1 items-center">
             {years.map(y => (
               <button key={y} onClick={() => setSelectedYear(y)} className={`py-1 px-3 rounded-lg text-xs font-semibold transition-all ${
-                selectedYear === y ? 'bg-[#5aa6ec] text-slate-900' : 'bg-[#181a20] border border-[#2d3444] text-slate-400 hover:text-white'
+                selectedYear === y ? 'bg-[#A63A42] text-slate-900' : 'bg-[#181a20] border border-[#2d3444] text-slate-400 hover:text-white'
               }`}>
                 {y}
               </button>
@@ -337,23 +398,21 @@ export default function Estadisticas() {
                   {MONTHS.map((monthName, mi) => {
                     const monthNum = mi + 1;
                     const rowData = years.map(y => stats.find(s => s.year === y && s.month === monthNum));
-                    const allYearsMax = Math.max(...years.map(y => {
-                      const d = stats.find(s => s.year === y && s.month === monthNum);
-                      return d ? d[selectedTab === 'ventas' ? 'sales_count' : 'cash_amount'] : 0;
-                    }), 1);
+                    const allYearsMax = Math.max(...years.map(y => monthVal(y, monthNum)), 1);
                     return (
                       <tr key={mi} className={`border-b border-[#1b1e26] hover:bg-[#14171e] text-xs transition-all ${monthNum === new Date().getMonth() + 1 && selectedYear === new Date().getFullYear() ? 'bg-[#1a1d24]' : ''}`}>
                         <td className="py-2 px-3 font-medium text-slate-300 whitespace-nowrap">{monthName}</td>
-                        {rowData.map((d, yi) => {
-                          const val = d ? d[selectedTab === 'ventas' ? 'sales_count' : 'cash_amount'] : 0;
-                          const yearMax = Math.max(...stats.filter(s => s.year === years[yi]).map(s => s[selectedTab === 'ventas' ? 'sales_count' : 'cash_amount']), 1);
+                        {rowData.map((_d, yi) => {
+                          const val = monthVal(years[yi], monthNum);
+                          const yearMax = Math.max(...MONTHS.map((_, mi2) => monthVal(years[yi], mi2 + 1)), 1);
                           const isEditing = editingCell?.year === years[yi] && editingCell?.month === monthNum;
                           const isSelectedYear = years[yi] === selectedYear;
+                          const editable = isSelectedYear && selectedTab !== 'ganancia';
                           return (
                             <td key={yi}
-                              className={`py-2 px-3 text-right font-mono font-semibold ${getHeatColor(val, yearMax)} ${isSelectedYear ? 'cursor-pointer' : ''}`}
+                              className={`py-2 px-3 text-right font-mono font-semibold ${getHeatColor(val, yearMax)} ${editable ? 'cursor-pointer' : ''}`}
                               onClick={() => {
-                                if (!isSelectedYear || isEditing) return;
+                                if (!editable || isEditing) return;
                                 setEditingCell({ year: years[yi], month: monthNum });
                                 setEditValue(String(val));
                               }}
@@ -368,7 +427,7 @@ export default function Estadisticas() {
                                     if (e.key === 'Enter') handleCellSave(years[yi], monthNum, selectedTab === 'ventas' ? 'sales_count' : 'cash_amount', editValue);
                                     if (e.key === 'Escape') setEditingCell(null);
                                   }}
-                                  className="w-full bg-[#0d0e12] border border-[#5aa6ec] rounded py-0.5 px-1 text-xs text-white font-mono text-right focus:outline-none"
+                                  className="w-full bg-[#0d0e12] border border-[#A63A42] rounded py-0.5 px-1 text-xs text-white font-mono text-right focus:outline-none"
                                   autoFocus
                                   onClick={e => e.stopPropagation()}
                                 />
@@ -377,7 +436,7 @@ export default function Estadisticas() {
                           );
                         })}
                         <td className="py-2 px-3 text-right font-mono font-bold text-emerald-400">
-                          {formatNumber(currentData[mi]?.[selectedTab === 'ventas' ? 'sales_count' : 'cash_amount'] || 0)}
+                          {formatNumber(monthVal(selectedYear, monthNum))}
                         </td>
                       </tr>
                     );
@@ -387,11 +446,12 @@ export default function Estadisticas() {
                   <tr className="bg-[#181a20] border-t-2 border-[#2d3444] text-xs font-bold font-mono">
                     <td className="py-2.5 px-3 text-slate-300 uppercase tracking-wider">Total</td>
                     {years.map(y => {
-                      const total = stats.filter(s => s.year === y).reduce((sum, s) => sum + s[selectedTab === 'ventas' ? 'sales_count' : 'cash_amount'], 0);
+                      let total = 0;
+                      for (let m = 1; m <= 12; m++) total += monthVal(y, m);
                       return <td key={y} className="py-2.5 px-3 text-right text-white">{formatNumber(total)}</td>;
                     })}
                     <td className="py-2.5 px-3 text-right text-emerald-400">
-                      {formatNumber(getMonthlyTotal(currentData, selectedTab === 'ventas' ? 'sales_count' : 'cash_amount'))}
+                      {formatNumber(yearProfit(selectedYear))}
                     </td>
                   </tr>
                 </tfoot>
@@ -405,31 +465,31 @@ export default function Estadisticas() {
             <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                  <BarChart3 size={14} className="text-[#5aa6ec]" />
-                  {selectedTab === 'ventas' ? 'Ventas' : 'Caja'} por Mes
+                  <BarChart3 size={14} className="text-[#A63A42]" />
+                  {selectedTab === 'ventas' ? 'Ventas' : selectedTab === 'ganancia' ? 'Ganancia' : 'Caja'} por Mes
                 </h3>
                 <div className="flex gap-1">
                   {years.slice(0, 5).map(y => (
                     <button key={y} onClick={() => setChartYear(y)} className={`py-0.5 px-2 rounded text-[10px] font-mono transition-all ${
-                      chartYear === y ? 'bg-[#5aa6ec] text-slate-900 font-bold' : 'text-slate-500 hover:text-white'
+                      chartYear === y ? 'bg-[#A63A42] text-slate-900 font-bold' : 'text-slate-500 hover:text-white'
                     }`}>{y}</button>
                   ))}
                 </div>
               </div>
               <div className="flex items-end gap-1.5 h-40">
-                {chartData.map((d, i) => {
-                  const maxVal = getMaxValue(chartData, selectedTab === 'ventas' ? 'sales_count' : 'cash_amount');
-                  const val = d[selectedTab === 'ventas' ? 'sales_count' : 'cash_amount'];
+                {MONTHS.map((monthLabel, mi) => {
+                  const val = monthVal(chartYear, mi + 1);
+                  const maxVal = Math.max(...MONTHS.map((_, mi2) => monthVal(chartYear, mi2 + 1)), 1);
                   const pct = (val / maxVal) * 100;
                   return (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                    <div key={mi} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
                       <span className="text-[9px] font-mono text-slate-500">{formatNumber(val)}</span>
                       <div
-                        className={`w-full rounded-t transition-all ${selectedTab === 'ventas' ? 'bg-emerald-500/80' : 'bg-blue-500/80'} hover:opacity-80`}
+                        className={`w-full rounded-t transition-all ${selectedTab === 'ventas' ? 'bg-emerald-500/80' : selectedTab === 'ganancia' ? 'bg-cyan-500/80' : 'bg-red-500/80'} hover:opacity-80`}
                         style={{ height: `${Math.max(pct, 2)}%` }}
-                        title={`${MONTHS[i]}: ${formatNumber(val)}`}
+                        title={`${monthLabel}: ${formatNumber(val)}`}
                       />
-                      <span className="text-[8px] font-mono text-slate-600">{MONTHS[i].slice(0, 3)}</span>
+                      <span className="text-[8px] font-mono text-slate-600">{monthLabel.slice(0, 3)}</span>
                     </div>
                   );
                 })}
@@ -449,31 +509,48 @@ export default function Estadisticas() {
               </div>
               <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
                 <span className="text-[10px] tracking-widest text-slate-400 font-mono uppercase flex items-center gap-1.5">
-                  <Database size={13} className="text-blue-400" /> Caja {selectedYear}
+                  <Database size={13} className="text-red-400" /> Caja {selectedYear}
                 </span>
-                <div className="text-3xl font-extrabold font-display text-blue-400 mt-2">
+                <div className="text-3xl font-extrabold font-display text-red-400 mt-2">
                   ${formatNumber(getMonthlyTotal(currentData, 'cash_amount'))}
                 </div>
                 <span className="text-[10px] text-slate-500 font-mono mt-1">Monto acumulado en el año</span>
               </div>
               <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
                 <span className="text-[10px] tracking-widest text-slate-400 font-mono uppercase flex items-center gap-1.5">
+                  <TrendingUp size={13} className="text-cyan-400" /> Ganancia {selectedYear}
+                </span>
+                <div className="text-3xl font-extrabold font-display text-cyan-400 mt-2">
+                  ${formatNumber(yearProfit(selectedYear))}
+                </div>
+                <span className="text-[10px] text-slate-500 font-mono mt-1">Aproximada con costo actual</span>
+              </div>
+              <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
+                <span className="text-[10px] tracking-widest text-slate-400 font-mono uppercase flex items-center gap-1.5">
                   <TrendingUp size={13} className="text-emerald-400" /> Promedio Mensual
                 </span>
                 <div className="text-xl font-extrabold font-display text-white mt-2">
-                  {currentData.length > 0 ? formatNumber(Math.round(getMonthlyTotal(currentData, selectedTab === 'ventas' ? 'sales_count' : 'cash_amount') / currentData.length)) : '0'}
+                  {selectedTab === 'ganancia'
+                    ? formatNumber(Math.round(yearProfit(selectedYear) / 12))
+                    : (currentData.length > 0 ? formatNumber(Math.round(getMonthlyTotal(currentData, selectedTab === 'ventas' ? 'sales_count' : 'cash_amount') / currentData.length)) : '0')}
                 </div>
-                <span className="text-[10px] text-slate-500 font-mono mt-1">{selectedTab === 'ventas' ? 'Ventas' : 'Caja'} / mes</span>
+                <span className="text-[10px] text-slate-500 font-mono mt-1">{selectedTab === 'ventas' ? 'Ventas' : selectedTab === 'ganancia' ? 'Ganancia' : 'Caja'} / mes</span>
               </div>
               <div className="bg-[#111318] border border-[#1f242e] rounded-xl p-5 flex flex-col justify-between">
                 <span className="text-[10px] tracking-widest text-slate-400 font-mono uppercase flex items-center gap-1.5">
                   <TrendingUp size={13} className="text-emerald-400" /> Mejor Mes
                 </span>
                 <div className="text-xl font-extrabold font-display text-amber-400 mt-2">
-                  {currentData.length > 0 ? (() => {
+                  {selectedTab === 'ganancia' ? (() => {
+                    let bi = 0;
+                    for (let mi = 1; mi < 12; mi++) {
+                      if (profitOfMonth(selectedYear, mi + 1) > profitOfMonth(selectedYear, bi + 1)) bi = mi;
+                    }
+                    return `${MONTHS[bi]} (${formatNumber(profitOfMonth(selectedYear, bi + 1))})`;
+                  })() : (currentData.length > 0 ? (() => {
                     const best = currentData.reduce((max, d) => d[selectedTab === 'ventas' ? 'sales_count' : 'cash_amount'] > max[selectedTab === 'ventas' ? 'sales_count' : 'cash_amount'] ? d : max);
                     return `${MONTHS[best.month - 1]} (${formatNumber(best[selectedTab === 'ventas' ? 'sales_count' : 'cash_amount'])})`;
-                  })() : '-'}
+                  })() : '-')}
                 </div>
                 <span className="text-[10px] text-slate-500 font-mono mt-1">Mayor registro del año</span>
               </div>

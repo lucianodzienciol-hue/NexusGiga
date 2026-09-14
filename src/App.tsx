@@ -1,45 +1,58 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
-  ShoppingBag, 
   HelpCircle, 
   Settings, 
   User, 
-  ChevronRight, 
   CheckCircle, 
   RotateCcw, 
-  FileSpreadsheet, 
-  Users, 
-  Store, 
-  Download,
+  ExternalLink,
   AlertTriangle,
   LogOut,
-  Calculator,
-  Wallet
+  Download,
+  Bell,
+  Map,
 } from 'lucide-react';
-import { Product, Client, Provider, Sale, PaymentMethod, CompanyConfig, Expense, CashRegister, WebClient, WebRepair } from './types';
-import TerminalVenta from './components/TerminalVenta';
+import { Product, Client, Provider, Sale, PaymentMethod, CompanyConfig, Expense, CashRegister, WebRepair } from './types';
+import AdminGate from './components/AdminGate';
+
+import { APP_EDITION, APP_LABEL, APP_VERSION, LITE_TABS } from './lib/edition';
+import { CURRENCIES, currencyCodeOf, formatMoney } from './lib/currency';
+import { isLocal } from './lib/supabase';
+import { buildSetupCtx } from './lib/setupStatus';
+import OnboardingGuide from './components/OnboardingGuide';
 import Articulos from './components/Articulos';
-import Clientes from './components/Clientes';
-import Historiales from './components/Historiales';
-import PaymentMethods from './components/PaymentMethods';
-import Egresos from './components/Egresos';
-import Reparaciones from './components/Reparaciones';
 import PanelWeb from './components/PanelWeb';
-import Estadisticas from './components/Estadisticas';
 import Backups from './components/Backups';
+import Notas from './components/Notas';
+import PedidosWeb from './components/PedidosWeb';
+import ProcessMonitor from './components/ProcessMonitor';
+import TerminalVenta from './components/TerminalVenta';
+import Clientes from './components/Clientes';
+import Proveedores from './components/Proveedores';
+import Compras from './components/Compras';
+import Egresos from './components/Egresos';
+import PaymentMethods from './components/PaymentMethods';
+import Historiales from './components/Historiales';
+import Reparaciones from './components/Reparaciones';
 import Pendientes from './components/Pendientes';
 import Cambios from './components/Cambios';
-import Notas from './components/Notas';
-import WhatsAppConfig from './components/WhatsAppConfig';
-import ProcessMonitor from './components/ProcessMonitor';
-import WhatsAppStatus from './components/WhatsAppStatus';
+import Estadisticas from './components/Estadisticas';
 
-type TabType = 'Vender' | 'Historiales' | 'Artículos' | 'Clientes' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web' | 'Estadísticas' | 'Backups' | 'Pendientes' | 'Notas' | 'Cambios' | 'WhatsApp';
+type TabType = 'Vender' | 'Compras' | 'Historiales' | 'Artículos' | 'Clientes' | 'Proveedores' | 'Egresos' | 'Métodos de Pago' | 'Reparaciones' | 'Panel Web' | 'Estadísticas' | 'Backups' | 'Pendientes' | 'Notas' | 'Cambios' | 'Pedidos';
+
+const FULL_TABS: TabType[] = ['Vender', 'Compras', 'Historiales', 'Artículos', 'Clientes', 'Proveedores', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Notas', 'Cambios', 'Pedidos'];
+
+function allowedTabs(): TabType[] {
+  if (APP_EDITION === 'lite') return [...LITE_TABS] as TabType[];
+  return [...FULL_TABS];
+}
+
+interface Order { id: string; status: string; clientName?: string; total: number; }
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>(() => {
-    const saved = localStorage.getItem('nexus_activeTab');
-    const valid: TabType[] = ['Vender', 'Historiales', 'Artículos', 'Clientes', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Notas', 'Cambios', 'WhatsApp'];
+    const saved = localStorage.getItem('nexus3_activeTab');
+    const valid: TabType[] = allowedTabs();
     return valid.includes(saved as TabType) ? (saved as TabType) : 'Vender';
   });
   const [products, setProducts] = useState<Product[]>([]);
@@ -48,48 +61,73 @@ export default function App() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [companyConfig, setCompanyConfig] = useState<CompanyConfig | null>(null);
+  const [savingCurrency, setSavingCurrency] = useState(false);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [cashRegister, setCashRegister] = useState<CashRegister>({ cash: 0, bank: 0 });
   const [stockWarningEnabled, setStockWarningEnabled] = useState(true);
-  const [waEnabled, setWaEnabled] = useState(true);
+  const [saleCounter, setSaleCounter] = useState(1);
+  const [purchaseCounter, setPurchaseCounter] = useState(1);
+  const [repairCounter, setRepairCounter] = useState(1);
   const [webData, setWebData] = useState<any>(null);
   const [repairs, setRepairs] = useState<WebRepair[]>([]);
 
-  // Persist activeTab to localStorage
-  useEffect(() => { localStorage.setItem('nexus_activeTab', activeTab); }, [activeTab]);
+  useEffect(() => { localStorage.setItem('nexus3_activeTab', activeTab); }, [activeTab]);
 
-  // Auto-sync GitHub
-  const [gitToken, setGitToken] = useState('');
-  const [backupPassword, setBackupPassword] = useState('');
-  const [syncStatus, setSyncStatus] = useState<{ pending: boolean; syncing: boolean; lastSync: string | null; error: string | null }>({ pending: false, syncing: false, lastSync: null, error: null });
+  useEffect(() => {
+    const el = document.getElementById('nexus-preloader');
+    if (el) { setTimeout(() => { el.style.transition = 'opacity .5s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 6500); }
+  }, []);
+
   const [showRestorePanel, setShowRestorePanel] = useState(false);
   const [encryptedBackups, setEncryptedBackups] = useState<any[]>([]);
   const [selectedBackup, setSelectedBackup] = useState('');
   const [restorePassword, setRestorePassword] = useState('');
   const [restoreLoading, setRestoreLoading] = useState(false);
+  const [githubToken, setGithubToken] = useState('');
+  const [githubRepo, setGithubRepo] = useState('');
+  const [webUrl, setWebUrl] = useState('');
+  const [deployLoading, setDeployLoading] = useState(false);
 
-  // App system utility overlays
   const [showHelp, setShowHelp] = useState(false);
-  const [showCaja, setShowCaja] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showSyncModal, setShowSyncModal] = useState(false);
   const [showProcessMonitor, setShowProcessMonitor] = useState(false);
-  const [syncModalType, setSyncModalType] = useState<'syncing' | 'success' | 'error'>('syncing');
-  const navTabs: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Reparaciones', 'Métodos de Pago', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Notas', 'Cambios', 'WhatsApp'];
+  const [showGuide, setShowGuide] = useState(false);
 
+  const knownOrderIds = useRef<Set<string>>(new Set());
+  const [newOrderAlert, setNewOrderAlert] = useState<{ id: string; clientName: string; total: number } | null>(null);
 
-  const TAB_KEYS: TabType[] = ['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Notas', 'Cambios', 'WhatsApp'];
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const playNotificationSound = useCallback(() => {
+    try {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') ctx.resume();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.value = 0.15;
+      osc.start();
+      osc.stop(ctx.currentTime + 0.15);
+    } catch {}
+  }, []);
+
+  const navTabs: TabType[] = allowedTabs();
+  const TAB_KEYS: TabType[] = navTabs;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (showSyncModal && syncModalType === 'syncing') { e.preventDefault(); return; }
         if (showHelp) { setShowHelp(false); e.preventDefault(); return; }
-        if (showCaja) { setShowCaja(false); e.preventDefault(); return; }
         if (showSettings) { setShowSettings(false); e.preventDefault(); return; }
         if (showProcessMonitor) { setShowProcessMonitor(false); e.preventDefault(); return; }
+        if (showGuide) { setShowGuide(false); e.preventDefault(); return; }
       }
-      // Alt+1..0 cambia de pestana (AltGr saltado porque envía ctrlKey+altKey)
       if (e.altKey && !e.ctrlKey && ['1','2','3','4','5','6','7','8','9','0'].includes(e.key)) {
         e.preventDefault();
         const idx = e.key === '0' ? 9 : parseInt(e.key) - 1;
@@ -102,60 +140,26 @@ export default function App() {
           setShowHelp(prev => !prev);
         }
       }
-      // Alt+Ctrl+G sincronización manual con GitHub
-      if (e.altKey && e.ctrlKey && e.key.toLowerCase() === 'g') {
-        e.preventDefault();
-        if (syncStatus.syncing) return;
-        setShowSyncModal(true);
-        setSyncModalType('syncing');
-        showToast('Sincronizando con GitHub...', 'info');
-        (async () => {
-          try { await fetch('/api/sync-full', { method: 'POST' }); setSyncModalType('success'); showToast('Sincronización completada', 'success'); } 
-          catch { setSyncModalType('error'); showToast('Error en sincronización', 'error'); }
-          setTimeout(() => setShowSyncModal(false), 4000);
-        })();
-      }
-      // Alt+P monitor de procesos
       if (e.altKey && e.key.toLowerCase() === 'p') {
         e.preventDefault();
         setShowProcessMonitor(prev => !prev);
       }
-    };
+      if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        setShowSettings(prev => !prev);
+      }    };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showHelp, showCaja, showSettings, syncStatus]);
+  }, [showHelp, showSettings, showProcessMonitor, showGuide]);
 
-  // Poll auto-sync status
+  // Load counters when settings panel opens
   useEffect(() => {
-    const check = async () => {
-      try {
-        const res = await fetch('/api/auto-sync-status');
-        if (res.ok) {
-          const newStatus = await res.json();
-          setSyncStatus(prev => {
-            if (newStatus.syncing && !prev.syncing) {
-              setSyncModalType('syncing');
-              setShowSyncModal(true);
-            } else if (!newStatus.syncing && prev.syncing) {
-              if (newStatus.error) {
-                setSyncModalType('error');
-                showToast('Error en sincronización automática', 'error');
-              } else if (newStatus.lastSync) {
-                setSyncModalType('success');
-                showToast('Sincronización automática completada', 'success');
-              }
-              setShowSyncModal(true);
-              setTimeout(() => setShowSyncModal(false), 4000);
-            }
-            return newStatus;
-          });
-        }
-      } catch {}
-    };
-    check();
-    const id = setInterval(check, 30000);
-    return () => clearInterval(id);
-  }, []);
+    if (showSettings) {
+      fetch('/api/counters').then(r => r.ok && r.json()).then(d => {
+        if (d) { setSaleCounter(d.sale); setPurchaseCounter(d.purchase); setRepairCounter(d.repair); }
+      }).catch(() => {});
+    }
+  }, [showSettings]);
 
   const fetchAllData = useCallback(async () => {
     try {
@@ -171,7 +175,7 @@ export default function App() {
         fetch('/api/cash-register'),
         fetch('/api/repairs')
       ]);
-      
+
       if (pRes.ok) setProducts(await pRes.json());
       if (cRes.ok) setClients(await cRes.json());
       if (prRes.ok) setProviders(await prRes.json());
@@ -179,10 +183,11 @@ export default function App() {
       if (pmRes.ok) setPaymentMethods(await pmRes.json());
       if (ccRes.ok) {
         const ccData = await ccRes.json();
-        if (ccData && ccData.companyName) {
+        if (ccData) {
           setCompanyConfig(ccData);
-          if (ccData.gitToken) setGitToken(ccData.gitToken);
-          if (ccData.backupPassword) setBackupPassword(ccData.backupPassword);
+          if (ccData.githubToken) setGithubToken(ccData.githubToken);
+          if (ccData.githubRepo) setGithubRepo(ccData.githubRepo);
+          if (ccData.webUrl) setWebUrl(ccData.webUrl);
         } else {
           setCompanyConfig(null);
         }
@@ -191,19 +196,12 @@ export default function App() {
         const swData = await swRes.json();
         setStockWarningEnabled(swData.enabled);
       }
-      try {
-        const waRes = await fetch('/api/whatsapp/enabled');
-        if (waRes.ok) {
-          const waData = await waRes.json();
-          setWaEnabled(waData.enabled);
-        }
-      } catch {}
       if (eRes.ok) setExpenses(await eRes.json());
       if (crRes.ok) setCashRegister(await crRes.json());
       if (rRes.ok) setRepairs(await rRes.json());
       try { const wd = await (await fetch('/api/web-data')).json(); setWebData(wd); } catch {}
     } catch (err) {
-      console.error('Error syncing local database:', err);
+      console.error('Error fetching data:', err);
     }
   }, []);
 
@@ -211,48 +209,73 @@ export default function App() {
     fetchAllData();
   }, []);
 
-  const handleToggleStockWarning = async () => {
-    const newVal = !stockWarningEnabled;
-    try {
-      const res = await fetch('/api/stock-warning', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: newVal })
-      });
-      if (res.ok) setStockWarningEnabled(newVal);
-    } catch (err) {
-      console.error('Error toggling stock warning:', err);
-    }
-  };
+  useEffect(() => {
+    const unlockAudio = () => {
+      try {
+        if (!audioCtxRef.current) {
+          audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        if (audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume();
+      } catch {}
+      document.removeEventListener('click', unlockAudio);
+      document.removeEventListener('touchstart', unlockAudio);
+    };
+    document.addEventListener('click', unlockAudio, { once: true });
+    document.addEventListener('touchstart', unlockAudio, { once: true });
+  }, []);
 
-  const handleToggleWA = async () => {
-    const newVal = !waEnabled;
-    try {
-      const res = await fetch('/api/whatsapp/enabled', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: newVal })
-      });
-      if (res.ok) setWaEnabled(newVal);
-    } catch (err) {
-      console.error('Error toggling WhatsApp:', err);
-    }
-  };
+  useEffect(() => {
+    if (!isLocal()) return;
+    let sse: EventSource | null = null;
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
 
-  const handleImportCompanyConfig = async () => {
-    try {
-      const res = await fetch('/api/import-company-config', { method: 'POST' });
-      const data = await res.json();
-      if (data.success) {
-        alert(data.message);
-        fetchAllData();
-      } else {
-        alert(data.message || 'Error al importar');
-      }
-    } catch (err) {
-      alert('Error al conectar con Web-main');
-    }
-  };
+    const seedKnownIds = async () => {
+      try {
+        const r = await fetch('/api/orders');
+        if (!r.ok) return;
+        const orders: Order[] = await r.json();
+        for (const o of orders) {
+          if (o.status === 'pendiente') knownOrderIds.current.add(o.id);
+        }
+      } catch {}
+    };
+
+    const onNewOrder = (o: Order) => {
+      if (knownOrderIds.current.has(o.id)) return;
+      knownOrderIds.current.add(o.id);
+      setNewOrderAlert({ id: o.id, clientName: o.clientName || 'Sin nombre', total: o.total });
+      playNotificationSound();
+    };
+
+    seedKnownIds().then(() => {
+      try {
+        sse = new EventSource('/api/orders/subscribe');
+        sse.addEventListener('new-order', (e: MessageEvent) => {
+          try { onNewOrder(JSON.parse(e.data)); } catch {}
+        });
+        sse.onerror = () => {};
+      } catch {}
+    });
+
+    pollTimer = setInterval(async () => {
+      try {
+        const r = await fetch('/api/orders');
+        if (!r.ok) return;
+        const orders: Order[] = await r.json();
+        for (const o of orders) {
+          if (o.status === 'pendiente' && !knownOrderIds.current.has(o.id)) {
+            onNewOrder(o);
+            break;
+          }
+        }
+      } catch {}
+    }, 15000);
+
+    return () => {
+      if (sse) sse.close();
+      if (pollTimer) clearInterval(pollTimer);
+    };
+  }, [playNotificationSound]);
 
   const handleDownloadApp = () => {
     window.location.href = '/api/download-app';
@@ -294,12 +317,24 @@ export default function App() {
     e.target.value = '';
   };
 
-  // Quick select clients tab from Vender checkout shortcut
+  const handleToggleStockWarning = async () => {
+    const newVal = !stockWarningEnabled;
+    try {
+      const res = await fetch('/api/stock-warning', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: newVal })
+      });
+      if (res.ok) setStockWarningEnabled(newVal);
+    } catch (err) {
+      console.error('Error toggling stock warning:', err);
+    }
+  };
+
   const navigateToClientsTab = () => {
     setActiveTab('Clientes');
   };
 
-  // Header quick search binds and switches to sales terminal and alerts focus
   // Aggregate stats for Caja drawer
   const totalCajaSum = sales.reduce((sum, s) => sum + s.total, 0) - expenses.reduce((sum, e) => sum + e.amount, 0);
   const paymentsByMethod = sales.reduce<Record<string, number>>((acc, s) => {
@@ -308,24 +343,20 @@ export default function App() {
   }, {});
 
   return (
-    <div className="min-h-screen bg-[#0c0d10] flex flex-col justify-between font-sans selection:bg-[#5aa6ec]/20 selection:text-white">
+    <AdminGate>
+    <div className="min-h-screen bg-[#0c0d10] flex flex-col justify-between font-sans selection:bg-[#A63A42]/20 selection:text-white">
       
-      {/* HEADER SECTION --- MATCHING PHOTO */}
       <header className="bg-[#0f1115] border-b border-[#1f242e] sticky top-0 z-30 px-6 py-2">
         <div className="max-w-7xl mx-auto flex items-center gap-4">
           
-          {/* Logo Brand Brand */}
           <div className="flex items-center gap-3 shrink-0 cursor-pointer select-none" onClick={() => setActiveTab('Vender')}>
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-[#5aa6ec] to-blue-600 flex items-center justify-center p-1 shadow-md shadow-blue-500/10">
-              <Calculator size={20} className="text-[#0c0d10] font-bold" />
-            </div>
+            <img src="/logo.png" alt={APP_LABEL} className="h-12 w-12 rounded-lg object-cover shadow-md shadow-red-900/20" />
             <div className="flex flex-col">
-              <span className="text-base font-black text-white tracking-widest leading-none">NEXUS</span>
-              <span className="text-[10px] tracking-widest text-slate-400 font-mono font-bold uppercase mt-0.5">POS</span>
+              <span className="text-base font-black text-white tracking-widest leading-none">NEXUS FULL</span>
+              <span className="text-[10px] tracking-widest text-slate-400 font-mono font-bold uppercase mt-0.5">PUNTO DE VENTA</span>
             </div>
           </div>
 
-          {/* Center Navigation Menu Bar */}
           <nav className="hidden md:flex flex-1 flex-wrap items-center justify-center gap-x-1 gap-y-0.5">
             {navTabs.map((tab, idx) => {
               const isActive = activeTab === tab;
@@ -342,33 +373,16 @@ export default function App() {
                   <span className="text-[9px] text-slate-500 mr-1 font-mono">Alt+{idx + 1}</span>
                   {tab}
                     {isActive && (
-                    <div className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#5aa6ec]" />
+                    <div className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#A63A42]" />
                   )}
                 </button>
               );
             })}
           </nav>
 
-          {/* Right Header Controls - Search, Settings, Help, Avatar */}
           <div className="flex items-center gap-4 shrink-0">
-            
-            {/* Utility buttons */}
             <div className="flex items-center gap-1.5">
-              <a
-                href="https://github.com/lucianodzienciol-hue/NexusGiga"
-                target="_blank"
-                rel="noopener noreferrer"
-                title={`GitHub - Nexus POS${syncStatus.error ? ' (Error)' : syncStatus.lastSync ? ' (Sincronizado)' : ''}`}
-                className={`p-2 rounded-lg transition-all cursor-pointer inline-flex items-center ${
-                  syncStatus.error
-                    ? 'text-red-400 hover:text-red-300 hover:bg-red-900/30'
-                    : syncStatus.lastSync
-                    ? 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/30'
-                    : 'text-slate-400 hover:text-white hover:bg-[#1a1d24]'
-                }`}
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-              </a>
+
               <button 
                 onClick={() => setShowHelp(true)}
                 title="Ayuda / Atajos"
@@ -377,23 +391,26 @@ export default function App() {
                 <HelpCircle size={15} />
               </button>
 
-              <button 
-                onClick={() => setShowSettings(!showSettings)}
-                title="Ajustes de Terminal"
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#1a1d24] transition-all cursor-pointer"
+              <a 
+                href="/web/"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Tienda online"
+                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#1a1d24] transition-all cursor-pointer inline-flex items-center"
               >
-                <Settings size={15} />
-              </button>
+                <ExternalLink size={15} />
+              </a>
+
+
             </div>
 
-            {/* User Profile display */}
             <div className="flex items-center gap-2 pl-2 border-l border-[#1f242e]">
-              <div className="h-7 w-7 rounded-full bg-[#181a20] border border-[#2d3444] flex items-center justify-center text-[#5aa6ec]">
+              <div className="h-7 w-7 rounded-full bg-[#181a20] border border-[#2d3444] flex items-center justify-center text-[#A63A42]">
                 <User size={13} />
               </div>
               <div className="hidden xl:flex flex-col text-left">
                 <span className="text-[11px] font-semibold text-white leading-tight">Admin</span>
-                <span className="text-[9px] text-[#5aa6ec] font-mono leading-none">Terminal 01</span>
+                <span className="text-[9px] text-[#A63A42] font-mono leading-none">{webData?.config?.companyName || 'Mi Empresa'}</span>
               </div>
             </div>
 
@@ -402,16 +419,15 @@ export default function App() {
         </div>
       </header>
 
-      {/* MOBILE TAB DRAWER (ONLY ON SMALL DEVICES) */}
       <div className="md:hidden bg-[#0f1115] border-b border-[#1f242e] px-4 py-2 flex gap-1 overflow-x-auto">
- {(['Artículos', 'Clientes', 'Vender', 'Historiales', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Notas', 'WhatsApp', 'Cambios'] as const).map((tab, idx) => {
+        {(['Vender', 'Compras', 'Historiales', 'Artículos', 'Clientes', 'Proveedores', 'Egresos', 'Métodos de Pago', 'Reparaciones', 'Panel Web', 'Estadísticas', 'Backups', 'Pendientes', 'Notas', 'Cambios', 'Pedidos'] as const).map((tab, idx) => {
           const isActive = activeTab === tab;
           return (
             <button
               key={tab}
               onClick={() => { setActiveTab(tab); }}
               className={`py-1 px-3 text-[11px] rounded font-medium shrink-0 transition-all ${
-                isActive ? 'bg-[#5aa6ec] text-slate-950 font-bold' : 'text-slate-400'
+                isActive ? 'bg-[#A63A42] text-slate-950 font-bold' : 'text-slate-400'
               }`}
             >
               {tab}
@@ -420,10 +436,8 @@ export default function App() {
         })}
       </div>
 
-      {/* CORE FRAMEWORK INNER SCREEN PAGE CONTROLLER */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
         
-        {/* TAB RENDERING SEGMENT */}
         {activeTab === 'Vender' && (
           <TerminalVenta 
             products={products} 
@@ -436,28 +450,36 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'Compras' && (
+          <Compras products={products} providers={providers} onRefresh={fetchAllData} currency={currencyCodeOf(companyConfig?.currency)} />
+        )}
+
+        {activeTab === 'Historiales' && (
+          <Historiales sales={sales} paymentMethods={paymentMethods} companyConfig={companyConfig} onRefresh={fetchAllData} repairs={repairs} products={products} />
+        )}
+
         {activeTab === 'Artículos' && (
-          <Articulos products={products} categories={webData?.categories || []} onRefresh={fetchAllData} />
+          <Articulos products={products} categories={webData?.categories || []} onRefresh={fetchAllData} currency={currencyCodeOf(companyConfig?.currency)} />
         )}
 
         {activeTab === 'Clientes' && (
           <Clientes clients={clients} onRefresh={fetchAllData} />
         )}
 
-        {activeTab === 'Historiales' && (
-          <Historiales sales={sales} paymentMethods={paymentMethods} companyConfig={companyConfig} onRefresh={fetchAllData} repairs={repairs} />
+        {activeTab === 'Proveedores' && (
+          <Proveedores providers={providers} onRefresh={fetchAllData} />
+        )}
+
+        {activeTab === 'Egresos' && (
+          <Egresos expenses={expenses} onRefresh={fetchAllData} currency={currencyCodeOf(companyConfig?.currency)} />
         )}
 
         {activeTab === 'Métodos de Pago' && (
           <PaymentMethods paymentMethods={paymentMethods} onRefresh={fetchAllData} />
         )}
 
-        {activeTab === 'Egresos' && (
-          <Egresos expenses={expenses} onRefresh={fetchAllData} />
-        )}
-
         {activeTab === 'Reparaciones' && (
-          <Reparaciones companyName={webData?.config?.companyName} companyAddress={webData?.config?.address} companyPhone={webData?.config?.phone} companyEmail={webData?.config?.email} companyWhatsapp={webData?.config?.whatsapp} onRefresh={fetchAllData} />
+          <Reparaciones companyName={webData?.config?.companyName} companyAddress={webData?.config?.address} companyPhone={webData?.config?.phone} companyEmail={webData?.config?.email} onRefresh={fetchAllData} currency={currencyCodeOf(companyConfig?.currency)} printMode={companyConfig?.printMode === 'ticket80' ? 'ticket80' : 'a4'} />
         )}
 
         {activeTab === 'Panel Web' && (
@@ -484,21 +506,19 @@ export default function App() {
           <Notas onRefresh={fetchAllData} />
         )}
 
-        {activeTab === 'WhatsApp' && (
-          <WhatsAppConfig />
+        {activeTab === 'Pedidos' && (
+          <PedidosWeb onRefresh={fetchAllData} currency={currencyCodeOf(companyConfig?.currency)} />
         )}
 
       </main>
 
-      {/* FOOTER BAR --- MATCHING PHOTO */}
       <footer className="bg-[#090a0d] border-t border-[#12151c] px-6 py-3.5 mt-auto text-xs font-mono text-slate-400">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           
-          {/* Left panel metrics */}
           <div className="flex items-center gap-4 text-slate-500">
             <span className="flex items-center gap-1.5 text-slate-300">
-              <span className="h-2 w-2 rounded-full bg-[#5aa6ec]" />
-              v2.4.0 - Conectado (Localhost)
+              <span className="h-2 w-2 rounded-full bg-[#A63A42]" />
+              {APP_LABEL}
             </span>
             <span className="hidden sm:inline text-slate-600">|</span>
             <button 
@@ -515,29 +535,30 @@ export default function App() {
               Monitor
             </button>
             <span className="hidden sm:inline text-slate-600">|</span>
-            <WhatsAppStatus />
-            <span className="hidden sm:inline text-slate-600">|</span>
-            <button 
-              onClick={() => setShowCaja(true)} 
-              className="text-amber-500 hover:text-amber-400 font-bold"
-            >
-              Cerrar Caja
-            </button>
           </div>
 
-          {/* Right status */}
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               Sincronizado con Nube
             </span>
-            <span className="text-slate-500">Nexus POS — 2026</span>
+            <span className="text-slate-500">{APP_LABEL} — 2026</span>
           </div>
 
         </div>
       </footer>
 
-      {/* POPUP: HELP & SHORTCUT OVERLAY */}
+        <OnboardingGuide
+          open={showGuide}
+          ctx={buildSetupCtx(companyConfig, webData)}
+          webData={webData}
+          companyConfig={companyConfig}
+          onClose={() => setShowGuide(false)}
+          onOpenSettings={() => setShowSettings(true)}
+          onGoPanelWeb={() => { if (allowedTabs().includes('Panel Web')) setActiveTab('Panel Web'); setShowGuide(false); }}
+          onRefresh={fetchAllData}
+        />
+
         {showHelp && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-[#111318] border border-[#2d3444] rounded-xl max-w-md w-full overflow-hidden shadow-2xl p-6">
@@ -548,16 +569,16 @@ export default function App() {
 
               <div className="space-y-4 text-xs">
                 <p className="text-slate-400 leading-relaxed">
-                  Nexus POS está optimizado para funcionar sin mouse utilizando atajos y operaciones rápidas de teclado.
+                  {APP_LABEL} — Punto de venta completo. Administrá ventas, compras, clientes, reparaciones y estadísticas.
                 </p>
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center py-2 border-b border-[#1b1e26] font-mono">
-                    <span className="text-white font-semibold">F1</span>
+                    <span className="text-white font-semibold rounded px-1.5 bg-[#A63A42]" text-left>F1</span>
                     <span className="text-slate-400 text-right">Enfocar búsqueda de productos</span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-[#1b1e26] font-mono">
-                    <span className="text-white font-semibold">Alt+1..9</span>
+                    <span className="text-white font-semibold">Alt+1..10</span>
                     <span className="text-slate-400 text-right">Navegar entre secciones</span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-[#1b1e26] font-mono">
@@ -565,125 +586,151 @@ export default function App() {
                     <span className="text-slate-400 text-right">Cerrar modal / cancelar</span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-[#1b1e26] font-mono">
-                    <span className="text-white font-semibold">↑ ↓</span>
-                    <span className="text-slate-400 text-right">Navegar resultados de búsqueda</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-[#1b1e26] font-mono">
-                    <span className="text-white font-semibold">ENTER</span>
-                    <span className="text-slate-400 text-right">Seleccionar producto / confirmar</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-[#1b1e26] font-mono">
                     <span className="text-white font-semibold">?</span>
                     <span className="text-slate-400 text-right">Abrir / cerrar esta ayuda</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-[#1b1e26] font-mono">
+                    <span className="text-white font-semibold">Alt+P</span>
+                    <span className="text-slate-400 text-right">Abrir monitor de procesos</span>
                   </div>
                 </div>
 
                 <div className="pt-4 border-t border-[#2d3444] space-y-1 text-slate-500 text-[10px]">
-                  <span>Versión de Módulo: v2.4.0 (Canal Estable)</span><br/>
-                  <span>Compilado para puerto local: 3010</span><br/>
-                  <span>Desarrollado en Node.js + Express + React SPA</span>
+                  <span>{APP_LABEL} — Punto de Venta</span><br/>
+                  <span>Servidor local: {window.location.host}</span><br/>
+                  <span>React + Vite + Tailwind CSS</span>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-      {/* POPUP: CERRAR CAJA / AUDIT REPORT */}
-        {showCaja && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-[#111318] border border-[#2d3444] rounded-xl max-w-md w-full overflow-hidden shadow-2xl">
-              <div className="bg-[#181a20] px-6 py-4 border-b border-[#2d3444] flex items-center justify-between">
-                <span className="font-bold text-amber-500 font-display flex items-center gap-1.5 uppercase tracking-wide text-sm">
-                  <AlertTriangle size={16} />
-                  Arqueo y Cierre de Caja
-                </span>
-                <button onClick={() => setShowCaja(false)} className="text-slate-400 hover:text-white text-xs">Cerrar</button>
-              </div>
-
-              <div className="p-6 space-y-4">
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Realice la auditoría de caja antes de desconectar el terminal actual de la aplicación principal.
-                </p>
-
-                <div className="bg-[#0d0e12] border border-[#1f242e] rounded-lg p-4 space-y-2 text-xs font-mono">
-                  {paymentMethods.length > 0 ? paymentMethods.map(pm => (
-                    <div key={pm.id} className="flex justify-between text-slate-400">
-                      <span>{pm.name}:</span>
-                      <span className="text-white font-semibold">${(paymentsByMethod[pm.name] || 0).toFixed(0)}</span>
-                    </div>
-                  )) : (
-                    <div className="flex justify-between text-slate-400">
-                      <span>Sin métodos configurados</span>
-                      <span className="text-white font-semibold">$0.00</span>
-                    </div>
-                  )}
-                  <div className="border-b border-[#2d3444] my-2"></div>
-                  <div className="flex justify-between text-amber-400 font-bold text-sm">
-                    <span>SALDO DE CAJA:</span>
-                    <span>${totalCajaSum.toFixed(0)}</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-2">
-                  <button
-                    onClick={() => setShowCaja(false)}
-                    className="flex-1 py-2 text-xs font-semibold rounded-lg border border-[#2d3444] text-slate-400 hover:bg-[#1a1d24] hover:text-white"
-                  >
-                    Mantener Caja Abierta
-                  </button>
-                  <button
-                    onClick={() => {
-                      alert('¡Caja cerrada correctamente! Los datos del arqueo han sido archivados en el log del servidor local.');
-                      setShowCaja(false);
-                      setSales([]);
-                    }}
-                    className="flex-1 py-2 text-xs font-bold rounded-lg bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-1.5"
-                  >
-                    <LogOut size={13} />
-                    Proceder al Cierre
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-      {/* ADJUST SETTINGS SIDEDRAWER */}
         {showSettings && (
           <div className="fixed inset-0 z-40" onClick={() => setShowSettings(false)}>
             <div className="absolute inset-0 bg-black/40" />
             <div className="fixed inset-y-0 right-0 w-80 bg-[#111318] border-l border-[#2d3444] shadow-2xl p-6 flex flex-col justify-between overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div>
+              <div>
               <div className="flex justify-between items-center border-b border-[#2d3444] pb-4 mb-6">
                 <span className="font-semibold text-white font-display text-sm flex items-center gap-2">
-                  <Settings size={16} className="text-[#5aa6ec]" />
-                  Configuración del POS
+                  <Settings size={16} className="text-[#A63A42]" />
+                  Configuración
                 </span>
                 <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-white text-xs">Cerrar</button>
               </div>
+              <button
+                onClick={() => setShowGuide(true)}
+                className="w-full mb-4 flex items-center justify-center gap-2 bg-[#1c222d] hover:bg-[#252e3d] text-slate-300 border border-[#2d3444] font-bold py-2 px-3 rounded-lg text-xs transition-all cursor-pointer"
+              >
+                <Map size={13} /> Guía de inicio
+              </button>
 
               <div className="space-y-4 text-xs text-slate-400">
                 <div className="space-y-1">
-                  <label className="text-white font-medium block">Servidor del Módulo</label>
+                  <label className="text-white font-medium block">Servidor</label>
                   <input
                     type="text"
                     disabled
                     className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg p-2 text-slate-500 font-mono"
-                    value="http://localhost:3010"
+                    value="http://localhost:4051"
                   />
-                  <p className="text-[10px] text-slate-500">Determinado por el puerto especificado en el .bat ejecutable.</p>
+                  <p className="text-[10px] text-slate-500">Conectado al servidor principal Nexus.</p>
+                </div>
+
+                <div className="pt-4 border-t border-[#2d3444]/60 space-y-1">
+                  <span className="text-white font-medium block">Acerca de</span>
+                  <p className="text-[10px] text-slate-500 leading-normal">{APP_LABEL} {APP_VERSION} — licencia perpetua.</p>
+                </div>
+
+                <div className="pt-4 border-t border-[#2d3444]/60 space-y-2">
+                  <span className="text-white font-medium block">Vincular tienda</span>
+                  {(companyConfig as any)?.tenantSlug ? (
+                    <>
+                      <p className="text-[10px] text-slate-500 leading-normal">
+                        Vinculada: <span className="text-slate-300 font-mono">{(companyConfig as any).tenantSlug}</span>
+                      </p>
+                      <button
+                        onClick={async () => {
+                          try {
+                            const r = await fetch('/api/company-config', {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ tenantSlug: '', tenantWorker: '', tenantToken: '' })
+                            });
+                            if (r.ok) {
+                              setCompanyConfig((prev: any) => ({ ...(prev || {}), tenantSlug: '', tenantWorker: '', tenantToken: '' }));
+                              showToast('Tienda desvinculada', 'success');
+                            } else showToast('Error al desvincular', 'error');
+                          } catch { showToast('Error de conexión', 'error'); }
+                        }}
+                        className="text-slate-500 hover:text-slate-300 text-[11px] cursor-pointer"
+                      >Desvincular tienda en esta PC</button>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <label className="text-[10px] text-slate-500 font-mono uppercase block mb-1">Slug</label>
+                        <input
+                          type="text"
+                          id="tenant-slug"
+                          defaultValue=""
+                          placeholder="kiosco-don-pepe"
+                          className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-500 font-mono uppercase block mb-1">Worker</label>
+                        <input
+                          type="text"
+                          id="tenant-worker"
+                          defaultValue="https://nexus-tenants.lucianodzienciol.workers.dev"
+                          className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-500 font-mono uppercase block mb-1">Token</label>
+                        <input
+                          type="password"
+                          id="tenant-token"
+                          defaultValue=""
+                          placeholder="Pegá el token del alta"
+                          className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={async () => {
+                            const get = (id: string) => (document.getElementById(id) as HTMLInputElement)?.value.trim() || '';
+                            const slug = get('tenant-slug').toLowerCase();
+                            const worker = get('tenant-worker').replace(/\/+$/, '');
+                            const token = get('tenant-token');
+                            if (!/^[a-z0-9][a-z0-9-]{0,62}$/.test(slug)) { showToast('Slug inválido', 'error'); return; }
+                            if (!/^https?:\/\//.test(worker) || !token) { showToast('Worker y token requeridos', 'error'); return; }
+                            try {
+                              const r = await fetch('/api/company-config', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ tenantSlug: slug, tenantWorker: worker, tenantToken: token })
+                              });
+                              if (!r.ok) { showToast('Error al guardar', 'error'); return; }
+                              const t = await fetch('/api/tenant/status');
+                              const st = await t.json().catch(() => ({}));
+                              if (t.ok && st.configured) {
+                                setCompanyConfig((prev: any) => ({ ...(prev || {}), tenantSlug: slug, tenantWorker: worker, tenantToken: token }));
+                                showToast('Tienda vinculada. Probá Sincronizar tienda.', 'success');
+                              } else {
+                                showToast('Guardado, pero la tienda no responde. Revisá los datos.', 'error');
+                              }
+                            } catch { showToast('Error de conexión', 'error'); }
+                          }}
+                          className="flex-1 mt-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg text-xs transition-colors cursor-pointer"
+                        >Vincular tienda</button>
+                      </div>
+                      <p className="text-[10px] text-slate-500 leading-normal">O guardá el archivo <span className="font-mono">vincular-&lt;slug&gt;.json</span> en Descargas y abrí la app: se vincula sola.</p>
+                    </>
+                  )}
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-white font-medium block">Formato de Ticket</label>
-                  <select className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 focus:outline-none">
-                    <option>Térmico de 58mm</option>
-                    <option>Térmico de 80mm</option>
-                    <option>Factura A4 Estándar</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1 pt-2">
                   <label className="text-white font-medium block">Advertencia de Stock</label>
                   <div className="flex items-center gap-2 mt-1">
                     <input
@@ -697,30 +744,119 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="space-y-1 pt-2">
-                  <label className="text-white font-medium block">WhatsApp</label>
+                <div className="space-y-1">
+                  <label className="text-white font-medium block">Formato de impresión</label>
+                  <select
+                    value={companyConfig?.printMode === 'ticket80' ? 'ticket80' : 'a4'}
+                    onChange={async (e) => {
+                      try {
+                        const r = await fetch('/api/company-config', {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ printMode: e.target.value })
+                        });
+                        if (r.ok) {
+                          setCompanyConfig((prev: any) => ({ ...(prev || {}), printMode: e.target.value }));
+                          showToast(e.target.value === 'ticket80' ? 'Ticket térmico 80mm activado' : 'Factura A4 activada', 'success');
+                        } else showToast('Error al guardar', 'error');
+                      } catch { showToast('Error de conexión', 'error'); }
+                    }}
+                    className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none"
+                  >
+                    <option value="a4">Factura A4 (impresora normal)</option>
+                    <option value="ticket80">Ticket 80mm (impresora térmica)</option>
+                  </select>
+                  <p className="text-[10px] text-slate-500">La impresora se elige en el diálogo del sistema.</p>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-white font-medium block">Impresión Automática</label>
                   <div className="flex items-center gap-2 mt-1">
                     <input
                       type="checkbox"
-                      id="wa-enabled"
-                      checked={waEnabled}
-                      onChange={handleToggleWA}
+                      id="auto-print"
+                      checked={companyConfig?.autoPrint === true}
+                      onChange={async (e) => {
+                        try {
+                          const r = await fetch('/api/company-config', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ autoPrint: e.target.checked })
+                          });
+                          if (r.ok) {
+                            setCompanyConfig((prev: any) => ({ ...(prev || {}), autoPrint: e.target.checked }));
+                            showToast(e.target.checked ? 'Impresión automática activada' : 'Impresión automática desactivada', 'success');
+                          } else showToast('Error al guardar', 'error');
+                        } catch { showToast('Error de conexión', 'error'); }
+                      }}
                       className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded"
                     />
-                    <label htmlFor="wa-enabled" className="text-xs">Habilitar WhatsApp (requiere reinicio si se desactiva)</label>
+                    <label htmlFor="auto-print" className="text-xs">Imprimir al registrar venta (abre el diálogo)</label>
                   </div>
                 </div>
 
-                <div className="space-y-1 pt-2">
-                  <label className="text-white font-medium block">Impresión Automática</label>
+                <div className="space-y-1">
+                  <label className="text-white font-medium block">Listas de precios</label>
                   <div className="flex items-center gap-2 mt-1">
-                    <input type="checkbox" id="auto-print" defaultChecked className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded" />
-                    <label htmlFor="auto-print" className="text-xs">Imprimir ticket al registrar venta</label>
-                  </div>
+                    <input
+                      type="checkbox"
+                      id="price-lists"
+                      checked={!!companyConfig?.priceListsEnabled}
+                      onChange={async (e) => {
+                        try {
+                          const r = await fetch('/api/company-config', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ priceListsEnabled: e.target.checked })
+                          });
+                          if (r.ok) {
+                            setCompanyConfig((prev: any) => ({ ...(prev || {}), priceListsEnabled: e.target.checked }));
+                            showToast(e.target.checked ? 'Doble lista activada (minorista + mayorista)' : 'Lista única activada', 'success');
+                          } else showToast('Error al guardar', 'error');
+                        } catch { showToast('Error de conexión', 'error'); }
+                      }}
+                      className="h-4 w-4 bg-[#181a20] border-[#2d3444] rounded"
+                    />
+                    <label htmlFor="price-lists" className="text-xs">Minorista + mayorista (apagado = solo minorista)</label>
+                    </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-white font-medium block">Moneda</label>
+                  <select
+                    value={currencyCodeOf(companyConfig?.currency)}
+                    disabled={savingCurrency}
+                    onChange={(e) => {
+                      const code = e.target.value;
+                      if (code === currencyCodeOf(companyConfig?.currency)) return;
+                      setSavingCurrency(true);
+                      (async () => {
+                        try {
+                          const r = await fetch('/api/company-config', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ currency: code })
+                          });
+                          if (!r.ok) { showToast('Error al guardar', 'error'); return; }
+                          const check = await (await fetch('/api/company-config')).json().catch(() => null);
+                          const saved = check && typeof check.currency === 'string' ? check.currency.toUpperCase() : code;
+                          setCompanyConfig((prev: any) => ({ ...(prev || {}), currency: saved }));
+                          showToast(saved === code ? 'Moneda: ' + code : 'Moneda: ' + saved + ' (verificar)', saved === code ? 'success' : 'error');
+                        } catch { showToast('Error de conexión', 'error'); }
+                        finally { setSavingCurrency(false); }
+                      })();
+                    }}
+                    className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white focus:outline-none disabled:opacity-50"
+                  >
+                    {Object.keys(CURRENCIES).map((code) => (
+                      <option key={code} value={code}>{CURRENCIES[code].label}</option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-slate-500">Se aplica al POS y a la tienda online.</p>
                 </div>
 
                 <div className="pt-4 border-t border-[#2d3444]/60 space-y-3">
-                  <span className="text-white font-medium block flex items-center gap-1.5">
+                  <span className="text-white font-medium block">
                     Estado de Caja
                   </span>
                   <div className="flex gap-2">
@@ -746,130 +882,136 @@ export default function App() {
                   <p className="text-[10px] text-slate-500">Saldo inicial. Se descuentan los egresos automáticamente.</p>
                 </div>
 
+                <div className="pt-4 border-t border-[#2d3444]/60 space-y-3">
+                  <span className="text-white font-medium block">Numeración Maestra</span>
+                  <p className="text-[10px] text-slate-500">Los IDs se generan de forma correlativa ascendente desde el número que indiques.</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-[10px] text-slate-500 font-mono uppercase">VENTAS</label>
+                      <input type="number" min="1" value={saleCounter} onChange={e => setSaleCounter(parseInt(e.target.value) || 1)} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-2 text-xs text-white font-mono focus:outline-none" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-500 font-mono uppercase">COMPRAS</label>
+                      <input type="number" min="1" value={purchaseCounter} onChange={e => setPurchaseCounter(parseInt(e.target.value) || 1)} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-2 text-xs text-white font-mono focus:outline-none" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-500 font-mono uppercase">REPARAC.</label>
+                      <input type="number" min="1" value={repairCounter} onChange={e => setRepairCounter(parseInt(e.target.value) || 1)} className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-2 text-xs text-white font-mono focus:outline-none" />
+                    </div>
+                  </div>
+                  <button onClick={async () => {
+                    const r = await fetch('/api/counters', {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ sale: saleCounter, purchase: purchaseCounter, repair: repairCounter })
+                    });
+                    if (r.ok) alert('Numeración actualizada');
+                    else alert('Error al guardar');
+                  }} className="w-full bg-[#2d3444] hover:bg-[#3d4555] text-white font-bold py-1.5 px-3 rounded-lg text-xs transition-colors cursor-pointer">Guardar Numeración</button>
+                </div>
+
                 <div className="pt-4 border-t border-[#2d3444]/60 space-y-2">
                   <span className="text-white font-medium block">Instalar en Servidor Local</span>
-                  <button
-                    onClick={handleDownloadApp}
-                    className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 px-3 rounded-lg text-xs transition-colors cursor-pointer"
-                  >
-                    <Download size={13} />
-                    Descargar App Completa
-                  </button>
                   <p className="text-[10px] text-slate-500 leading-normal">
-                    Descarga el paquete ZIP para ejecutar el sistema de forma local con el script .bat, base de datos (.db) y código fuente.
+                    La app se ejecuta directamente desde la carpeta <strong className="text-white">Nexus 3.0</strong>. Corré <strong className="text-amber-400">iniciar-full.vbs</strong> para arrancar.
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-[#2d3444]/60 space-y-2">
-                  <span className="text-white font-medium block">Configuración de Empresa</span>
-                  <button
-                    onClick={handleImportCompanyConfig}
-                    className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 px-3 rounded-lg text-xs transition-colors cursor-pointer"
-                  >
-                    <Store size={13} />
-                    Importar desde Web-main
-                  </button>
-                  <p className="text-[10px] text-slate-500 leading-normal">
-                    {companyConfig ? `Empresa: ${companyConfig.companyName}` : 'No hay empresa configurada'}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-[#2d3444]/60 space-y-2">
-                  <span className="text-white font-medium block flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                    Sincronización GitHub
-                  </span>
-                  <div className="space-y-1">
-                    <label className="text-[10px] text-slate-500 font-mono uppercase">Token de Acceso</label>
-                    <div className="flex gap-1">
-                      <input
-                        type="password"
-                        className="flex-1 bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none"
-                        placeholder="github_pat_..."
-                        value={gitToken}
-                        onChange={e => setGitToken(e.target.value)}
-                      />
-                      <button
-                        onClick={async () => {
-                          if (!gitToken.trim()) { alert('Ingrese un token'); return; }
-                          const r = await fetch('/api/company-config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gitToken: gitToken.trim() }) });
-                          if (r.ok) {
-                            alert('Token guardado correctamente');
-                            const d = await r.json();
-                            if (d.companyName) setCompanyConfig(d);
-                          } else { alert('Error al guardar token'); }
-                        }}
-                        className="bg-blue-700 hover:bg-blue-600 text-white font-bold px-3 rounded-lg text-xs transition-colors cursor-pointer"
-                      >Guardar</button>
-                    </div>
+                <div className="pt-4 border-t border-[#2d3444]/60 space-y-3">
+                  <span className="text-white font-medium block">GitHub Pages</span>
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-mono uppercase block mb-1">Token</label>
+                    <input
+                      type="password"
+                      value={githubToken}
+                      onChange={e => setGithubToken(e.target.value)}
+                      className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none"
+                      placeholder="ghp_..."
+                    />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] text-slate-500 font-mono uppercase">Contraseña de Backup</label>
-                    <div className="flex gap-1">
-                      <input
-                        type="password"
-                        className="flex-1 bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none"
-                        placeholder="Clave para encriptar backups"
-                        value={backupPassword}
-                        onChange={e => setBackupPassword(e.target.value)}
-                      />
-                      <button
-                        onClick={async () => {
-                          if (!backupPassword.trim()) { alert('Ingrese una contrase\u00f1a'); return; }
-                          const r = await fetch('/api/company-config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ backupPassword: backupPassword.trim() }) });
-                          if (r.ok) {
-                            alert('Contrase\u00f1a de backup guardada correctamente');
-                            const d = await r.json();
-                            if (d.companyName) setCompanyConfig(d);
-                          } else { alert('Error al guardar contrase\u00f1a'); }
-                        }}
-                        className="bg-amber-700 hover:bg-amber-600 text-white font-bold px-3 rounded-lg text-xs transition-colors cursor-pointer"
-                      >Guardar</button>
-                    </div>
-                    <p className="text-[9px] text-slate-600">Los backups se encriptan con AES-256 y se suben a GitHub junto al código</p>
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-mono uppercase block mb-1">Repositorio (user/repo)</label>
+                    <input
+                      type="text"
+                      value={githubRepo}
+                      onChange={e => setGithubRepo(e.target.value)}
+                      className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none"
+                      placeholder="tu-usuario/tu-repo"
+                    />
                   </div>
-                  <div className="flex items-center gap-2 text-[11px]">
-                    {syncStatus.syncing ? (
-                      <><span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" /><span className="text-amber-400">Sincronizando...</span></>
-                    ) : syncStatus.error ? (
-                      <><span className="h-2 w-2 rounded-full bg-red-500" /><span className="text-red-400">Error: {syncStatus.error.length > 50 ? syncStatus.error.slice(0, 50) + '...' : syncStatus.error}</span></>
-                    ) : syncStatus.lastSync ? (
-                      <><span className="h-2 w-2 rounded-full bg-emerald-500" /><span className="text-emerald-400">Último sync: {syncStatus.lastSync}</span></>
-                    ) : syncStatus.pending ? (
-                      <><span className="h-2 w-2 rounded-full bg-blue-400" /><span className="text-blue-400">Cambios pendientes</span></>
-                    ) : (
-                      <><span className="h-2 w-2 rounded-full bg-slate-500" /><span className="text-slate-400">Esperando cambios</span></>
-                    )}
+                  <div>
+                    <label className="text-[10px] text-slate-500 font-mono uppercase block mb-1">URL de la Web</label>
+                    <input
+                      type="text"
+                      value={webUrl}
+                      onChange={e => setWebUrl(e.target.value)}
+                      className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 px-3 text-xs text-white font-mono focus:outline-none"
+                      placeholder="https://..."
+                    />
                   </div>
                   <button
                     onClick={async () => {
-                      if (syncStatus.syncing) return;
-                      setShowSyncModal(true);
-                      setSyncModalType('syncing');
-                      showToast('Sincronizando con GitHub...', 'info');
+                      if (!githubToken || !githubRepo) { alert('Completá Token y Repositorio.'); return; }
+                      setDeployLoading(true);
                       try {
-                        const r = await fetch('/api/sync-full', { method: 'POST' });
-                        const d = await r.json();
-                        if (d.success) {
-                          setSyncModalType('success');
-                          showToast('Sincronizado correctamente', 'success');
-                          const statusRes = await fetch('/api/auto-sync-status');
-                          if (statusRes.ok) setSyncStatus(await statusRes.json());
+                        const r = await fetch('/api/deploy-ghpages', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ token: githubToken, repo: githubRepo })
+                        });
+                        const data = await r.json();
+                        if (data.success) {
+                          const url = data.url;
+                          setWebUrl(url);
+                          await fetch('/api/company-config', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ githubToken, githubRepo, webUrl: url })
+                          });
+                          alert(`Web publicada correctamente.\nURL: ${url}`);
                         } else {
-                          setSyncModalType('error');
-                          showToast('Error al sincronizar', 'error');
+                          alert('Error: ' + (data.error || 'desconocido'));
                         }
                       } catch {
-                        setSyncModalType('error');
-                        showToast('Error de conexión al sincronizar', 'error');
+                        alert('Error de conexión con el servidor.');
                       }
+                      setDeployLoading(false);
                     }}
-                    disabled={syncStatus.syncing}
-                    className="w-full flex items-center justify-center gap-2 bg-[#2d3444] hover:bg-[#3a4155] text-white font-semibold py-2 px-3 rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={deployLoading}
+                    className="w-full flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-500 text-white font-semibold py-2 px-3 rounded-lg text-xs transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                    {syncStatus.syncing ? 'Sincronizando...' : 'Sincronizar Ahora'}
+                    {deployLoading && <span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" />}
+                    {deployLoading ? 'Desplegando...' : 'Desplegar en GitHub Pages'}
                   </button>
+                  {webUrl && (
+                    <p className="text-[10px] text-emerald-400 leading-normal">
+                      Web publicada en: <a href={webUrl} target="_blank" className="underline">{webUrl}</a>
+                    </p>
+                  )}
+                  <p className="text-[10px] text-slate-500 leading-normal">
+                    Construye la app web y la publica en GitHub Pages. Necesitás un token clásico con permiso <strong className="text-white">repo</strong>.
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-[#2d3444]/60 space-y-3">
+                  <span className="text-white font-medium block">Publicación</span>
+                  <p className="text-[10px] text-slate-500 leading-normal">
+                    Los datos de conexión se configuran solos al publicar la tienda online.
+                  </p>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const r = await fetch('/api/company-config', {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ githubToken, githubRepo, webUrl })
+                        });
+                        if (r.ok) showToast('Configuración guardada', 'success');
+                        else showToast('Error al guardar', 'error');
+                      } catch { showToast('Error de conexión', 'error'); }
+                    }}
+                    className="bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg py-1 px-3 text-[10px] font-semibold transition-colors cursor-pointer"
+                  >Guardar Configuración</button>
                 </div>
 
                 <div className="pt-4 border-t border-[#2d3444]/60 space-y-2">
@@ -919,7 +1061,7 @@ export default function App() {
                             body: JSON.stringify({ password: pwd })
                           });
                           if (r.ok) {
-                            alert('Último backup restaurado correctamente. Los datos se recargarán.');
+                            alert('Ãšltimo backup restaurado correctamente. Los datos se recargarán.');
                             fetchAllData();
                           } else {
                             const err = await r.json();
@@ -969,8 +1111,8 @@ export default function App() {
                             />
                             <button
                               onClick={async () => {
-                                if (!restorePassword) { alert('Ingrese la contrase\u00f1a'); return; }
-                                if (!confirm('\u00bfEst\u00e1 seguro de restaurar este backup? Se perder\u00e1n los datos actuales.')) return;
+                                if (!restorePassword) { alert('Ingrese la contraseña'); return; }
+                                if (!confirm('¿Está seguro de restaurar este backup? Se perderán los datos actuales.')) return;
                                 setRestoreLoading(true);
                                 try {
                                   const r = await fetch('/api/backups/restore-encrypted', {
@@ -979,7 +1121,7 @@ export default function App() {
                                     body: JSON.stringify({ file: selectedBackup, password: restorePassword })
                                   });
                                   if (r.ok) {
-                                    alert('Backup restaurado correctamente. Los datos se recargar\u00e1n.');
+                                    alert('Backup restaurado correctamente. Los datos se recargarán.');
                                     setShowRestorePanel(false);
                                     setSelectedBackup('');
                                     setRestorePassword('');
@@ -989,7 +1131,7 @@ export default function App() {
                                     alert(err.error || 'Error al restaurar');
                                   }
                                 } catch {
-                                  alert('Error de conexi\u00f3n');
+                                  alert('Error de conexión');
                                 }
                                 setRestoreLoading(false);
                               }}
@@ -1004,7 +1146,7 @@ export default function App() {
                     )}
                   </div>
                   <p className="text-[10px] text-slate-500 leading-normal">
-                    Guarda o restaura un respaldo completo de la base de datos (productos, clientes, ventas, etc.).
+                    Guarda o restaura un respaldo completo de la base de datos (productos, configuración web, notas, etc.).
                   </p>
                 </div>
               </div>
@@ -1012,72 +1154,14 @@ export default function App() {
 
             <div className="border-t border-[#2d3444] pt-4 text-[11px] text-slate-500 font-mono">
               <span>Sincronización Integrada: Habilitada</span><br/>
-              <span>Empresa: Local Host Module</span>
+              <span>{APP_LABEL}</span>
             </div>
           </div>
           </div>
         )}
 
-      {/* GitHub Sync blocker */}
-        {showSyncModal && (
-          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-            <div className="bg-[#111318] border border-[#2d3444] rounded-xl max-w-sm w-full overflow-hidden shadow-2xl p-6">
-              <div className="flex flex-col items-center text-center gap-3">
-                {syncModalType === 'syncing' && (
-                  <>
-                    <div className="h-10 w-10 rounded-full bg-amber-500/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-amber-400 animate-spin" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-white font-bold text-base">Por favor espere</p>
-                      <p className="text-amber-400 text-sm mt-1 font-semibold">Actualización en curso...</p>
-                      <p className="text-slate-500 text-xs mt-2">Subiendo cambios al repositorio remoto</p>
-                    </div>
-                  </>
-                )}
-                {syncModalType === 'success' && (
-                  <>
-                    <div className="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-white font-bold text-sm">Sincronizado</p>
-                      <p className="text-slate-400 text-xs mt-1">Repositorio actualizado correctamente</p>
-                      {syncStatus.lastSync && (
-                        <p className="text-slate-500 text-[10px] mt-1 font-mono">{syncStatus.lastSync}</p>
-                      )}
-                    </div>
-                    <button onClick={() => setShowSyncModal(false)} className="mt-2 text-[10px] text-slate-400 hover:text-white font-mono px-3 py-1 rounded border border-[#2d3444] hover:bg-[#1a1d24] transition-all">Cerrar</button>
-                  </>
-                )}
-                {syncModalType === 'error' && (
-                  <>
-                    <div className="h-10 w-10 rounded-full bg-red-500/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-white font-bold text-sm">Error de sincronización</p>
-                      <p className="text-slate-400 text-xs mt-1">{syncStatus.error || 'Error desconocido'}</p>
-                    </div>
-                    <button onClick={() => setShowSyncModal(false)} className="mt-2 text-[10px] text-slate-400 hover:text-white font-mono px-3 py-1 rounded border border-[#2d3444] hover:bg-[#1a1d24] transition-all">Cerrar</button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* POPUP: MONITOR DE PROCESOS */}
         {showProcessMonitor && <ProcessMonitor onClose={() => setShowProcessMonitor(false)} />}
 
-      {/* Toast notifications */}
       {toast && (
         <div className="fixed bottom-6 right-6 z-[60]">
           <div className={`flex items-center gap-2.5 px-4 py-3 rounded-lg shadow-2xl border text-xs font-semibold ${
@@ -1093,6 +1177,43 @@ export default function App() {
         </div>
       )}
 
+      {newOrderAlert && (
+        <div className="fixed top-4 right-4 z-[70] max-w-sm motion-safe:animate-bounce">
+          <div className="bg-[#111318] border border-amber-500/40 rounded-xl shadow-2xl p-4 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                  <Bell size={16} className="text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">¡Nuevo pedido!</p>
+                  <p className="text-amber-400 text-[10px] font-mono font-semibold">{newOrderAlert.id}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setNewOrderAlert(null)}
+                className="text-slate-500 hover:text-white text-sm leading-none cursor-pointer"
+              >&times;</button>
+            </div>
+            <div className="text-xs text-slate-400 space-y-1">
+              <p><span className="text-slate-500">Cliente:</span> {newOrderAlert.clientName}</p>
+              <p><span className="text-slate-500">Total:</span> <span className="text-white font-semibold">{formatMoney(Number(newOrderAlert.total), currencyCodeOf(companyConfig?.currency))}</span></p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setActiveTab('Pedidos'); setNewOrderAlert(null); }}
+                className="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 px-3 rounded-lg text-[11px] transition-colors cursor-pointer"
+              >Ver pedido</button>
+              <button
+                onClick={() => setNewOrderAlert(null)}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-400 py-1.5 px-3 rounded-lg text-[11px] transition-colors cursor-pointer"
+              >Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
+    </AdminGate>
   );
 }

@@ -1,21 +1,27 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Plus, Trash2, Search, Printer, Wrench, CheckCircle, Pencil, X, Settings } from 'lucide-react';
 import { WebRepair, WebClient } from '../types';
+import { formatMoney } from '../lib/currency';
+import { printRepair, PrintMode } from '../lib/print';
 
 interface ReparacionesProps {
   companyName?: string;
   companyAddress?: string;
   companyPhone?: string;
   companyEmail?: string;
-  companyWhatsapp?: string;
   onRefresh: () => void;
+  currency?: string;
+  printMode?: PrintMode;
 }
 
 const STATUSES = ['Recibida', 'En Diagnostico', 'En Reparacion', 'Esperando Repuestos', 'Finalizada', 'Entregada'];
 
+const escapeHtml = (v: any): string =>
+  String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch] as string));
+
 const statusBadge = (s: string) => {
   const map: Record<string, string> = {
-    'Recibida': 'bg-blue-900/20 text-blue-400 border-blue-800/30',
+    'Recibida': 'bg-red-900/20 text-red-400 border-red-800/30',
     'En Diagnostico': 'bg-red-900/20 text-red-400 border-red-800/30',
     'En Reparacion': 'bg-amber-900/20 text-amber-400 border-amber-800/30',
     'Esperando Repuestos': 'bg-red-900/20 text-red-400 border-red-800/30',
@@ -34,7 +40,7 @@ const SORT_OPTIONS = [
   { value: 'status-desc', label: 'Estado: Z - A' },
 ];
 
-export default function Reparaciones({ companyName, companyAddress, companyPhone, companyEmail, companyWhatsapp, onRefresh }: ReparacionesProps) {
+export default function Reparaciones({ companyName, companyAddress, companyPhone, companyEmail, onRefresh, currency, printMode }: ReparacionesProps) {
   const [repairs, setRepairs] = useState<WebRepair[]>([]);
   const [clients, setClients] = useState<WebClient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +51,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
   const [showSuccess, setShowSuccess] = useState(false);
   const [showHistorial, setShowHistorial] = useState(false);
   const [successData, setSuccessData] = useState<{ code: string; id: string; clientName?: string; clientPhone?: string; equipment?: string } | null>(null);
+  const [nextRepairId, setNextRepairId] = useState('');
   const [showCounterModal, setShowCounterModal] = useState(false);
   const [counterValue, setCounterValue] = useState(1);
 
@@ -187,6 +194,11 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
     setShowModal(true);
     // Refresh clients list from DB to match "Clientes" tab
     try { const r = await fetch('/api/clients'); if (r.ok) setClients(await r.json()); } catch {}
+    // Fetch next repair ID
+    try {
+      const r = await fetch('/api/counters');
+      if (r.ok) { const d = await r.json(); setNextRepairId('REP-' + d.repair.toString().padStart(4, '0')); }
+    } catch {}
   };
 
   const openEdit = (r: WebRepair) => {
@@ -301,6 +313,14 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
   const handlePrint = (repair: WebRepair) => {
     const client = getClient(repair.clientId);
     const config = { name: companyName || '', address: companyAddress || '', phone: companyPhone || '', email: companyEmail || '' };
+    if (printMode === 'ticket80') {
+      printRepair({
+        id: String(repair.id), code: repair.code, date: repair.date, status: repair.status,
+        price: Number(repair.price || 0), equipment: repair.equipment || '',
+        problem: repair.problem, clientName: client?.name, clientPhone: client?.phone,
+      }, 'ticket80', { companyName, phone: companyPhone, currency });
+      return;
+    }
     const printWin = window.open('', '_blank');
     if (!printWin) { alert('Permita ventanas emergentes'); return; }
     printWin.document.write(`
@@ -343,7 +363,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
         <div class="page">
           <div class="header">
             <div>
-              <div class="company-name">${config.name || 'Nexus POS'}</div>
+              <div class="company-name">${config.name || 'Nexus Full'}</div>
               <div class="company-info">${config.address ? config.address + ' &bull; ' : ''}${config.phone ? config.phone + ' &bull; ' : ''}${config.email || ''}</div>
             </div>
             <div class="order-meta">
@@ -355,7 +375,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
           <div class="order-header">
             <div class="code-section">
               <div class="badge-label">Clave para consulta web</div>
-              <div class="badge-code">${repair.code}</div>
+              <div class="badge-code">${escapeHtml(repair.code)}</div>
               <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--gray-500);">Use esta clave en nuestro sitio para ver el estado</div>
             </div>
           </div>
@@ -363,46 +383,41 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
           <div class="details-grid">
             <div class="details-section">
               <h3>Datos del Cliente</h3>
-              <div class="detail-row"><span class="detail-label">Nombre</span><span class="detail-value">${client?.name || 'Desconocido'}</span></div>
-              <div class="detail-row"><span class="detail-label">Tel\u00e9fono</span><span class="detail-value">${client?.phone || '-'}</span></div>
-              <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${client?.email || '-'}</span></div>
+              <div class="detail-row"><span class="detail-label">Nombre</span><span class="detail-value">${escapeHtml(client?.name || 'Desconocido')}</span></div>
+              <div class="detail-row"><span class="detail-label">Tel\u00e9fono</span><span class="detail-value">${escapeHtml(client?.phone || '-')}</span></div>
+              <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${escapeHtml(client?.email || '-')}</span></div>
             </div>
             <div class="details-section">
               <h3>Detalles del Equipo</h3>
-              <div class="detail-row"><span class="detail-label">Equipo</span><span class="detail-value">${repair.equipment}</span></div>
+              <div class="detail-row"><span class="detail-label">Equipo</span><span class="detail-value">${escapeHtml(repair.equipment)}</span></div>
               <div class="detail-row"><span class="detail-label">Fecha Ing</span><span class="detail-value">${repair.date}</span></div>
               <div class="detail-row"><span class="detail-label">Estado</span><span class="detail-value">${repair.status}</span></div>
-              <div class="detail-row"><span class="detail-label">Costo</span><span class="detail-value">$${Number(repair.price || 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span></div>
+              <div class="detail-row"><span class="detail-label">Costo</span><span class="detail-value">${formatMoney(Number(repair.price || 0), currency)}</span></div>
             </div>
           </div>
 
           <div class="notes-section">
             <h3>Problema Reportado</h3>
-            <div class="notes-box">${repair.problem || 'No especificado'}</div>
+            <div class="notes-box">${escapeHtml(repair.problem || 'No especificado')}</div>
           </div>
 
           ${repair.notes ? `
           <div class="notes-section">
             <h3>Observaciones Adicionales</h3>
-            <div class="notes-box notes-box-secondary">${repair.notes}</div>
+            <div class="notes-box notes-box-secondary">${escapeHtml(repair.notes)}</div>
           </div>` : ''}
 
           <div class="stamp">${repair.status.toUpperCase()}</div>
 
           <div class="footer">
             <span>Conserve este comprobante para retirar su equipo.</span>
-            <span>${repair.date} &mdash; ${config.name || 'Nexus POS'}</span>
+            <span>${repair.date} &mdash; ${config.name || 'Nexus Full'}</span>
           </div>
         </div>
       </body>
       </html>
     `);
     printWin.document.close();
-  };
-
-  const handleWhatsApp = (clientName: string, clientPhone: string, code: string, equipment: string) => {
-    const msg = encodeURIComponent(`Hola ${clientName}! \n\nRegistramos tu equipo *${equipment}* para reparaci\u00f3n.\n\nPuedes seguir el estado desde nuestra web con esta clave:\n\n*${code}*\n\nGracias por confiar en *${companyName || 'Nexus POS'}*!`);
-    window.open(`https://wa.me/${clientPhone.replace(/[^0-9]/g, '')}?text=${msg}`, '_blank');
   };
 
   // Search show/hide
@@ -441,7 +456,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
             <input type="text" className="w-full bg-[#181a20] border border-[#2d3444] rounded-lg py-1.5 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:outline-none" placeholder="Buscar reparaci\u00f3n..." style={{ width: 200 }} value={search} onChange={handleSearchInput} />
           </div>
           <button onClick={openNew} className="bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg py-1.5 px-3 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"><Plus size={13} />Nueva Orden</button>
-          <button onClick={() => setShowHistorial(!showHistorial)} className={'rounded-lg py-1.5 px-3 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ' + (showHistorial ? 'bg-blue-700 text-white' : 'bg-[#181a20] border border-[#2d3444] text-slate-300 hover:bg-[#1f242e]')}>
+          <button onClick={() => setShowHistorial(!showHistorial)} className={'rounded-lg py-1.5 px-3 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ' + (showHistorial ? 'bg-red-700 text-white' : 'bg-[#181a20] border border-[#2d3444] text-slate-300 hover:bg-[#1f242e]')}>
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             {showHistorial ? 'Volver' : 'Historial'}
           </button>
@@ -452,7 +467,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
       {showHistorial ? (
         <div className="bg-[#111318] border border-[#1f242e] rounded-xl overflow-hidden">
           <div className="px-5 pt-4 pb-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Historial de Reparaciones Entregadas</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-red-400 flex items-center gap-1.5"><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Historial de Reparaciones Entregadas</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
@@ -487,7 +502,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                       <td className="px-4 py-2.5 text-slate-400">{r.modelo || '-'}</td>
                       <td className="px-4 py-2.5"><span className={'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ' + statusBadge(r.status)}>{r.status}</span></td>
                       <td className="px-4 py-2.5 text-slate-400">{r.date}</td>
-                      <td className="px-4 py-2.5 text-right font-mono font-bold text-cyan-400">${Number(r.price || 0).toFixed(0)}</td>
+                      <td className="px-4 py-2.5 text-right font-mono font-bold text-cyan-400">{formatMoney(Number(r.price || 0), currency)}</td>
                       <td className="px-4 py-2.5 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <button onClick={(e) => { e.stopPropagation(); handlePrint(r); }} className="text-slate-500 hover:text-white transition-colors cursor-pointer p-1.5 rounded hover:bg-[#1f242e]" title="Imprimir comprobante"><Printer size={12} /></button>
@@ -535,7 +550,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                     <td className="px-4 py-2.5 text-slate-300 truncate max-w-[180px]">{r.equipment}</td>
                     <td className="px-4 py-2.5"><span className={'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ' + statusBadge(r.status)}>{r.status}</span></td>
                     <td className="px-4 py-2.5 text-slate-400">{r.date}</td>
-                    <td className="px-4 py-2.5 text-right font-mono font-bold text-emerald-400">${Number(r.price || 0).toFixed(0)}</td>
+                    <td className="px-4 py-2.5 text-right font-mono font-bold text-emerald-400">{formatMoney(Number(r.price || 0), currency)}</td>
                     <td className="px-4 py-2.5 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={(e) => { e.stopPropagation(); openEdit(r); }} className="text-slate-500 hover:text-white transition-colors cursor-pointer p-1.5 rounded hover:bg-[#1f242e]" title="Editar"><Pencil size={12} /></button>
@@ -585,7 +600,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                     <td className="px-4 py-2.5 text-slate-300 truncate max-w-[180px]">{r.equipment}</td>
                     <td className="px-4 py-2.5"><span className={'inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ' + statusBadge(r.status)}>{r.status}</span></td>
                     <td className="px-4 py-2.5 text-slate-400">{r.date}</td>
-                    <td className="px-4 py-2.5 text-right font-mono font-bold text-emerald-400">${Number(r.price || 0).toFixed(0)}</td>
+                    <td className="px-4 py-2.5 text-right font-mono font-bold text-emerald-400">{formatMoney(Number(r.price || 0), currency)}</td>
                     <td className="px-4 py-2.5 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={(e) => { e.stopPropagation(); openEdit(r); }} className="text-slate-500 hover:text-white transition-colors cursor-pointer p-1.5 rounded hover:bg-[#1f242e]" title="Editar"><Pencil size={12} /></button>
@@ -607,7 +622,8 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
           <div className="bg-[#111318] border border-[#2d3444] rounded-xl w-full max-w-xl p-6" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center border-b border-[#2d3444] pb-3 mb-4">
-              <span className="font-semibold text-white font-display">{editingId ? `Editar Orden: ${editingId}` : 'Nueva Orden de Reparaci\u00f3n'}</span>
+              <span className="font-semibold text-white font-display">{editingId ? `Editar Orden: ${editingId}` : `Nueva Orden de Reparación`}</span>
+              {!editingId && nextRepairId && <span className="text-[10px] text-slate-500 font-mono ml-2">#{nextRepairId}</span>}
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white transition-colors cursor-pointer"><X size={16} /></button>
             </div>
 
@@ -621,11 +637,11 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
                       <div className="flex bg-[#181a20] rounded-lg overflow-hidden border border-[#2d3444]">
                         <button
                           onClick={() => { setClientMode('search'); setSelectedClient(null); setClientSearch(''); }}
-                          className={`text-[10px] px-2.5 py-1 transition-colors cursor-pointer font-bold ${clientMode === 'search' ? 'bg-blue-700 text-white' : 'text-slate-400 hover:text-white'}`}
+                          className={`text-[10px] px-2.5 py-1 transition-colors cursor-pointer font-bold ${clientMode === 'search' ? 'bg-red-700 text-white' : 'text-slate-400 hover:text-white'}`}
                         >Buscar</button>
                         <button
                           onClick={() => { setClientMode('create'); setSelectedClient(null); }}
-                          className={`text-[10px] px-2.5 py-1 transition-colors cursor-pointer font-bold ${clientMode === 'create' ? 'bg-blue-700 text-white' : 'text-slate-400 hover:text-white'}`}
+                          className={`text-[10px] px-2.5 py-1 transition-colors cursor-pointer font-bold ${clientMode === 'create' ? 'bg-red-700 text-white' : 'text-slate-400 hover:text-white'}`}
                         >Nuevo</button>
                       </div>
                     </div>
@@ -776,7 +792,7 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
             />
             <div className="flex gap-2">
               <button onClick={() => setShowCounterModal(false)} className="flex-1 bg-[#181a20] hover:bg-[#1f242e] text-slate-300 font-medium py-2 px-4 rounded-lg text-xs transition-all cursor-pointer">Cancelar</button>
-              <button onClick={saveCounter} className="flex-1 bg-blue-700 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-xs transition-all cursor-pointer">Guardar</button>
+              <button onClick={saveCounter} className="flex-1 bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-xs transition-all cursor-pointer">Guardar</button>
             </div>
           </div>
         </div>
@@ -790,30 +806,21 @@ export default function Reparaciones({ companyName, companyAddress, companyPhone
               <span className="font-semibold text-white font-display flex items-center gap-2"><CheckCircle size={16} className="text-emerald-400" /> Orden Creada Exitosamente</span>
               <button onClick={() => setShowSuccess(false)} className="text-slate-400 hover:text-white transition-colors cursor-pointer"><X size={16} /></button>
             </div>
-            <p className="text-xs text-slate-400 mb-4">Entregale esta clave al cliente para que pueda rastrear su reparaci\u00f3n:</p>
-            <div className="bg-blue-700 text-white py-4 px-6 rounded-xl mb-3">
+            <p className="text-xs text-slate-400 mb-4">Entrégale esta clave al cliente para que pueda rastrear su reparaci\u00f3n:</p>
+            <div className="bg-red-700 text-white py-4 px-6 rounded-xl mb-3">
               <div className="text-[10px] opacity-80 mb-1 font-bold uppercase tracking-wider">Clave de Consulta</div>
               <div style={{ fontSize: '3.5rem', fontWeight: 900, letterSpacing: '0.6rem', lineHeight: 1 }}>{successData.code}</div>
             </div>
             <p className="text-xs text-slate-400 mb-4">Orden: <strong className="text-white">{successData.id}</strong></p>
             <div className="flex gap-2">
               <button
-                className="flex-1 bg-blue-700 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                className="flex-1 bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
                 onClick={() => {
                   const r = repairs.find(r => r.code === successData.code) || repairs.find(r => r.id === successData.id);
                   if (r) handlePrint(r);
                   setShowSuccess(false);
                 }}
               ><Printer size={13} /> Imprimir / PDF</button>
-              {successData.clientPhone && (
-                <button
-                  className="flex-1 bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2 px-3 rounded-lg text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                  onClick={() => { handleWhatsApp(successData.clientName || '', successData.clientPhone || '', successData.code, successData.equipment || ''); setShowSuccess(false); }}
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                  Enviar a Cliente
-                </button>
-              )}
             </div>
             <button onClick={() => setShowSuccess(false)} className="w-full mt-3 bg-[#181a20] hover:bg-[#1f242e] text-slate-300 font-medium py-2 px-4 rounded-lg text-xs transition-all cursor-pointer">Cerrar</button>
           </div>
