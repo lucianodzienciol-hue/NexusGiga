@@ -3774,15 +3774,13 @@ const Cart = {
         if (t) t.textContent = formatMoney(this.total());
         const remote = !Router.isLocal();
         const btn = document.getElementById('co-submit');
-        if (btn) btn.textContent = remote ? 'Enviar pedido online' : 'Enviar pedido';
-        const wa = document.getElementById('co-submit-wa');
-        if (wa) wa.style.display = remote ? '' : 'none';
+        if (btn) btn.textContent = 'Enviar pedido';
         const hint = document.getElementById('co-remote-hint');
         if (hint) hint.style.display = remote ? '' : 'none';
     },
 
-    buildWaMessage(payload, storeName) {
-        const lines = [`Hola ${storeName}! Quiero hacer un pedido:`, ''];
+    buildWaMessage(payload, storeName, orderId) {
+        const lines = [`Hola ${storeName}! Quiero hacer un pedido${orderId ? ' (' + orderId + ')' : ''}:`, ''];
         for (const it of payload.items) {
             lines.push(`• ${it.quantity} x ${it.name} - ${formatMoney(it.price * it.quantity)}`);
         }
@@ -3818,17 +3816,10 @@ const Cart = {
     },
 
     setCheckoutBusy(busy) {
-        const remote = !Router.isLocal();
         const b1 = document.getElementById('co-submit');
-        const b2 = document.getElementById('co-submit-wa');
         if (b1) {
             b1.disabled = busy;
-            if (!busy) b1.textContent = remote ? 'Enviar pedido online' : 'Enviar pedido';
-            else b1.textContent = 'Enviando...';
-        }
-        if (b2 && remote) {
-            b2.disabled = busy;
-            if (!busy) b2.textContent = 'Enviar por WhatsApp';
+            b1.textContent = busy ? 'Enviando...' : 'Enviar pedido';
         }
     },
 
@@ -3850,42 +3841,30 @@ const Cart = {
         await this.submitOnline(payload);
     },
 
-    async submitWa() {
-        const payload = this.checkoutPayload();
-        if (!payload) return;
-        await this.submitWhatsApp(payload, false);
-    },
-
     async submitOnline(payload) {
         this.setCheckoutBusy(true);
         const sent = await this.submitOrderRemote(payload);
-        if (sent) {
-            this.items = [];
-            this.save();
-            this.showCheckoutSuccess('Pedido ' + (sent.id || '') + ' recibido. Te contactaremos a la brevedad.');
-            const wa = document.getElementById('co-submit-wa');
-            if (wa) wa.style.display = 'none';
-            Toast.show('¡Pedido enviado!', 'success');
-            this.setCheckoutBusy(false);
-            return;
-        }
-        Toast.show('Pedido online no disponible, te abrimos WhatsApp.', 'error');
-        await this.submitWhatsApp(payload, true);
-    },
-
-    async submitWhatsApp(payload, auto) {
         const config = DB.getConfig();
-        this.setCheckoutBusy(true);
-        if (!config.whatsapp) {
+        if (!config.whatsapp && !sent) {
             Toast.show('Pedidos online no disponibles en este momento', 'error');
             this.setCheckoutBusy(false);
             return;
         }
-        const msg = encodeURIComponent(this.buildWaMessage(payload, config.companyName || 'la tienda'));
-        window.open(`https://wa.me/${WA.formatNumber(config.whatsapp)}?text=${msg}`, '_blank');
-        this.items = [];
-        this.save();
-        this.showCheckoutSuccess('Se abrió WhatsApp con tu pedido. Enviá el mensaje para confirmarlo.');
+        if (sent) {
+            const msg = encodeURIComponent(this.buildWaMessage(payload, config.companyName || 'la tienda', sent.id));
+            window.open(`https://wa.me/${WA.formatNumber(config.whatsapp)}?text=${msg}`, '_blank');
+            this.items = [];
+            this.save();
+            this.showCheckoutSuccess('Pedido ' + sent.id + ' registrado. Se abrió WhatsApp: enviá el mensaje para confirmarlo.');
+            Toast.show('¡Pedido enviado!', 'success');
+        } else {
+            const msg = encodeURIComponent(this.buildWaMessage(payload, config.companyName || 'la tienda', ''));
+            window.open(`https://wa.me/${WA.formatNumber(config.whatsapp)}?text=${msg}`, '_blank');
+            this.items = [];
+            this.save();
+            this.showCheckoutSuccess('Se abrió WhatsApp con tu pedido. Enviá el mensaje para confirmarlo (online no disponible).');
+            Toast.show('Pedido enviado por WhatsApp.', 'success');
+        }
         this.setCheckoutBusy(false);
     },
 
