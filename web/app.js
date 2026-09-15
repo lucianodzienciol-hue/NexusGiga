@@ -823,13 +823,19 @@ const Pages = {
             // Consulta en línea; si el servidor no responde NO se muestran datos locales viejos.
             let repair = null;
             let offline = false;
-            try {
-                const res = await fetch('/api/repairs/lookup/' + encodeURIComponent(query));
-                if (res.ok) {
-                    const data = await res.json();
-                    repair = data.repair;
-                }
-            } catch { offline = true; }
+            if (Router.isLocal()) {
+                try {
+                    const res = await fetch('/api/repairs/lookup/' + encodeURIComponent(query));
+                    if (res.ok) {
+                        const data = await res.json();
+                        repair = data.repair;
+                    }
+                } catch { offline = true; }
+            } else {
+                const t = await Cart.lookupRepairRemote(query);
+                repair = t.repair;
+                offline = !t.repair && t.offline;
+            }
 
             if (!repair) {
                 resultDiv.innerHTML = offline
@@ -880,13 +886,18 @@ const Pages = {
 
     async printRepairPDFPublic(code) {
         let repair = null;
-        try {
-            const res = await fetch('/api/repairs/lookup/' + encodeURIComponent(code));
-            if (res.ok) {
-                const data = await res.json();
-                repair = data.repair;
-            }
-        } catch {}
+        if (Router.isLocal()) {
+            try {
+                const res = await fetch('/api/repairs/lookup/' + encodeURIComponent(code));
+                if (res.ok) {
+                    const data = await res.json();
+                    repair = data.repair;
+                }
+            } catch {}
+        } else {
+            const t = await Cart.lookupRepairRemote(code);
+            repair = t.repair;
+        }
         if (!repair) { Toast.show('Servidor no disponible para obtener la orden.', 'error'); return; }
         const clientName = repair.clientName || 'N/A';
         const clientPhone = repair.clientPhone || '';
@@ -3710,6 +3721,46 @@ const Cart = {
         if (btn) btn.disabled = this.items.length === 0;
     },
 
+    async lookupRepairRemote(code) {
+        const cfg = DB.getConfig();
+        const worker = String(cfg.tenantWorker || '').replace(/\/+$/, '');
+        const slug = String(cfg.tenantSlug || '');
+        if (!worker || !slug) return { repair: null, offline: true };
+        try {
+            const r = await fetch(worker + '/repair-lookup?slug=' + encodeURIComponent(slug) + '&code=' + encodeURIComponent(code));
+            if (r.ok) {
+                const j = await r.json();
+                return { repair: j.repair || null, offline: false };
+            }
+            if (r.status === 404) return { repair: null, offline: false };
+            return { repair: null, offline: true };
+        } catch { return { repair: null, offline: true }; }
+    },
+
+    async submitOrderRemote(payload) {
+        const cfg = DB.getConfig();
+        const worker = String(cfg.tenantWorker || '').replace(/\/+$/, '');
+        const slug = String(cfg.tenantSlug || '');
+        if (!worker || !slug) return null;
+        try {
+            const r = await fetch(worker + '/order?slug=' + encodeURIComponent(slug), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items: payload.items.map((i) => ({ productId: i.productId, productName: i.name, quantity: i.quantity, price: i.price })),
+                    total: payload.total,
+                    clientName: payload.clientName,
+                    clientPhone: payload.clientPhone,
+                    notes: payload.notes,
+                    deliveryType: payload.deliveryType,
+                }),
+            });
+            if (!r.ok) return null;
+            const j = await r.json();
+            return (j && (j.id || j.ok)) ? j : null;
+        } catch { return null; }
+    },
+
     showCheckout() {
         if (this.items.length === 0) return;
         document.getElementById('cart-main').style.display = 'none';
@@ -3756,7 +3807,20 @@ const Cart = {
         btn.textContent = 'Enviando...';
 
         const remote = !Router.isLocal();
-        const finishRemote = (payload) => {
+        const finishRemote = async (payload) => {
+            const sent = await this.submitOrderRemote(payload);
+            if (sent) {
+                this.items = [];
+                this.save();
+                ['co-name', 'co-phone', 'co-address', 'co-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+                document.getElementById('cart-checkout').style.display = 'none';
+                document.getElementById('cart-success-msg').textContent = 'Pedido ' + (sent.id || '') + ' recibido. Te contactaremos a la brevedad.';
+                document.getElementById('cart-success').style.display = '';
+                Toast.show('¡Pedido enviado!', 'success');
+                btn.disabled = false;
+                btn.textContent = 'Enviar pedido por WhatsApp';
+                return;
+            }
             const config = DB.getConfig();
             if (!config.whatsapp) {
                 Toast.show('Pedidos online no disponibles en este momento', 'error');

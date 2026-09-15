@@ -10956,6 +10956,8 @@
     "banners": [],
     "sgtallerEnabled": true,
     "sgtallerDbPath": "C:\\SGTaller 3 Demo\\Base\\service.fdb",
+    "tenantWorker": "https://nexus-giga.lucianodzienciol.workers.dev",
+    "tenantSlug": "gigacomputers",
     "currency": "ARS"
   }
 }
