@@ -3774,7 +3774,9 @@ const Cart = {
         if (t) t.textContent = formatMoney(this.total());
         const remote = !Router.isLocal();
         const btn = document.getElementById('co-submit');
-        if (btn) btn.textContent = remote ? 'Enviar pedido por WhatsApp' : 'Enviar pedido';
+        if (btn) btn.textContent = remote ? 'Enviar pedido online' : 'Enviar pedido';
+        const wa = document.getElementById('co-submit-wa');
+        if (wa) wa.style.display = remote ? '' : 'none';
         const hint = document.getElementById('co-remote-hint');
         if (hint) hint.style.display = remote ? '' : 'none';
     },
@@ -3797,64 +3799,98 @@ const Cart = {
         const m = document.getElementById('cart-main'); if (m) m.style.display = '';
     },
 
-    async submit() {
+    checkoutPayload() {
         const name = document.getElementById('co-name').value.trim();
         const phone = document.getElementById('co-phone').value.trim();
         const delivery = document.getElementById('co-delivery').value;
         const address = document.getElementById('co-address').value.trim();
         const notes = document.getElementById('co-notes').value.trim();
-        if (!name || !phone) { Toast.show('Complet\u00e1 tu nombre y tel\u00e9fono', 'error'); return; }
-        if (delivery === 'envio' && !address) { Toast.show('Ingres\u00e1 la direcci\u00f3n de env\u00edo', 'error'); return; }
-
-        const btn = document.getElementById('co-submit');
-        btn.disabled = true;
-        btn.textContent = 'Enviando...';
-
-        const remote = !Router.isLocal();
-        const finishRemote = async (payload) => {
-            const sent = await this.submitOrderRemote(payload);
-            if (sent) {
-                this.items = [];
-                this.save();
-                ['co-name', 'co-phone', 'co-address', 'co-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-                document.getElementById('cart-checkout').style.display = 'none';
-                document.getElementById('cart-success-msg').textContent = 'Pedido ' + (sent.id || '') + ' recibido. Te contactaremos a la brevedad.';
-                document.getElementById('cart-success').style.display = '';
-                Toast.show('¡Pedido enviado!', 'success');
-                btn.disabled = false;
-                btn.textContent = 'Enviar pedido por WhatsApp';
-                return;
-            }
-            const config = DB.getConfig();
-            if (!config.whatsapp) {
-                Toast.show('Pedidos online no disponibles en este momento', 'error');
-                btn.disabled = false;
-                btn.textContent = 'Enviar pedido por WhatsApp';
-                return;
-            }
-            const msg = encodeURIComponent(this.buildWaMessage(payload, config.companyName || 'la tienda'));
-            window.open(`https://wa.me/${WA.formatNumber(config.whatsapp)}?text=${msg}`, '_blank');
-            this.items = [];
-            this.save();
-            ['co-name', 'co-phone', 'co-address', 'co-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-            document.getElementById('cart-checkout').style.display = 'none';
-            document.getElementById('cart-success-msg').textContent = 'Se abrió WhatsApp con tu pedido. Enviá el mensaje para confirmarlo.';
-            document.getElementById('cart-success').style.display = '';
-            btn.disabled = false;
-            btn.textContent = 'Enviar pedido por WhatsApp';
-        };
-
-        const payload = {
+        if (!name || !phone) { Toast.show('Completá tu nombre y teléfono', 'error'); return null; }
+        if (delivery === 'envio' && !address) { Toast.show('Ingresá la dirección de envío', 'error'); return null; }
+        return {
             items: this.items.map(i => ({ productId: i.id, name: i.name, quantity: i.qty, price: i.price })),
             total: this.total(),
             clientName: name,
             clientPhone: phone,
-            notes: [notes, address ? 'Direcci\u00f3n: ' + address : '', delivery === 'envio' ? 'Env\u00edo a domicilio' : 'Retiro en local'].filter(Boolean).join(' | '),
+            notes: [notes, address ? 'Dirección: ' + address : '', delivery === 'envio' ? 'Envío a domicilio' : 'Retiro en local'].filter(Boolean).join(' | '),
             deliveryType: delivery
         };
+    },
 
-        if (remote) { finishRemote(payload); return; }
+    setCheckoutBusy(busy) {
+        const remote = !Router.isLocal();
+        const b1 = document.getElementById('co-submit');
+        const b2 = document.getElementById('co-submit-wa');
+        if (b1) {
+            b1.disabled = busy;
+            if (!busy) b1.textContent = remote ? 'Enviar pedido online' : 'Enviar pedido';
+            else b1.textContent = 'Enviando...';
+        }
+        if (b2 && remote) {
+            b2.disabled = busy;
+            if (!busy) b2.textContent = 'Enviar por WhatsApp';
+        }
+    },
 
+    clearCheckoutForm() {
+        ['co-name', 'co-phone', 'co-address', 'co-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    },
+
+    showCheckoutSuccess(msg) {
+        this.clearCheckoutForm();
+        document.getElementById('cart-checkout').style.display = 'none';
+        document.getElementById('cart-success-msg').textContent = msg;
+        document.getElementById('cart-success').style.display = '';
+    },
+
+    async submit() {
+        const payload = this.checkoutPayload();
+        if (!payload) return;
+        if (Router.isLocal()) { await this.submitLocal(payload); return; }
+        await this.submitOnline(payload);
+    },
+
+    async submitWa() {
+        const payload = this.checkoutPayload();
+        if (!payload) return;
+        await this.submitWhatsApp(payload, false);
+    },
+
+    async submitOnline(payload) {
+        this.setCheckoutBusy(true);
+        const sent = await this.submitOrderRemote(payload);
+        if (sent) {
+            this.items = [];
+            this.save();
+            this.showCheckoutSuccess('Pedido ' + (sent.id || '') + ' recibido. Te contactaremos a la brevedad.');
+            const wa = document.getElementById('co-submit-wa');
+            if (wa) wa.style.display = 'none';
+            Toast.show('¡Pedido enviado!', 'success');
+            this.setCheckoutBusy(false);
+            return;
+        }
+        Toast.show('Pedido online no disponible, te abrimos WhatsApp.', 'error');
+        await this.submitWhatsApp(payload, true);
+    },
+
+    async submitWhatsApp(payload, auto) {
+        const config = DB.getConfig();
+        this.setCheckoutBusy(true);
+        if (!config.whatsapp) {
+            Toast.show('Pedidos online no disponibles en este momento', 'error');
+            this.setCheckoutBusy(false);
+            return;
+        }
+        const msg = encodeURIComponent(this.buildWaMessage(payload, config.companyName || 'la tienda'));
+        window.open(`https://wa.me/${WA.formatNumber(config.whatsapp)}?text=${msg}`, '_blank');
+        this.items = [];
+        this.save();
+        this.showCheckoutSuccess('Se abrió WhatsApp con tu pedido. Enviá el mensaje para confirmarlo.');
+        this.setCheckoutBusy(false);
+    },
+
+    async submitLocal(payload) {
+        this.setCheckoutBusy(true);
         let order = null;
         let retriable = false;
         try {
@@ -3868,30 +3904,20 @@ const Cart = {
                 let msg = 'El servidor rechazó el pedido (código ' + r.status + ').';
                 try { const eb = await r.json(); if (eb && eb.error) msg = eb.error; } catch {}
                 Toast.show(msg, 'error');
-                btn.disabled = false;
-                btn.textContent = 'Enviar pedido';
+                this.setCheckoutBusy(false);
                 return;
             }
         } catch { retriable = true; } // sin conexión
 
-        const finish = (msg) => {
-            this.items = [];
-            this.save();
-            ['co-name', 'co-phone', 'co-address', 'co-notes'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-            document.getElementById('cart-checkout').style.display = 'none';
-            document.getElementById('cart-success-msg').textContent = msg;
-            document.getElementById('cart-success').style.display = '';
-            Toast.show('\u00a1Pedido enviado!', 'success');
-            btn.disabled = false;
-            btn.textContent = 'Enviar pedido';
-        };
-
         if (order && order.id) {
-            finish('Pedido ' + order.id + ' recibido. Te contactaremos a la brevedad.');
+            this.showCheckoutSuccess('Pedido ' + order.id + ' recibido. Te contactaremos a la brevedad.');
+            Toast.show('¡Pedido enviado!', 'success');
         } else if (retriable) {
             this.savePending(payload);
-            finish('Tu pedido qued\u00f3 registrado y se enviar\u00e1 autom\u00e1ticamente cuando el servidor est\u00e9 disponible.');
+            this.showCheckoutSuccess('Tu pedido quedó registrado y se enviará automáticamente cuando el servidor esté disponible.');
+            Toast.show('¡Pedido enviado!', 'success');
         }
+        this.setCheckoutBusy(false);
     },
 
     savePending(payload) {
