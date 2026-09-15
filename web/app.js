@@ -835,6 +835,10 @@ const Pages = {
                 const t = await Cart.lookupRepairRemote(query);
                 repair = t.repair;
                 offline = !t.repair && t.offline;
+                if (!repair && t.reason === 'no-config') {
+                    resultDiv.innerHTML = `<div class="glass" style="padding: 1.5rem; border-radius: 1rem; color: var(--warning); text-align: center;">Consulta online en mantenimiento. Probá recargar la página.</div>`;
+                    return;
+                }
             }
 
             if (!repair) {
@@ -3725,16 +3729,16 @@ const Cart = {
         const cfg = DB.getConfig();
         const worker = String(cfg.tenantWorker || '').replace(/\/+$/, '');
         const slug = String(cfg.tenantSlug || '');
-        if (!worker || !slug) return { repair: null, offline: true };
+        if (!worker || !slug) return { repair: null, offline: true, reason: 'no-config' };
         try {
             const r = await fetch(worker + '/repair-lookup?slug=' + encodeURIComponent(slug) + '&code=' + encodeURIComponent(code));
             if (r.ok) {
                 const j = await r.json();
-                return { repair: j.repair || null, offline: false };
+                return { repair: j.repair || null, offline: false, reason: '' };
             }
-            if (r.status === 404) return { repair: null, offline: false };
-            return { repair: null, offline: true };
-        } catch { return { repair: null, offline: true }; }
+            if (r.status === 404) return { repair: null, offline: false, reason: 'not-found' };
+            return { repair: null, offline: true, reason: 'http-' + r.status };
+        } catch { return { repair: null, offline: true, reason: 'net' }; }
     },
 
     async submitOrderRemote(payload) {
