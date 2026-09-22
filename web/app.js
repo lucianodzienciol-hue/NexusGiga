@@ -3741,15 +3741,20 @@ const Cart = {
         } catch { return { repair: null, offline: true, reason: 'net' }; }
     },
 
+    _idemKey() {
+        try { if (window.crypto && crypto.randomUUID) return crypto.randomUUID(); } catch {}
+        return Date.now().toString(36) + Math.random().toString(36).slice(2,10);
+    },
     async submitOrderRemote(payload) {
         const cfg = DB.getConfig();
         const worker = String(cfg.tenantWorker || '').replace(/\/+$/, '');
         const slug = String(cfg.tenantSlug || '');
         if (!worker || !slug) return null;
+        if (!payload.idempotencyKey) payload.idempotencyKey = this._idemKey();
         try {
             const r = await fetch(worker + '/order?slug=' + encodeURIComponent(slug), {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': payload.idempotencyKey },
                 body: JSON.stringify({
                     items: payload.items.map((i) => ({ productId: i.productId, productName: i.name, quantity: i.quantity, price: i.price })),
                     total: payload.total,
@@ -3757,6 +3762,7 @@ const Cart = {
                     clientPhone: payload.clientPhone,
                     notes: payload.notes,
                     deliveryType: payload.deliveryType,
+                    idempotencyKey: payload.idempotencyKey,
                 }),
             });
             if (!r.ok) return null;
@@ -3811,7 +3817,8 @@ const Cart = {
             clientName: name,
             clientPhone: phone,
             notes: [notes, address ? 'Dirección: ' + address : '', delivery === 'envio' ? 'Envío a domicilio' : 'Retiro en local'].filter(Boolean).join(' | '),
-            deliveryType: delivery
+            deliveryType: delivery,
+            idempotencyKey: this._idemKey()
         };
     },
 
@@ -3869,39 +3876,49 @@ const Cart = {
     },
 
     async submitLocal(payload) {
+        if (this._submitting) return;
+        this._submitting = true;
         this.setCheckoutBusy(true);
         let order = null;
         let retriable = false;
         try {
-            const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': payload.idempotencyKey || '' }, body: JSON.stringify(payload) });
             if (r.ok) {
                 order = await r.json();
             } else if (r.status >= 500 || r.status === 0) {
-                retriable = true; // error del servidor: vale la pena reintentar luego
+                retriable = true;
             } else {
-                // 4xx (validación/rate-limit): reintentar no va a cambiar el resultado.
                 let msg = 'El servidor rechazó el pedido (código ' + r.status + ').';
                 try { const eb = await r.json(); if (eb && eb.error) msg = eb.error; } catch {}
                 Toast.show(msg, 'error');
+                this._submitting = false;
                 this.setCheckoutBusy(false);
                 return;
             }
-        } catch { retriable = true; } // sin conexión
+        } catch { retriable = true; }
 
         if (order && order.id) {
+            if (order.duplicate) Toast.show('Pedido ya registrado (' + order.id + ')', 'success');
+            this.items = [];
+            this.save();
             this.showCheckoutSuccess('Pedido ' + order.id + ' recibido. Te contactaremos a la brevedad.');
             Toast.show('¡Pedido enviado!', 'success');
         } else if (retriable) {
             this.savePending(payload);
+            this.items = [];
+            this.save();
             this.showCheckoutSuccess('Tu pedido quedó registrado y se enviará automáticamente cuando el servidor esté disponible.');
             Toast.show('¡Pedido enviado!', 'success');
         }
+        this._submitting = false;
         this.setCheckoutBusy(false);
     },
 
     savePending(payload) {
+        if (!payload.idempotencyKey) payload.idempotencyKey = this._idemKey();
         let pending = [];
         try { pending = JSON.parse(localStorage.getItem(this.PENDING_KEY) || '[]'); } catch {}
+        if (pending.some(p => p.payload && p.payload.idempotencyKey === payload.idempotencyKey)) return;
         pending.push({ payload, date: new Date().toISOString() });
         localStorage.setItem(this.PENDING_KEY, JSON.stringify(pending));
     },
@@ -3913,7 +3930,8 @@ const Cart = {
         const kept = [];
         for (const p of pending) {
             try {
-                const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p.payload) });
+                if (!p.payload.idempotencyKey) p.payload.idempotencyKey = this._idemKey();
+                const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': p.payload.idempotencyKey }, body: JSON.stringify(p.payload) });
                 if (!r.ok) throw new Error('HTTP ' + r.status);
             } catch { kept.push(p); }
         }

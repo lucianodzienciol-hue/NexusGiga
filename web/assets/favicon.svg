@@ -1,18 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect x="12" y="12" width="40" height="40" rx="4" fill="#dc2626" stroke="#991b1b" stroke-width="2"/>
-  <rect x="18" y="18" width="28" height="28" rx="2" fill="#1a1a2e"/>
-  <rect x="24" y="24" width="16" height="16" rx="1" fill="#dc2626" opacity="0.15"/>
-  <rect x="27" y="27" width="10" height="10" rx="1" fill="#dc2626" opacity="0.3"/>
-  <line x1="22" y1="6" x2="22" y2="14" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
-  <line x1="32" y1="6" x2="32" y2="14" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
-  <line x1="42" y1="6" x2="42" y2="14" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
-  <line x1="50" y1="22" x2="58" y2="22" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
-  <line x1="50" y1="32" x2="58" y2="32" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
-  <line x1="50" y1="42" x2="58" y2="42" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
-  <line x1="22" y1="50" x2="22" y2="58" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
-  <line x1="32" y1="50" x2="32" y2="58" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
-  <line x1="42" y1="50" x2="42" y2="58" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
-  <line x1="6" y1="22" x2="14" y2="22" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
-  <line x1="6" y1="32" x2="14" y2="32" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
-  <line x1="6" y1="42" x2="14" y2="42" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
-</svg>
+PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3QgeD0iMTIiIHk9IjEyIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI0IiBmaWxsPSIjZGMyNjI2IiBzdHJva2U9IiM5OTFiMWIiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxyZWN0IHg9IjE4IiB5PSIxOCIgd2lkdGg9IjI4IiBoZWlnaHQ9IjI4IiByeD0iMiIgZmlsbD0iIzFhMWEyZSIvPgogIDxyZWN0IHg9IjI0IiB5PSIyNCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMSIgZmlsbD0iI2RjMjYyNiIgb3BhY2l0eT0iMC4xNSIvPgogIDxyZWN0IHg9IjI3IiB5PSIyNyIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iI2RjMjYyNiIgb3BhY2l0eT0iMC4zIi8+CiAgPGxpbmUgeDE9IjIyIiB5MT0iNiIgeDI9IjIyIiB5Mj0iMTQiIHN0cm9rZT0iI2RjMjYyNiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8bGluZSB4MT0iMzIiIHkxPSI2IiB4Mj0iMzIiIHkyPSIxNCIgc3Ryb2tlPSIjZGMyNjI2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxsaW5lIHgxPSI0MiIgeTE9IjYiIHgyPSI0MiIgeTI9IjE0IiBzdHJva2U9IiNkYzI2MjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGxpbmUgeDE9IjUwIiB5MT0iMjIiIHgyPSI1OCIgeTI9IjIyIiBzdHJva2U9IiNkYzI2MjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGxpbmUgeDE9IjUwIiB5MT0iMzIiIHgyPSI1OCIgeTI9IjMyIiBzdHJva2U9IiNkYzI2MjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGxpbmUgeDE9IjUwIiB5MT0iNDIiIHgyPSI1OCIgeTI9IjQyIiBzdHJva2U9IiNkYzI2MjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGxpbmUgeDE9IjIyIiB5MT0iNTAiIHgyPSIyMiIgeTI9IjU4IiBzdHJva2U9IiNkYzI2MjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGxpbmUgeDE9IjMyIiB5MT0iNTAiIHgyPSIzMiIgeTI9IjU4IiBzdHJva2U9IiNkYzI2MjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGxpbmUgeDE9IjQyIiB5MT0iNTAiIHgyPSI0MiIgeTI9IjU4IiBzdHJva2U9IiNkYzI2MjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGxpbmUgeDE9IjYiIHkxPSIyMiIgeDI9IjE0IiB5Mj0iMjIiIHN0cm9rZT0iI2RjMjYyNiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8bGluZSB4MT0iNiIgeTE9IjMyIiB4Mj0iMTQiIHkyPSIzMiIgc3Ryb2tlPSIjZGMyNjI2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxsaW5lIHgxPSI2IiB5MT0iNDIiIHgyPSIxNCIgeTI9IjQyIiBzdHJva2U9IiNkYzI2MjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=
