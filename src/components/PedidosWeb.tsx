@@ -257,21 +257,6 @@ export default function PedidosWeb({ onRefresh, currency }: PedidosWebProps) {
           <button onClick={load} className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#1a1d24] transition-all cursor-pointer" title="Recargar">
             <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
           </button>
-          <button onClick={async () => {
-            try {
-              const r = await fetch('/api/tenant/sync', { method: 'POST' });
-              const d = await r.json().catch(() => ({}));
-              if (r.ok && d && d.ok) {
-                alert(d.imported > 0 ? `Se importaron ${d.imported} pedido(s) de la tienda online.` : 'Sin pedidos nuevos en la tienda online.');
-                load();
-              } else {
-                alert(d?.reason || 'No se pudo sincronizar.');
-              }
-            } catch { alert('Error de conexión con el servidor.'); }
-          }} className="flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg py-1.5 px-3 text-[10px] font-semibold transition-colors cursor-pointer" title="Traer pedidos de la tienda online">
-            Sincronizar tienda
-          </button>
-
           <button onClick={() => setView(view === 'historial' ? 'actuales' : 'historial')} className={'flex items-center gap-1.5 rounded-lg py-1.5 px-3 text-[10px] font-semibold transition-all cursor-pointer border ' + (view === 'historial' ? 'bg-[#A63A42] text-white border-[#A63A42]' : 'bg-[#181a20] text-slate-300 border-[#2d3444] hover:border-[#A63A42] hover:text-white')} title="Ver historial de pedidos">
             <History size={13} />
             {view === 'historial' ? 'Actuales' : 'Historial'}

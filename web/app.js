@@ -27,7 +27,7 @@ const DB = {
     
     async init() {
         // Forzar limpieza de localStorage si cambia versión (para migraciones)
-        const APP_VERSION = 3;
+        const APP_VERSION = 4;
         const storedVersion = parseInt(localStorage.getItem('techstore_version') || '0', 10);
         if (storedVersion < APP_VERSION) {
             Object.values(this.keys).forEach(k => localStorage.removeItem(k));
@@ -50,9 +50,13 @@ const DB = {
             console.log("API not available, trying data.json...");
         }
 
-        // Fallback: load data.json directly (GitHub Pages / static mode)
+        // Fallback: load data.json directamente (soporta root y subcarpeta /NexusGiga/<slug>/)
         try {
-            const res = await fetch('/data.json?t=' + Date.now());
+            // Intenta relativo primero (funciona en root y subcarpeta), luego absoluto
+            let res = await fetch('data.json?t=' + Date.now());
+            if (!res.ok) res = await fetch('./data.json?t=' + Date.now());
+            if (!res.ok) res = await fetch('/data.json?t=' + Date.now());
+            if (!res.ok) res = await fetch('/web/data.json?t=' + Date.now());
             if (res.ok) {
                 const data = await res.json();
                 Object.keys(this.keys).forEach(key => {
@@ -3263,30 +3267,6 @@ app.post('/api/save', (req, res) => {
     try {
         fs.writeFileSync(path.join(__dirname, 'data.json'), JSON.stringify(req.body, null, 2));
         res.json({success: true});
-        
-        // Auto-sync en segundo plano
-        setTimeout(() => {
-            console.log("-> Cambio detectado. Sincronizando con GitHub de fondo...");
-            const { execSync } = require('child_process');
-            const repoUrl = "https://github.com/gigacomputers2025-bot/Web.git";
-            const tmpDir = path.join(__dirname, '.sync_tmp');
-            
-            try {
-                if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true, force: true });
-                execSync(\`git clone \${repoUrl} "\${tmpDir}"\`, {stdio: 'ignore'});
-                fs.copyFileSync(path.join(__dirname, 'data.json'), path.join(tmpDir, 'data.json'));
-                execSync(\`git config user.name "TechStore Admin"\`, { cwd: tmpDir });
-                execSync(\`git config user.email "admin@techstore.local"\`, { cwd: tmpDir });
-                execSync(\`git add data.json\`, { cwd: tmpDir });
-                execSync(\`git commit -m "Auto-sync background"\`, { cwd: tmpDir, stdio: 'ignore' });
-                execSync(\`git push origin main\`, { cwd: tmpDir, stdio: 'ignore' });
-                if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true, force: true });
-                console.log("-> ¡Sincronización automática exitosa!");
-            } catch(e) {
-                if (fs.existsSync(tmpDir)) try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch(err){}
-            }
-        }, 1000);
-        
     } catch(e) {
         res.status(500).json({success: false, error: e.message});
     }
@@ -3726,19 +3706,7 @@ const Cart = {
     },
 
     async lookupRepairRemote(code) {
-        const cfg = DB.getConfig();
-        const worker = String(cfg.tenantWorker || '').replace(/\/+$/, '');
-        const slug = String(cfg.tenantSlug || '');
-        if (!worker || !slug) return { repair: null, offline: true, reason: 'no-config' };
-        try {
-            const r = await fetch(worker + '/repair-lookup?slug=' + encodeURIComponent(slug) + '&code=' + encodeURIComponent(code));
-            if (r.ok) {
-                const j = await r.json();
-                return { repair: j.repair || null, offline: false, reason: '' };
-            }
-            if (r.status === 404) return { repair: null, offline: false, reason: 'not-found' };
-            return { repair: null, offline: true, reason: 'http-' + r.status };
-        } catch { return { repair: null, offline: true, reason: 'net' }; }
+        return { repair: null, offline: true, reason: 'no-config' };
     },
 
     _idemKey() {
@@ -3746,29 +3714,7 @@ const Cart = {
         return Date.now().toString(36) + Math.random().toString(36).slice(2,10);
     },
     async submitOrderRemote(payload) {
-        const cfg = DB.getConfig();
-        const worker = String(cfg.tenantWorker || '').replace(/\/+$/, '');
-        const slug = String(cfg.tenantSlug || '');
-        if (!worker || !slug) return null;
-        if (!payload.idempotencyKey) payload.idempotencyKey = this._idemKey();
-        try {
-            const r = await fetch(worker + '/order?slug=' + encodeURIComponent(slug), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': payload.idempotencyKey },
-                body: JSON.stringify({
-                    items: payload.items.map((i) => ({ productId: i.productId, productName: i.name, quantity: i.quantity, price: i.price })),
-                    total: payload.total,
-                    clientName: payload.clientName,
-                    clientPhone: payload.clientPhone,
-                    notes: payload.notes,
-                    deliveryType: payload.deliveryType,
-                    idempotencyKey: payload.idempotencyKey,
-                }),
-            });
-            if (!r.ok) return null;
-            const j = await r.json();
-            return (j && (j.id || j.ok)) ? j : null;
-        } catch { return null; }
+        return null;
     },
 
     showCheckout() {
