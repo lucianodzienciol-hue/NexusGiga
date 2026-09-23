@@ -737,7 +737,7 @@ const Pages = {
                 ${p.oferta ? '<span class="product-badge">OFERTA</span>' : ''}
                 ${p.nuevo ? '<span class="product-badge new">NUEVO</span>' : ''}
                 <div class="product-img-container">
-                    <img src="${(() => { const raw = p.image || ''; if (!raw) return 'https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60'; if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:') || raw.startsWith('/')) return raw; return '/' + raw.replace(/^\.?\//, ''); })()}" alt="${esc(p.name)}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.src='https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60';">
+                    <img src="${(() => { const raw = p.image || ''; if (!raw) return 'https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60'; if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:') || raw.startsWith('/')) return raw; return raw.replace(/^\.?\//, ''); })()}" alt="${esc(p.name)}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.src='https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60';">
                     ${!p.image ? '<div class="no-image-overlay">Sin Foto</div>' : ''}
                 </div>
                 <div class="product-content">
