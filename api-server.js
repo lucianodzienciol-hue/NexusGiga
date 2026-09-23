@@ -2602,6 +2602,120 @@ function formatBytes(bytes) {
 
 
 
+function githubToken() {
+  const t = String(process.env.GITHUB_TOKEN || process.env.NEXUS_GITHUB_TOKEN || '').trim();
+  if (t) return t;
+  try {
+    const p = path.join(APP_ROOT, 'herramientas', '.github-token');
+    if (fs.existsSync(p)) return fs.readFileSync(p, 'utf8').trim();
+  } catch {}
+  try {
+    const p = path.join(APP_ROOT, 'herramientas', '.panel-token');
+    if (fs.existsSync(p)) {
+      const v = fs.readFileSync(p, 'utf8').trim();
+      if (/^gh[op]_[A-Za-z0-9_]+$/.test(v) || /^[0-9a-f]{40}$/i.test(v)) return v;
+    }
+  } catch {}
+  return '';
+}
+
+async function githubCreateRepo(org, repo, token) {
+  const headers = { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' };
+  let r = await fetch(`https://api.github.com/orgs/${org}/repos`, { method: 'POST', headers, body: JSON.stringify({ name: repo, private: false, auto_init: false }) });
+  let j = await r.json().catch(() => ({}));
+  if (r.ok) return j;
+  if (r.status === 422 && /already exists/i.test(j.message || '')) return { alreadyExists: true };
+  if (r.status === 404) {
+    r = await fetch(`https://api.github.com/user/repos`, { method: 'POST', headers, body: JSON.stringify({ name: repo, private: false }) });
+    j = await r.json().catch(() => ({}));
+    if (r.ok) return j;
+    if (r.status === 422 && /already exists/i.test(j.message || '')) return { alreadyExists: true };
+  }
+  throw new Error(j.message || `GitHub create repo ${r.status}`);
+}
+
+async function githubEnablePages(org, repo, token, customDomain) {
+  const headers = { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' };
+  const body = customDomain ? { source: { branch: 'main', path: '/' }, cname: customDomain } : { source: { branch: 'main', path: '/' } };
+  let r = await fetch(`https://api.github.com/repos/${org}/${repo}/pages`, { method: 'POST', headers, body: JSON.stringify(body) });
+  let j = await r.json().catch(() => ({}));
+  if (r.ok) return j;
+  if (r.status === 409 && /already exists/i.test(j.message || '')) {
+    r = await fetch(`https://api.github.com/repos/${org}/${repo}/pages`, { method: 'PUT', headers, body: JSON.stringify(body) });
+    j = await r.json().catch(() => ({}));
+    if (r.ok) return j;
+  }
+  throw new Error(j.message || `GitHub pages ${r.status}`);
+}
+
+async function runCreateOrgRepo(p, onStep) {
+  const emit = (id, status, detail) => { try { if (typeof onStep === 'function') onStep(id, status, detail); } catch {} };
+  const fail = (id, e) => { emit(id, 'fail', (e && e.message) || 'Fallo'); throw e; };
+  const ORG = 'lucianodzienciol-hue';
+  const CENTRAL = 'NexusGiga';
+  const token = githubToken();
+  if (!token) {
+    const e = new Error('Falta GITHUB_TOKEN (herramientas/.github-token o env GITHUB_TOKEN) con permiso repo');
+    e.statusCode = 400; fail('create-repo', e);
+  }
+  emit('validate', 'done');
+  const useCentral = !p.customDomain;
+  const targetRepo = useCentral ? CENTRAL : p.slug;
+  emit('create-repo', 'run');
+  if (useCentral) {
+    try {
+      const r = await fetch(`https://api.github.com/repos/${ORG}/${CENTRAL}`, { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } });
+      if (!r.ok) throw new Error(`Central repo no accesible ${r.status}`);
+    } catch (e) { fail('create-repo', e); }
+  } else {
+    try {
+      await githubCreateRepo(ORG, targetRepo, token);
+    } catch (e) {
+      if (/already exists/i.test(e.message||'')) { /* ok */ }
+      else if (/Resource not accessible|403/.test(e.message||'')) {
+        const ee = new Error('Token sin permiso para crear repo dedicado. Para dominio propio usa token Classic con repo o fine-grained con All repositories');
+        ee.statusCode = 403; fail('create-repo', ee);
+      } else fail('create-repo', e);
+    }
+  }
+  emit('create-repo', 'ok');
+  emit('build', 'run');
+  let outDir;
+  try {
+    const { lib } = await vendorLibs();
+    const db = getDbOrThrow();
+    const products = db.prepare("SELECT * FROM products WHERE source='web'").all();
+    const categories = db.prepare("SELECT * FROM web_categories").all();
+    const services = db.prepare("SELECT * FROM web_services").all();
+    const companyConfig = getConfig('companyConfig', {});
+    const webConfig = getConfig('webConfig', {});
+    const store = { products, categories, services, config: { ...companyConfig, ...webConfig } };
+    if (p.comercio) store.config.companyName = p.comercio;
+    outDir = path.join(APP_ROOT, 'tenant', 'dist', p.slug);
+    fs.mkdirSync(outDir, { recursive: true });
+    lib.writeStaticFiles(path.join(APP_ROOT, 'web'), outDir, store);
+  } catch (e) { fail('build', e); }
+  emit('build', 'ok');
+  emit('push', 'run');
+  try {
+    if (useCentral) await gitPushCentral(ORG, CENTRAL, p.slug, outDir, token);
+    else await gitPush(outDir, ORG, p.slug, token);
+  } catch (e) { fail('push', e); }
+  emit('push', 'ok');
+  emit('pages', 'run');
+  try {
+    if (useCentral) await githubEnablePages(ORG, CENTRAL, token, undefined);
+    else await githubEnablePages(ORG, p.slug, token, p.customDomain);
+  } catch (e) {
+    if (!/already exists/i.test(e.message||'')) {
+      console.warn('[A1] Pages central warning:', e.message);
+    }
+  }
+  emit('pages', 'ok');
+  const finalUrl = p.customDomain ? `https://${p.customDomain}/` : `https://${ORG}.github.io/${CENTRAL}/${p.slug}/`;
+  return { ok: true, slug: p.slug, url: finalUrl, central: useCentral };
+}
+
 const LISTEN_HOST = process.env.NEXUS_LOOPBACK === '1' ? '127.0.0.1' : '0.0.0.0';
 function startServer(port, cb) {
   const srv = app.listen(port, LISTEN_HOST, cb);

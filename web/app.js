@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Catálogo de Ventas de Computación - App Logic
  */
 
@@ -27,7 +27,7 @@ const DB = {
     
     async init() {
         // Forzar limpieza de localStorage si cambia versión (para migraciones)
-        const APP_VERSION = 2;
+        const APP_VERSION = 3;
         const storedVersion = parseInt(localStorage.getItem('techstore_version') || '0', 10);
         if (storedVersion < APP_VERSION) {
             Object.values(this.keys).forEach(k => localStorage.removeItem(k));
@@ -737,7 +737,7 @@ const Pages = {
                 ${p.oferta ? '<span class="product-badge">OFERTA</span>' : ''}
                 ${p.nuevo ? '<span class="product-badge new">NUEVO</span>' : ''}
                 <div class="product-img-container">
-                    <img src="${p.image || 'https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60'}" alt="${p.name}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.src='https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60';">
+                    <img src="${(() => { const raw = p.image || ''; if (!raw) return 'https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60'; if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:') || raw.startsWith('/')) return raw; return '/' + raw.replace(/^\.?\\//, ''); })()}" alt="${esc(p.name)}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.src='https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60';">
                     ${!p.image ? '<div class="no-image-overlay">Sin Foto</div>' : ''}
                 </div>
                 <div class="product-content">
