@@ -27,7 +27,7 @@ const DB = {
     
     async init() {
         // Forzar limpieza de localStorage si cambia versión (para migraciones)
-        const APP_VERSION = 4;
+        const APP_VERSION = 5;
         const storedVersion = parseInt(localStorage.getItem('techstore_version') || '0', 10);
         if (storedVersion < APP_VERSION) {
             Object.values(this.keys).forEach(k => localStorage.removeItem(k));
