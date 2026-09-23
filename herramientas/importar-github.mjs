@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // importar-github.mjs — Importa token/repo/contraseñas GitHub a Nexus GIGA.
-// Uso: node herramientas/importar-github.mjs [--validar]
-// Fuente (solo lectura): F:/Nexus/Nexus 4-6/nexus-pos-completo/database.db
+// Uso: node herramientas/importar-github.mjs [--src <ruta.db>] [--validar]
+// Fuente (solo lectura): por defecto F:/Nexus/Nexus 4-6/nexus-pos-completo/database.db (configurable via --src o NEXUS_IMPORT_SRC)
 // Destino: app_config.companyConfig / webConfig de la DB local (merge, sin
 // pisar currency/printMode/moneda ni otras claves existentes).
 // NUNCA imprime valores de secretos (solo largos y máscara ****+4).
@@ -15,7 +15,12 @@ const ROOT = path.resolve(__dirname, '..');
 const require = createRequire(path.join(ROOT, 'package.json'));
 const Database = require('better-sqlite3');
 
-const SRC = 'F:/Nexus/Nexus 4-6/nexus-pos-completo/database.db';
+const SRC = (() => {
+  const idx = process.argv.indexOf('--src');
+  if (idx !== -1 && process.argv[idx + 1]) return path.resolve(process.argv[idx + 1]);
+  if (process.env.NEXUS_IMPORT_SRC) return path.resolve(process.env.NEXUS_IMPORT_SRC);
+  return 'F:/Nexus/Nexus 4-6/nexus-pos-completo/database.db';
+})();
 const DST = path.join(ROOT, 'database.db');
 const validar = process.argv.includes('--validar');
 
