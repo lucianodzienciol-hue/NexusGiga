@@ -33,21 +33,23 @@ const DB = {
             Object.values(this.keys).forEach(k => localStorage.removeItem(k));
             localStorage.setItem('techstore_version', String(APP_VERSION));
         }
-        try {
-            // Try via API proxy first (local server mode)
-            const res = await fetch('/api/web-data'); 
-            if (res.ok) {
-                const data = await res.json();
-                Object.keys(this.keys).forEach(key => {
-                    if (data[key]) {
-                        localStorage.setItem(this.keys[key], JSON.stringify(data[key]));
-                        this._cache[key] = data[key];
-                    }
-                });
-                return;
+        // Solo intenta /api/web-data en local (donde corre api-server.js), en Pages no hay /api
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '::1') {
+            try {
+                const res = await fetch('/api/web-data'); 
+                if (res.ok) {
+                    const data = await res.json();
+                    Object.keys(this.keys).forEach(key => {
+                        if (data[key]) {
+                            localStorage.setItem(this.keys[key], JSON.stringify(data[key]));
+                            this._cache[key] = data[key];
+                        }
+                    });
+                    return;
+                }
+            } catch (e) {
+                console.log("API not available, trying data.json...");
             }
-        } catch (e) {
-            console.log("API not available, trying data.json...");
         }
 
         // Fallback: load data.json directamente (soporta root y subcarpeta /NexusGiga/<slug>/)
