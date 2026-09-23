@@ -485,11 +485,13 @@ const formatMoney = (amount) => {
 // --- Stats Module (Visits Counter) ---
 const Stats = {
     async increment() {
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return;
+        // Solo en local (donde corre api-server.js), en Pages no hay /api
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && window.location.hostname !== '::1') return;
         try { await fetch('/api/visits/increment', { method: 'POST' }); } catch {}
     },
 
     async getHits() {
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && window.location.hostname !== '::1') return '---';
         try {
             const res = await fetch('/api/visits/stats');
             const data = await res.json();
