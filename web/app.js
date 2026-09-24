@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Catálogo de Ventas de Computación - App Logic
  */
 
@@ -26,39 +26,33 @@ const DB = {
     },
     
     async init() {
-        // Forzar limpieza de localStorage si cambia versión (para migraciones) - bump para invalidar cache fotos
-        const APP_VERSION = 6;
+        // Forzar limpieza de localStorage si cambia versión (para migraciones)
+        const APP_VERSION = 2;
         const storedVersion = parseInt(localStorage.getItem('techstore_version') || '0', 10);
         if (storedVersion < APP_VERSION) {
             Object.values(this.keys).forEach(k => localStorage.removeItem(k));
             localStorage.setItem('techstore_version', String(APP_VERSION));
         }
-        // Solo intenta /api/web-data en local (donde corre api-server.js), en Pages no hay /api
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '::1') {
-            try {
-                const res = await fetch('/api/web-data'); 
-                if (res.ok) {
-                    const data = await res.json();
-                    Object.keys(this.keys).forEach(key => {
-                        if (data[key]) {
-                            localStorage.setItem(this.keys[key], JSON.stringify(data[key]));
-                            this._cache[key] = data[key];
-                        }
-                    });
-                    return;
-                }
-            } catch (e) {
-                console.log("API not available, trying data.json...");
+        try {
+            // Try via API proxy first (local server mode)
+            const res = await fetch('/api/web-data'); 
+            if (res.ok) {
+                const data = await res.json();
+                Object.keys(this.keys).forEach(key => {
+                    if (data[key]) {
+                        localStorage.setItem(this.keys[key], JSON.stringify(data[key]));
+                        this._cache[key] = data[key];
+                    }
+                });
+                return;
             }
+        } catch (e) {
+            console.log("API not available, trying data.json...");
         }
 
-        // Fallback: load data.json directamente (soporta root y subcarpeta /NexusGiga/<slug>/)
+        // Fallback: load data.json directly (GitHub Pages / static mode)
         try {
-            // Intenta relativo primero (funciona en root y subcarpeta), luego absoluto
-            let res = await fetch('data.json?t=' + Date.now());
-            if (!res.ok) res = await fetch('./data.json?t=' + Date.now());
-            if (!res.ok) res = await fetch('/data.json?t=' + Date.now());
-            if (!res.ok) res = await fetch('/web/data.json?t=' + Date.now());
+            const res = await fetch('/data.json?t=' + Date.now());
             if (res.ok) {
                 const data = await res.json();
                 Object.keys(this.keys).forEach(key => {
@@ -487,13 +481,11 @@ const formatMoney = (amount) => {
 // --- Stats Module (Visits Counter) ---
 const Stats = {
     async increment() {
-        // Solo en local (donde corre api-server.js), en Pages no hay /api
-        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && window.location.hostname !== '::1') return;
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return;
         try { await fetch('/api/visits/increment', { method: 'POST' }); } catch {}
     },
 
     async getHits() {
-        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && window.location.hostname !== '::1') return '---';
         try {
             const res = await fetch('/api/visits/stats');
             const data = await res.json();
@@ -745,7 +737,7 @@ const Pages = {
                 ${p.oferta ? '<span class="product-badge">OFERTA</span>' : ''}
                 ${p.nuevo ? '<span class="product-badge new">NUEVO</span>' : ''}
                 <div class="product-img-container">
-                    <img src="${(() => { const raw = p.image || ''; if (!raw) return 'https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60'; if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) return raw; let clean = raw.replace(/^\.?\//, '').replace(/^web\//, ''); if (clean.startsWith('/')) return clean; return clean; })()}" alt="${esc(p.name)}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded');this.onerror=null;this.src='https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60';">
+                    <img src="${p.image || 'https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60'}" alt="${p.name}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.src='https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60';">
                     ${!p.image ? '<div class="no-image-overlay">Sin Foto</div>' : ''}
                 </div>
                 <div class="product-content">
@@ -3271,6 +3263,30 @@ app.post('/api/save', (req, res) => {
     try {
         fs.writeFileSync(path.join(__dirname, 'data.json'), JSON.stringify(req.body, null, 2));
         res.json({success: true});
+        
+        // Auto-sync en segundo plano
+        setTimeout(() => {
+            console.log("-> Cambio detectado. Sincronizando con GitHub de fondo...");
+            const { execSync } = require('child_process');
+            const repoUrl = "https://github.com/gigacomputers2025-bot/Web.git";
+            const tmpDir = path.join(__dirname, '.sync_tmp');
+            
+            try {
+                if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true, force: true });
+                execSync(\`git clone \${repoUrl} "\${tmpDir}"\`, {stdio: 'ignore'});
+                fs.copyFileSync(path.join(__dirname, 'data.json'), path.join(tmpDir, 'data.json'));
+                execSync(\`git config user.name "TechStore Admin"\`, { cwd: tmpDir });
+                execSync(\`git config user.email "admin@techstore.local"\`, { cwd: tmpDir });
+                execSync(\`git add data.json\`, { cwd: tmpDir });
+                execSync(\`git commit -m "Auto-sync background"\`, { cwd: tmpDir, stdio: 'ignore' });
+                execSync(\`git push origin main\`, { cwd: tmpDir, stdio: 'ignore' });
+                if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true, force: true });
+                console.log("-> ¡Sincronización automática exitosa!");
+            } catch(e) {
+                if (fs.existsSync(tmpDir)) try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch(err){}
+            }
+        }, 1000);
+        
     } catch(e) {
         res.status(500).json({success: false, error: e.message});
     }
@@ -3710,7 +3726,19 @@ const Cart = {
     },
 
     async lookupRepairRemote(code) {
-        return { repair: null, offline: true, reason: 'no-config' };
+        const cfg = DB.getConfig();
+        const worker = String(cfg.tenantWorker || '').replace(/\/+$/, '');
+        const slug = String(cfg.tenantSlug || '');
+        if (!worker || !slug) return { repair: null, offline: true, reason: 'no-config' };
+        try {
+            const r = await fetch(worker + '/repair-lookup?slug=' + encodeURIComponent(slug) + '&code=' + encodeURIComponent(code));
+            if (r.ok) {
+                const j = await r.json();
+                return { repair: j.repair || null, offline: false, reason: '' };
+            }
+            if (r.status === 404) return { repair: null, offline: false, reason: 'not-found' };
+            return { repair: null, offline: true, reason: 'http-' + r.status };
+        } catch { return { repair: null, offline: true, reason: 'net' }; }
     },
 
     _idemKey() {
@@ -3718,7 +3746,29 @@ const Cart = {
         return Date.now().toString(36) + Math.random().toString(36).slice(2,10);
     },
     async submitOrderRemote(payload) {
-        return null;
+        const cfg = DB.getConfig();
+        const worker = String(cfg.tenantWorker || '').replace(/\/+$/, '');
+        const slug = String(cfg.tenantSlug || '');
+        if (!worker || !slug) return null;
+        if (!payload.idempotencyKey) payload.idempotencyKey = this._idemKey();
+        try {
+            const r = await fetch(worker + '/order?slug=' + encodeURIComponent(slug), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': payload.idempotencyKey },
+                body: JSON.stringify({
+                    items: payload.items.map((i) => ({ productId: i.productId, productName: i.name, quantity: i.quantity, price: i.price })),
+                    total: payload.total,
+                    clientName: payload.clientName,
+                    clientPhone: payload.clientPhone,
+                    notes: payload.notes,
+                    deliveryType: payload.deliveryType,
+                    idempotencyKey: payload.idempotencyKey,
+                }),
+            });
+            if (!r.ok) return null;
+            const j = await r.json();
+            return (j && (j.id || j.ok)) ? j : null;
+        } catch { return null; }
     },
 
     showCheckout() {
