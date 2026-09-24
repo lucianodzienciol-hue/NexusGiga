@@ -6,7 +6,7 @@ import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
 import crypto from 'crypto';
 import os from 'os';
-import { exec, execSync } from 'child_process';
+import { exec, execSync, execFile } from 'child_process';
 
 const __dirname = path.resolve(path.dirname(process.argv[1] || '.'));
 const require = createRequire(pathToFileURL(path.join(__dirname, 'api-server.js')).href);
@@ -226,7 +226,7 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Idempotency-Key');
   }
   if (req.method === 'OPTIONS') return res.status(204).end();
   next();
@@ -534,6 +534,11 @@ function migrateLegacySchema() {
     }
     // products: wholesale price (0 = sin mayorista, usa minorista)
     try { d.exec('ALTER TABLE products ADD COLUMN price_mayorista REAL NOT NULL DEFAULT 0'); } catch {}
+    try { d.exec('ALTER TABLE orders ADD COLUMN remoteId TEXT DEFAULT NULL'); } catch {}
+    try { d.exec('ALTER TABLE orders ADD COLUMN idempotencyKey TEXT DEFAULT NULL'); } catch {}
+    try { d.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_remote ON orders(remoteId) WHERE remoteId IS NOT NULL'); } catch {}
+    try { d.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_idem ON orders(idempotencyKey) WHERE idempotencyKey IS NOT NULL'); } catch {}
+    try { d.exec('CREATE TABLE IF NOT EXISTS order_idempotency (key TEXT PRIMARY KEY, orderId TEXT NOT NULL, createdAt TEXT NOT NULL)'); } catch {}
     // monthly_stats: old Lite shape used (id, month, totalSales, ...) — incompatible
     // with the year/month/sales_count/cash_amount shape. Only rebuild on legacy shape,
     // resguardando la tabla vieja en vez de borrarla.
@@ -680,7 +685,7 @@ app.get('/api/web-data', (req, res) => {
       nuevo: !!p.nuevo,
       oldPrice: p.oferta && p.ofertaPrice ? p.ofertaPrice : undefined,
     }));
-    const WEB_CONFIG_KEYS = ['companyName', 'address', 'phone', 'whatsapp', 'email', 'hours', 'instagram', 'facebook', 'popupActive', 'popupImage', 'popupDuration', 'popupText', 'popupDelay', 'popupAlways', 'homeProductLimit', 'homeRandomOrder', 'googleAnalyticsId', 'gtmId', 'siteTitle', 'siteDescription', 'banners', 'priceListsEnabled', 'currency'];
+    const WEB_CONFIG_KEYS = ['companyName', 'address', 'phone', 'whatsapp', 'email', 'hours', 'instagram', 'facebook', 'popupActive', 'popupImage', 'popupDuration', 'popupText', 'popupDelay', 'popupAlways', 'homeProductLimit', 'homeRandomOrder', 'googleAnalyticsId', 'gtmId', 'siteTitle', 'siteDescription', 'banners', 'priceListsEnabled', 'currency', 'tenantWorker', 'tenantSlug'];
     const pickCfg = (src) => Object.fromEntries(WEB_CONFIG_KEYS.filter(k => src && src[k] !== undefined).map(k => [k, src[k]]));
     const cfgOut = { ...pickCfg(companyCfg), ...pickCfg(config) };
     cfgOut.priceListsEnabled = !!(companyCfg.priceListsEnabled || config.priceListsEnabled);
@@ -1133,10 +1138,19 @@ app.post('/api/deploy-ghpages', rateLimit({ windowMs: 60000, max: 5 }), async (r
     const repoData = await repoResp.json();
     const defaultBranch = repoData.default_branch;
 
-    const refResp = await fetch(`${api}/repos/${repo}/git/ref/heads/${defaultBranch}`, { headers });
-    if (!refResp.ok) return res.status(400).json({ success: false, error: 'No se pudo obtener la rama por defecto' });
-    const refData = await refResp.json();
-    const baseSha = refData.object.sha;
+    // Prefer gh-pages as base to preserve history/CNAME; fallback to default branch
+    let baseSha = null;
+    let baseIsGhPages = false;
+    try {
+      const ghRef = await fetch(`${api}/repos/${repo}/git/ref/heads/gh-pages`, { headers });
+      if (ghRef.ok) { const gd = await ghRef.json(); baseSha = gd.object.sha; baseIsGhPages = true; }
+    } catch {}
+    if (!baseSha) {
+      const refResp = await fetch(`${api}/repos/${repo}/git/ref/heads/${defaultBranch}`, { headers });
+      if (!refResp.ok) return res.status(400).json({ success: false, error: 'No se pudo obtener la rama por defecto' });
+      const refData = await refResp.json();
+      baseSha = refData.object.sha;
+    }
 
     // 2. Build tree from web/ directory + admin/ (dist/)
     const BINARY_EXTS = new Set(['.jpeg', '.jpg', '.png', '.gif', '.ico', '.webp', '.svg', '.woff', '.woff2', '.ttf', '.eot', '.pdf']);
@@ -1176,18 +1190,93 @@ app.post('/api/deploy-ghpages', rateLimit({ windowMs: 60000, max: 5 }), async (r
       console.error('[deploy] Error generating data.json:', e.message);
     }
 
-    const treeItems = files.map(f => ({
+    // Detect Pages build type: if workflow, deploy to default branch under web/, else to gh-pages root
+    let pagesInfo = null;
+    try {
+      const pr = await fetch(`${api}/repos/${repo}/pages`, { headers });
+      if (pr.ok) pagesInfo = await pr.json();
+    } catch {}
+    const isWorkflow = pagesInfo && pagesInfo.build_type === 'workflow';
+
+    // Build tree items: for workflow (master) need web/ prefix, for gh-pages need root
+    const rawTreeItems = files.map(f => ({
       path: f.path,
       mode: '100644',
       type: 'blob',
       content: f.content,
       ...(f.encoding ? { encoding: f.encoding } : {}),
     }));
+    if (!files.some(f => f.path.toLowerCase() === 'cname')) {
+      const cfgDomain = (() => { try { const c = getConfig('companyConfig', {}); const w = getConfig('webConfig', {}); return (w.domain || c.domain || c.webUrl || '').toString(); } catch { return ''; } })();
+      let cnameVal = 'www.gigacomputers.com.ar';
+      try {
+        if (cfgDomain) {
+          const u = new URL(cfgDomain.startsWith('http') ? cfgDomain : 'https://' + cfgDomain);
+          if (u.hostname && u.hostname !== 'localhost') cnameVal = u.hostname;
+        }
+      } catch {}
+      rawTreeItems.push({ path: 'CNAME', mode: '100644', type: 'blob', content: cnameVal + '\n' });
+    }
+    // For workflow, paths must be web/... ; for gh-pages they are root
+    let treeItems = isWorkflow ? rawTreeItems.map(i => ({ ...i, path: 'web/' + i.path })) : rawTreeItems;
+
+    // Para assets/products (536 binarios) usar git/blobs + sha para evitar malformed request por tree muy grande
+    const BLOB_THRESHOLD = 90000;
+    const blobItems = [];
+    const smallItems = [];
+    for (const it of treeItems) {
+      const isAsset = it.path.includes('assets/products/');
+      const contentLen = it.content ? Buffer.byteLength(it.content, it.encoding === 'base64' ? 'base64' : 'utf8') : 0;
+      if (isAsset || contentLen > BLOB_THRESHOLD) {
+        try {
+          const blobResp = await fetch(`${api}/repos/${repo}/git/blobs`, {
+            method: 'POST',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: it.content, encoding: it.encoding || 'utf-8' }),
+          });
+          if (!blobResp.ok) {
+            const be = await blobResp.text().catch(() => '');
+            throw new Error(`Blob ${it.path}: ${be || blobResp.statusText}`);
+          }
+          const bj = await blobResp.json();
+          blobItems.push({ path: it.path, mode: it.mode, type: it.type, sha: bj.sha });
+        } catch (e) {
+          console.error('[deploy] Blob error', it.path, e.message);
+          return res.status(500).json({ success: false, error: 'Error al subir blob ' + it.path + ': ' + e.message });
+        }
+      } else {
+        smallItems.push(it);
+      }
+    }
+    treeItems = [...smallItems, ...blobItems];
+
+    // Resolve base tree sha correctly: need tree sha, not commit sha
+    let baseTreeSha = baseSha;
+    try {
+      const cResp = await fetch(`${api}/repos/${repo}/git/commits/${baseSha}`, { headers });
+      if (cResp.ok) { const cj = await cResp.json(); if (cj.tree && cj.tree.sha) baseTreeSha = cj.tree.sha; }
+    } catch {}
+    // For workflow, base is default branch; for gh-pages base is gh-pages
+    let targetBranch = isWorkflow ? defaultBranch : 'gh-pages';
+    let targetBaseSha = baseSha;
+    let targetBaseTree = baseTreeSha;
+    if (isWorkflow) {
+      // Re-fetch default branch sha/tree if we used gh-pages earlier
+      if (baseIsGhPages) {
+        try {
+          const defRef = await fetch(`${api}/repos/${repo}/git/ref/heads/${defaultBranch}`, { headers });
+          if (defRef.ok) { const dj = await defRef.json(); targetBaseSha = dj.object.sha; const cc = await fetch(`${api}/repos/${repo}/git/commits/${targetBaseSha}`, { headers }); if (cc.ok) { const cjj = await cc.json(); if (cjj.tree?.sha) targetBaseTree = cjj.tree.sha; } }
+        } catch {}
+      }
+    } else {
+      targetBaseTree = baseTreeSha;
+      targetBaseSha = baseSha;
+    }
 
     const treeResp = await fetch(`${api}/repos/${repo}/git/trees`, {
       method: 'POST',
       headers: { ...headers, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tree: treeItems }),
+      body: JSON.stringify({ base_tree: targetBaseTree, tree: treeItems }),
     });
     if (!treeResp.ok) {
       const treeErr = await treeResp.text().catch(() => '');
@@ -1200,38 +1289,67 @@ app.post('/api/deploy-ghpages', rateLimit({ windowMs: 60000, max: 5 }), async (r
     const treeData = await treeResp.json();
     const treeSha = treeData.sha;
 
-    // 3. Create commit (orphan, no parent)
+    // 3. Create commit with parent to preserve history/CNAME
     const commitResp = await fetch(`${api}/repos/${repo}/git/commits`, {
       method: 'POST',
       headers: { ...headers, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: 'Deploy Nexus Full Web', tree: treeSha, parents: [] }),
+      body: JSON.stringify({ message: 'Deploy Nexus Full Web', tree: treeSha, parents: [targetBaseSha] }),
     });
     if (!commitResp.ok) return res.status(500).json({ success: false, error: 'Error al crear el commit' });
     const commitData = await commitResp.json();
     const commitSha = commitData.sha;
 
-    // 4. Update gh-pages branch
-    const ghResp = await fetch(`${api}/repos/${repo}/git/refs/heads/gh-pages`, {
+    // 4. Update target branch (gh-pages for legacy, master for workflow)
+    const branchRef = `refs/heads/${targetBranch}`;
+    const ghResp = await fetch(`${api}/repos/${repo}/git/refs/heads/${targetBranch}`, {
       method: 'PATCH',
       headers: { ...headers, 'Content-Type': 'application/json' },
       body: JSON.stringify({ sha: commitSha, force: true }),
     });
     if (!ghResp.ok) {
-      // Try creating the branch if it doesn't exist
       const createResp = await fetch(`${api}/repos/${repo}/git/refs`, {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ref: 'refs/heads/gh-pages', sha: commitSha }),
+        body: JSON.stringify({ ref: branchRef, sha: commitSha }),
       });
-      if (!createResp.ok) return res.status(500).json({ success: false, error: 'Error al crear la rama gh-pages' });
+      if (!createResp.ok) return res.status(500).json({ success: false, error: 'Error al crear la rama ' + targetBranch });
+    }
+    // For workflow repos, also keep gh-pages in sync so both entrypoints work
+    if (isWorkflow) {
+      try {
+        const ghTreeResp = await fetch(`${api}/repos/${repo}/git/trees`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ base_tree: baseTreeSha, tree: rawTreeItems.map(i=>({path:i.path,mode:'100644',type:'blob',content:i.content,...(i.encoding?{encoding:i.encoding}:{})})) }) });
+        if (ghTreeResp.ok) {
+          const ght = await ghTreeResp.json();
+          const ghCommit = await fetch(`${api}/repos/${repo}/git/commits`, { method:'POST', headers:{...headers,'Content-Type':'application/json'}, body: JSON.stringify({message:'Deploy Nexus Full Web (gh-pages sync)', tree: ght.sha, parents:[baseSha]})});
+          if (ghCommit.ok) {
+            const gc = await ghCommit.json();
+            await fetch(`${api}/repos/${repo}/git/refs/heads/gh-pages`, { method:'PATCH', headers:{...headers,'Content-Type':'application/json'}, body: JSON.stringify({sha: gc.sha, force:true})}).catch(()=>{});
+          }
+        }
+      } catch {}
     }
 
-    // 5. Enable GitHub Pages (optional)
-    await fetch(`${api}/repos/${repo}/pages`, {
-      method: 'POST',
-      headers: { ...headers, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ source: { branch: 'gh-pages', path: '/' } }),
-    }).catch(() => {});
+    // 5. Enable/Update GitHub Pages (ensure gh-pages + custom domain)
+    try {
+      const pagesGet = await fetch(`${api}/repos/${repo}/pages`, { headers });
+      const cnameValForPages = (() => {
+        const f = files.find(x => x.path.toLowerCase() === 'cname') || treeItems.find(x => x.path === 'CNAME');
+        try { return (f && f.content || 'www.gigacomputers.com.ar').trim(); } catch { return 'www.gigacomputers.com.ar'; }
+      })();
+      if (pagesGet.ok) {
+        await fetch(`${api}/repos/${repo}/pages`, {
+          method: 'PUT',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source: { branch: 'gh-pages', path: '/' }, cname: cnameValForPages }),
+        }).catch(() => {});
+      } else {
+        await fetch(`${api}/repos/${repo}/pages`, {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source: { branch: 'gh-pages', path: '/' }, cname: cnameValForPages }),
+        }).catch(() => {});
+      }
+    } catch {}
 
     res.json({ success: true, url: `https://${repo.toLowerCase().replace('/', '.github.io/')}/` });
   } catch (e) {
@@ -1274,6 +1392,17 @@ app.post('/api/generate-catalog-csv', (_req, res) => {
       lines.push([esc(r.code || r.id), esc(r.name), Number(r.price) || 0, Number(r.price_mayorista) || 0, esc(r.category || ''), esc(r.description || ''), esc(r.image || '')].join(','));
     }
     fs.writeFileSync(path.join(WEB_DIR, 'catalog.csv'), '\uFEFF' + lines.join('\n'), 'utf-8');
+    // Regenerate web/data.json so disk matches DB (critical: price integrity)
+    try {
+      const d = getDb();
+      const dbProducts = d.prepare("SELECT * FROM products WHERE source = 'web'").all();
+      const categories = d.prepare('SELECT * FROM web_categories ORDER BY name').all();
+      const services = d.prepare('SELECT * FROM web_services ORDER BY name').all();
+      const config = getConfig('webConfig', {});
+      const companyCfg = getConfig('companyConfig', {});
+      const webData = { products: dbProducts, categories, services, config, whatsapp: companyCfg.whatsapp || '' };
+      fs.writeFileSync(path.join(WEB_DIR, 'data.json'), JSON.stringify(webData, null, 2), 'utf-8');
+    } catch (e) { console.error('[catalog] data.json regen:', e.message); }
     res.json({ success: true, count: rows.length });
   } catch (e) { res.status(500).json({ error: 'Error interno del servidor' }); }
 });
@@ -1301,9 +1430,9 @@ app.get('/web/*', (req, res) => {
   res.sendFile(path.join(WEB_DIR, 'index.html'));
 });
 
-// ============ ORDERS ============
-try {
-  getDb().prepare(`CREATE TABLE IF NOT EXISTS orders (
+function ensureOrdersSchema() {
+  const d = getDb();
+  d.prepare(`CREATE TABLE IF NOT EXISTS orders (
     id TEXT PRIMARY KEY,
     date TEXT NOT NULL,
     items TEXT NOT NULL DEFAULT '[]',
@@ -1312,10 +1441,19 @@ try {
     clientPhone TEXT DEFAULT '',
     notes TEXT DEFAULT '',
     status TEXT NOT NULL DEFAULT 'pendiente',
-    deliveryType TEXT DEFAULT ''
+    deliveryType TEXT DEFAULT '',
+    remoteId TEXT DEFAULT NULL,
+    idempotencyKey TEXT DEFAULT NULL
   )`).run();
-  try { getDb().prepare("ALTER TABLE orders ADD COLUMN deliveryType TEXT DEFAULT ''").run(); } catch {}
-} catch (e) { console.error('[API] Error creating orders table:', e.message); }
+  try { d.prepare("ALTER TABLE orders ADD COLUMN deliveryType TEXT DEFAULT ''").run(); } catch {}
+  try { d.prepare('ALTER TABLE orders ADD COLUMN remoteId TEXT DEFAULT NULL').run(); } catch {}
+  try { d.prepare('ALTER TABLE orders ADD COLUMN idempotencyKey TEXT DEFAULT NULL').run(); } catch {}
+  try { d.prepare('CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_remote ON orders(remoteId) WHERE remoteId IS NOT NULL').run(); } catch {}
+  try { d.prepare('CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_idem ON orders(idempotencyKey) WHERE idempotencyKey IS NOT NULL').run(); } catch {}
+  try { d.prepare('CREATE TABLE IF NOT EXISTS order_idempotency (key TEXT PRIMARY KEY, orderId TEXT NOT NULL, createdAt TEXT NOT NULL)').run(); } catch {}
+}
+try { ensureOrdersSchema(); } catch (e) { console.error('[API] Error creating orders table:', e.message); }
+try { migrateLegacySchema(); ensureOrdersSchema(); } catch {}
 
 app.get('/api/orders/subscribe', (req, res) => {
   if (sseClients.length >= 50) {
@@ -1375,26 +1513,360 @@ function nextOrderId() {
 app.post('/api/orders', rateLimit({ windowMs: 60000, max: 30 }), (req, res) => {
   try {
     const body = req.body || {};
+    const idemKey = String(req.headers['x-idempotency-key'] || body.idempotencyKey || '').slice(0, 128).trim();
+    const d = getDb();
+    if (idemKey) {
+      try {
+        const hit = d.prepare('SELECT orderId FROM order_idempotency WHERE key=?').get(idemKey);
+        if (hit) {
+          const row = d.prepare('SELECT * FROM orders WHERE id=?').get(hit.orderId);
+          if (row) {
+            let items = []; try { items = JSON.parse(row.items || '[]'); } catch {}
+            return res.status(200).json({ ...row, items, duplicate: true });
+          }
+        }
+        const byOrder = d.prepare('SELECT id, date, items, total, clientName, clientPhone, notes, status, deliveryType FROM orders WHERE idempotencyKey=?').get(idemKey);
+        if (byOrder) {
+          let items = []; try { items = JSON.parse(byOrder.items || '[]'); } catch {}
+          return res.status(200).json({ ...byOrder, items, duplicate: true });
+        }
+      } catch {}
+    }
     const items = Array.isArray(body.items) ? body.items.slice(0, 500) : [];
     const total = Number(body.total) || 0;
     const clientName = String(body.clientName || '').slice(0, 200);
     const clientPhone = String(body.clientPhone || '').slice(0, 60);
     const notes = String(body.notes || '').slice(0, 2000);
     const deliveryType = String(body.deliveryType || '').slice(0, 20);
+    const itemsHash = crypto.createHash('sha256').update(JSON.stringify(items.map(i => ({ n: String(i.name || i.productName || '').slice(0,120), q: Number(i.quantity)||0, p: Number(i.price)||0 }).sort((a,b)=>a.n.localeCompare(b.n))) + '|' + total + '|' + clientPhone).slice(0,4000)).digest('hex').slice(0,16);
+    const recentDup = d.prepare("SELECT id, date FROM orders WHERE clientPhone=? AND total=? AND date >= datetime('now','-3 minutes') ORDER BY date DESC LIMIT 5").all(clientPhone, total);
+    for (const r of recentDup) {
+      try {
+        const rr = d.prepare('SELECT items FROM orders WHERE id=?').get(r.id);
+        let prevArr = [];
+        try { prevArr = JSON.parse(rr.items||'[]'); } catch { prevArr = []; }
+        const prevNorm = prevArr.map(i => ({ n: String(i.productName||i.name||'').slice(0,120), q: Number(i.quantity)||0, p: Number(i.price)||0 })).sort((a,b)=>a.n.localeCompare(b.n));
+        const h2 = crypto.createHash('sha256').update(JSON.stringify(prevNorm) + '|' + total + '|' + clientPhone).digest('hex').slice(0,16);
+        if (h2 === itemsHash) {
+          const row = d.prepare('SELECT * FROM orders WHERE id=?').get(r.id);
+          let dupItems = []; try { dupItems = JSON.parse(row.items||'[]'); } catch {}
+          return res.status(200).json({ ...row, items: dupItems, duplicate: true });
+        }
+      } catch {}
+    }
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ');
-    const d = getDb();
     const id = d.transaction(() => {
+      if (idemKey) {
+        const hit2 = d.prepare('SELECT orderId FROM order_idempotency WHERE key=?').get(idemKey);
+        if (hit2) throw Object.assign(new Error('DUPLICATE_IDEM'), { code: 'DUPLICATE_IDEM', orderId: hit2.orderId });
+      }
       const oid = takeOrderIdInTxn(d);
-      d.prepare('INSERT INTO orders (id, date, items, total, clientName, clientPhone, notes, status, deliveryType) VALUES (?,?,?,?,?,?,?,?,?)').run(
-        oid, date, JSON.stringify(items), total, clientName, clientPhone, notes, 'pendiente', deliveryType
+      d.prepare('INSERT INTO orders (id, date, items, total, clientName, clientPhone, notes, status, deliveryType, idempotencyKey) VALUES (?,?,?,?,?,?,?,?,?,?)').run(
+        oid, date, JSON.stringify(items), total, clientName, clientPhone, notes, 'pendiente', deliveryType, idemKey || null
       );
+      if (idemKey) d.prepare('INSERT OR IGNORE INTO order_idempotency (key, orderId, createdAt) VALUES (?,?,?)').run(idemKey, oid, date);
       return oid;
     })();
     const newOrder = { id, date, items, total, clientName, clientPhone, notes, status: 'pendiente', deliveryType };
     broadcastSSE('new-order', newOrder);
     res.status(201).json(newOrder);
-  } catch (e) { res.status(500).json({ error: 'Error interno del servidor' }); }
+  } catch (e) {
+    if (e && e.code === 'DUPLICATE_IDEM') {
+      try {
+        const row = getDb().prepare('SELECT * FROM orders WHERE id=?').get(e.orderId);
+        if (row) { let items=[]; try{items=JSON.parse(row.items||'[]')}catch{} return res.status(200).json({ ...row, items, duplicate:true }); }
+      } catch {}
+    }
+    if (e && /UNIQUE.*idempotencyKey/i.test(e.message || '')) {
+      try {
+        const k = String(req.headers['x-idempotency-key']||req.body?.idempotencyKey||'').slice(0,128);
+        const hit = getDb().prepare('SELECT orderId FROM order_idempotency WHERE key=?').get(k);
+        if (hit) { const row=getDb().prepare('SELECT * FROM orders WHERE id=?').get(hit.orderId); if(row){let it=[];try{it=JSON.parse(row.items||'[]')}catch{} return res.status(200).json({...row,items:it,duplicate:true});}}
+      } catch {}
+    }
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
 });
+
+// ============ TENANT (tienda online Cloudflare) ============
+function getMachineFingerprint() {
+  try {
+    const macs = [];
+    const ifaces = os.networkInterfaces();
+    for (const name of Object.keys(ifaces)) {
+      for (const it of ifaces[name] || []) {
+        if (it && it.mac && it.mac !== '00:00:00:00:00:00' && !it.internal) macs.push(it.mac);
+      }
+    }
+    macs.sort();
+    const raw = [
+      os.hostname(), os.platform(), os.arch(),
+      (os.userInfo && os.userInfo().username) || '',
+      (os.cpus() || []).map((c) => c.model).join('|'),
+      macs.join('|'),
+    ].join('::');
+    return crypto.createHash('sha256').update(raw).digest('hex').slice(0, 32);
+  } catch { return ''; }
+}
+
+function importPendingLink() {
+  try {
+    getDb().prepare('CREATE TABLE IF NOT EXISTS app_config (key TEXT PRIMARY KEY, value TEXT)').run();
+    const dirs = [ROOT];
+    try {
+      const home = os.homedir();
+      if (home) { dirs.push(path.join(home, 'Desktop'), path.join(home, 'Downloads')); }
+    } catch {}
+    for (const dir of dirs) {
+      let files = [];
+      try { files = fs.readdirSync(dir).filter((f) => /^vincular-.*\.json$/i.test(f)); } catch { continue; }
+      for (const f of files) {
+        const full = path.join(dir, f);
+        try {
+          const data = JSON.parse(fs.readFileSync(full, 'utf8'));
+          const slug = String(data.slug || '').toLowerCase().trim();
+          const worker = String(data.worker || '').replace(/\/+$/, '');
+          const token = String(data.token || '');
+          if (!/^[a-z0-9][a-z0-9-]{0,62}$/.test(slug)) throw new Error('slug inválido');
+          if (!/^https?:\/\//.test(worker)) throw new Error('worker inválido');
+          if (!/^[0-9a-f]{32,128}$/i.test(token)) throw new Error('token inválido');
+          const cfg = getConfig('companyConfig', {});
+          setConfig('companyConfig', { ...cfg, tenantSlug: slug, tenantWorker: worker, tenantToken: token });
+          fs.rmSync(full, { force: true });
+          console.log('[API] Tienda vinculada desde ' + f + ' (slug: ' + slug + ')');
+          return true;
+        } catch (e) {
+          console.error('[API] Vincular ignorado (' + f + '): ' + e.message);
+        }
+      }
+    }
+  } catch (e) { console.error('[API] importPendingLink:', e.message); }
+  return false;
+}
+
+function tenantCfg() {
+  const cfg = getConfig('companyConfig', {});
+  return {
+    slug: String(cfg.tenantSlug || ''),
+    worker: String(cfg.tenantWorker || '').replace(/\/+$/, ''),
+    token: String(cfg.tenantToken || ''),
+  };
+}
+
+app.get('/api/tenant/status', (req, res) => {
+  const t = tenantCfg();
+  res.json({
+    configured: !!(t.slug && t.worker && t.token), slug: t.slug || null,
+    lastRepairsPublish: lastRepairsPublishAt ? new Date(lastRepairsPublishAt).toISOString() : null,
+    autoPublish: autoPublishState(),
+  });
+});
+
+async function publishRepairsToWorker() {
+  const t = tenantCfg();
+  if (!t.slug || !t.worker || !t.token) return { ok: false, reason: 'tienda no vinculada' };
+  const rows = getDb().prepare('SELECT id, code, clientName, clientPhone, equipment, marca, modelo, status, problem, notes, price, date, updatedAt FROM repairs ORDER BY date DESC LIMIT 2000').all();
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 20000);
+  try {
+    const r = await fetch(`${t.worker}/repair-publish?slug=${encodeURIComponent(t.slug)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + t.token },
+      body: JSON.stringify({ repairs: rows }),
+      signal: ctl.signal,
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) return { ok: false, reason: (j && j.error) || ('HTTP ' + r.status) };
+    lastRepairsPublishAt = Date.now();
+    return { ok: true, published: j.published || 0 };
+  } catch {
+    return { ok: false, reason: 'sin conexión con la tienda' };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+app.post('/api/tenant/publish-repairs', async (req, res) => {
+  const r = await publishRepairsToWorker();
+  if (!r.ok) return res.status(400).json(r);
+  res.json(r);
+});
+app.post('/api/publish/now', async (req, res) => {
+  const r = await runCatalogPublish(true);
+  if (!r.ok) return res.status(400).json(r);
+  res.json(r);
+});
+app.get('/api/publish/status', (req, res) => {
+  res.json({ ok: true, auto: autoPublishState() });
+});
+
+let repairsPublishTimer = null;
+let lastRepairsPublishAt = 0;
+const autoState = {
+  orders: { lastAt: 0, lastImported: 0 },
+  catalog: { lastAt: 0, lastHash: '', pending: false, error: null, tokenOk: null },
+};
+function autoPublishState() {
+  return {
+    repairs: lastRepairsPublishAt ? new Date(lastRepairsPublishAt).toISOString() : null,
+    orders: autoState.orders.lastAt ? new Date(autoState.orders.lastAt).toISOString() : null,
+    lastOrdersImported: autoState.orders.lastImported,
+    catalog: {
+      lastAt: autoState.catalog.lastAt ? new Date(autoState.catalog.lastAt).toISOString() : null,
+      pending: autoState.catalog.pending,
+      error: autoState.catalog.error,
+      tokenOk: autoState.catalog.tokenOk,
+    },
+  };
+}
+function scheduleRepairsPublish() {
+  try {
+    const t = tenantCfg();
+    if (!t.slug || !t.worker || !t.token) return;
+    if (repairsPublishTimer) clearTimeout(repairsPublishTimer);
+    repairsPublishTimer = setTimeout(async () => {
+      repairsPublishTimer = null;
+      try { await publishRepairsToWorker(); } catch {}
+    }, 60000);
+    if (repairsPublishTimer.unref) repairsPublishTimer.unref();
+  } catch {}
+}
+
+let tenantSyncRunning = false;
+async function runTenantSync() {
+  if (tenantSyncRunning) return { ok: false, reason: 'sync en curso' };
+  tenantSyncRunning = true;
+  try {
+    const t = tenantCfg();
+    if (!t.slug || !t.worker || !t.token) {
+      return { ok: false, reason: 'tienda no configurada (slug/worker/token)' };
+    }
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 20000);
+    let r;
+    try {
+      r = await fetch(`${t.worker}/inbox?slug=${encodeURIComponent(t.slug)}`, {
+        headers: { Authorization: 'Bearer ' + t.token, 'X-Machine-Fp': getMachineFingerprint() },
+        signal: ctl.signal,
+      });
+    } finally { clearTimeout(timer); }
+    if (!r.ok) {
+      let reason = 'buzón no disponible (HTTP ' + r.status + ')';
+      try {
+        const ej = await r.json();
+        if (ej && ej.error === 'tenant en uso en otra PC') reason = 'Tienda en uso en otra PC, contactá soporte';
+        else if (ej && ej.error) reason = String(ej.error);
+      } catch {}
+      return { ok: false, reason };
+    }
+    const remote = await r.json();
+    const list = Array.isArray(remote) ? remote : [];
+    const d = getDb();
+    try { ensureOrdersSchema(); } catch {}
+    const ids = [];
+    let imported = 0;
+    const hasRemoteCol = (() => {
+      try { return d.prepare('PRAGMA table_info(orders)').all().some((c) => c.name === 'remoteId'); } catch { return false; }
+    })();
+    const hasIdemCol = (() => {
+      try { return d.prepare('PRAGMA table_info(orders)').all().some((c) => c.name === 'idempotencyKey'); } catch { return false; }
+    })();
+    d.transaction(() => {
+      for (const o of list) {
+        if (!o || typeof o !== 'object') continue;
+        const items = Array.isArray(o.items) ? o.items.slice(0, 200) : [];
+        if (items.length === 0) continue;
+        const rid = String(o.id || '').slice(0,128).trim();
+        const remoteIdem = String(o.idempotencyKey || o.idemKey || '').slice(0,128).trim();
+        if (rid && hasRemoteCol) {
+          try {
+            const dup = d.prepare('SELECT id FROM orders WHERE remoteId = ?').get(rid);
+            if (dup) { ids.push(rid); continue; }
+          } catch {}
+        }
+        if (remoteIdem && hasIdemCol) {
+          try {
+            const dup2 = d.prepare('SELECT id FROM orders WHERE idempotencyKey = ?').get(remoteIdem);
+            if (dup2) { if (rid) ids.push(rid); continue; }
+          } catch {}
+        }
+        const oid = takeOrderIdInTxn(d);
+        const nowStr = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        try {
+          if (hasRemoteCol && hasIdemCol) {
+            d.prepare('INSERT INTO orders (id, date, items, total, clientName, clientPhone, notes, status, deliveryType, remoteId, idempotencyKey) VALUES (?,?,?,?,?,?,?,?,?,?,?)').run(
+              oid, nowStr, JSON.stringify(items.map((it) => ({ productId: String(it.productId || it.id || ''), productName: String(it.productName || it.name || ''), quantity: Number(it.quantity) || 0, price: Number(it.price) || 0, }))), Number(o.total) || 0, String(o.clientName || '').slice(0, 200), String(o.clientPhone || '').slice(0, 60), String(o.notes || '').slice(0, 2000), 'pendiente', String(o.deliveryType || '').slice(0, 20), rid || null, remoteIdem || rid || null
+            );
+          } else if (hasRemoteCol) {
+            d.prepare('INSERT INTO orders (id, date, items, total, clientName, clientPhone, notes, status, deliveryType, remoteId) VALUES (?,?,?,?,?,?,?,?,?,?)').run(
+              oid, nowStr, JSON.stringify(items.map((it) => ({ productId: String(it.productId || it.id || ''), productName: String(it.productName || it.name || ''), quantity: Number(it.quantity) || 0, price: Number(it.price) || 0, }))), Number(o.total) || 0, String(o.clientName || '').slice(0, 200), String(o.clientPhone || '').slice(0, 60), String(o.notes || '').slice(0, 2000), 'pendiente', String(o.deliveryType || '').slice(0, 20), rid || null
+            );
+          } else {
+            d.prepare('INSERT INTO orders (id, date, items, total, clientName, clientPhone, notes, status, deliveryType) VALUES (?,?,?,?,?,?,?,?,?)').run(
+              oid, nowStr, JSON.stringify(items.map((it) => ({ productId: String(it.productId || it.id || ''), productName: String(it.productName || it.name || ''), quantity: Number(it.quantity) || 0, price: Number(it.price) || 0, }))), Number(o.total) || 0, String(o.clientName || '').slice(0, 200), String(o.clientPhone || '').slice(0, 60), String(o.notes || '').slice(0, 2000), 'pendiente', String(o.deliveryType || '').slice(0, 20)
+            );
+          }
+          if (remoteIdem || rid) {
+            try { d.prepare('INSERT OR IGNORE INTO order_idempotency (key, orderId, createdAt) VALUES (?,?,?)').run(remoteIdem || rid, oid, nowStr); } catch {}
+          }
+        } catch (e) {
+          if (rid && /UNIQUE/i.test(e.message || '')) { ids.push(rid); continue; }
+          throw e;
+        }
+        if (rid) ids.push(rid);
+        imported++;
+      }
+    })();
+    if (ids.length) {
+      try {
+        const ar = await fetch(`${t.worker}/ack?slug=${encodeURIComponent(t.slug)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + t.token, 'X-Machine-Fp': getMachineFingerprint() },
+          body: JSON.stringify({ ids }),
+        });
+        if (!ar.ok) console.warn('[API] ack buzón HTTP ' + ar.status + ' (los importados no se duplicarán igual)');
+      } catch {
+        console.warn('[API] ack buzón falló (los importados no se duplicarán igual)');
+      }
+    }
+    let repairsPublished = null;
+    try {
+      const pr = await publishRepairsToWorker();
+      if (pr.ok) repairsPublished = pr.published;
+    } catch {}
+    if (imported > 0) broadcastSSE('new-order', { id: 'sync', total: imported });
+    autoState.orders.lastAt = Date.now();
+    autoState.orders.lastImported = imported;
+    return { ok: true, imported, repairsPublished };
+  } catch (e) {
+    return { ok: false, reason: 'sin conexión con la tienda' };
+  } finally {
+    tenantSyncRunning = false;
+  }
+}
+
+app.post('/api/tenant/sync', async (req, res) => {
+  const r = await runTenantSync();
+  if (!r.ok) return res.status(400).json(r);
+  res.json(r);
+});
+
+let tenantSyncTimer = null;
+function startTenantSyncPoller() {
+  try {
+    if (tenantSyncTimer) return;
+    const tick = async () => {
+      try {
+        const t = tenantCfg();
+        if (!t.slug || !t.worker || !t.token) return;
+        await runTenantSync();
+      } catch {}
+    };
+    tenantSyncTimer = setInterval(tick, 5 * 60 * 1000);
+    if (tenantSyncTimer.unref) tenantSyncTimer.unref();
+    setTimeout(() => { try { tick(); } catch {} }, 30000);
+  } catch {}
+}
 
 app.put('/api/orders/:id', (req, res) => {
   try {
@@ -1411,6 +1883,44 @@ app.put('/api/orders/:id', (req, res) => {
     );
     const row = getDb().prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
     res.json({ ...row, items: JSON.parse(row.items || '[]') });
+  } catch (e) { res.status(500).json({ error: 'Error interno del servidor' }); }
+});
+
+app.post('/api/orders/dedup', (req, res) => {
+  try {
+    const d = getDb();
+    try { ensureOrdersSchema(); } catch {}
+    const rows = d.prepare('SELECT id, date, clientPhone, total, items FROM orders ORDER BY date ASC').all();
+    const seenRemote = new Map();
+    const seenHash = new Map();
+    let removed = 0;
+    const toDelete = [];
+    for (const r of rows) {
+      let remote = null;
+      try { remote = d.prepare('SELECT remoteId, idempotencyKey FROM orders WHERE id=?').get(r.id); } catch {}
+      const rid = remote && remote.remoteId ? String(remote.remoteId) : null;
+      const ik = remote && remote.idempotencyKey ? String(remote.idempotencyKey) : null;
+      if (rid && seenRemote.has(rid)) { toDelete.push(r.id); continue; }
+      if (rid) seenRemote.set(rid, r.id);
+      if (ik && seenHash.has(ik)) { toDelete.push(r.id); continue; }
+      if (ik) seenHash.set(ik, r.id);
+      let itemsStr = r.items || '[]';
+      try { const arr = JSON.parse(r.items||'[]'); const norm = arr.map(x=>({n:String(x.productName||x.name||''),q:Number(x.quantity)||0,p:Number(x.price)||0})).sort((a,b)=>a.n.localeCompare(b.n)); itemsStr = JSON.stringify(norm); } catch { itemsStr = String(r.items||''); }
+      const key = (r.clientPhone||'') + '|' + (Number(r.total)||0) + '|' + itemsStr + '|' + String(r.date||'').slice(0,16);
+      const prev = seenHash.get('hash:'+key);
+      if (prev) {
+        const prevRow = d.prepare('SELECT date FROM orders WHERE id=?').get(prev);
+        const diff = Math.abs(new Date(r.date).getTime() - new Date(prevRow.date).getTime());
+        if (diff < 5*60*1000) { toDelete.push(r.id); continue; }
+      }
+      if (!seenHash.has('hash:'+key)) seenHash.set('hash:'+key, r.id);
+    }
+    if (toDelete.length) {
+      const del = d.prepare('DELETE FROM orders WHERE id=?');
+      const txn = d.transaction(() => { for (const id of toDelete) { del.run(id); removed++; } });
+      txn();
+    }
+    res.json({ success: true, removed, toDelete });
   } catch (e) { res.status(500).json({ error: 'Error interno del servidor' }); }
 });
 
@@ -1899,6 +2409,7 @@ app.post('/api/repairs', (req, res) => {
       );
       return rid;
     })();
+    scheduleRepairsPublish();
     res.status(201).json(getDb().prepare('SELECT * FROM repairs WHERE id = ?').get(id));
   } catch (e) { res.status(500).json({ error: 'Error interno del servidor' }); }
 });
@@ -1916,6 +2427,7 @@ app.put('/api/repairs/:id', (req, res) => {
       notes ?? existing.notes, price !== undefined ? Number(price) : existing.price,
       now, req.params.id
     );
+    scheduleRepairsPublish();
     res.json(getDb().prepare('SELECT * FROM repairs WHERE id = ?').get(req.params.id));
   } catch (e) { res.status(500).json({ error: 'Error interno del servidor' }); }
 });
@@ -1974,7 +2486,7 @@ app.get('/api/repairs/lookup/:code', rateLimit({ windowMs: 60000, max: 20 }), (r
 app.delete('/api/repairs/:id', (req, res) => {
   try {
     const r = getDb().prepare('DELETE FROM repairs WHERE id = ?').run(req.params.id);
-    if (r.changes > 0) res.json({ success: true });
+    if (r.changes > 0) { scheduleRepairsPublish(); res.json({ success: true }); }
     else res.status(404).json({ error: 'Repair not found' });
   } catch (e) { res.status(500).json({ error: 'Error interno del servidor' }); }
 });
@@ -2510,8 +3022,121 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
+// ============ AUTO-PUBLISH CATÁLOGO A GITHUB ============
+function gitRun(args, cwd) {
+  return new Promise((resolve) => {
+    execFile('git', args, { cwd, timeout: 180000, maxBuffer: 16 * 1024 * 1024 }, (err, stdout, stderr) => {
+      resolve({ ok: !err, out: String(stdout || ''), err: String((stderr || '') + (err && err.message ? ' ' + err.message : '')).slice(0, 300) });
+    });
+  });
+}
+function publishDir() {
+  return path.join(ROOT, '.publish', 'NexusGiga');
+}
+function buildPublicCatalog() {
+  const d = getDb();
+  const products = d.prepare("SELECT * FROM products WHERE source = 'web' ORDER BY name").all().map((p) => ({
+    ...p,
+    desc: p.description || p.webDesc || '',
+    oferta: p.oferta ? 1 : 0,
+    nuevo: p.nuevo ? 1 : 0,
+    oldPrice: p.oferta && p.ofertaPrice ? p.ofertaPrice : undefined,
+  }));
+  const categories = d.prepare('SELECT * FROM web_categories ORDER BY name').all();
+  const services = d.prepare('SELECT * FROM web_services ORDER BY name').all();
+  const wrow = d.prepare("SELECT value FROM app_config WHERE key = 'webConfig'").get();
+  const cc = getConfig('companyConfig', {});
+  const config = { ...(wrow ? JSON.parse(wrow.value) : {}) };
+  for (const k of ['currency', 'priceListsEnabled', 'tenantWorker', 'tenantSlug']) {
+    if (config[k] === undefined && cc[k] !== undefined) config[k] = cc[k];
+  }
+  if (!config.currency) config.currency = 'ARS';
+  const dataJson = JSON.stringify({ products, clients: [], repairs: [], services, categories, config }, null, 2);
+  const esc = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const lines = ['id,name,price,price_mayorista,category,description,image'];
+  for (const r of d.prepare("SELECT id, code, name, price, price_mayorista, category, description, image FROM products WHERE source = 'web' ORDER BY name").all()) {
+    lines.push([esc(r.code || r.id), esc(r.name), Number(r.price) || 0, Number(r.price_mayorista) || 0, esc(r.category || ''), esc(r.description || ''), esc(r.image || '')].join(','));
+  }
+  const csv = '﻿' + lines.join('\n');
+  return { dataJson, csv };
+}
+function normRepo(v) {
+  const r = String(v || '').trim();
+  const m = r.match(/github\.com[/:]([^/]+)\/([^/]+?)(?:\.git)?\/?$/i);
+  if (m) return { user: m[1], name: m[2] };
+  const parts = r.split('/').filter(Boolean).slice(-2);
+  if (parts.length === 2) return { user: parts[0], name: parts[1].replace(/\.git$/, '') };
+  return { user: '', name: '' };
+}
+async function runCatalogPublish(manual) {
+  const st = autoState.catalog;
+  const cfg = getConfig('companyConfig', {});
+  const token = String(cfg.githubToken || '');
+  const { user, name } = normRepo(cfg.githubRepo || '');
+  if (!token || isMasked(token) || !user || !name) {
+    st.pending = false;
+    st.error = (!token || isMasked(token)) ? 'sin token' : 'sin repo';
+    return { ok: false, reason: st.error };
+  }
+  const th = crypto.createHash('sha256').update(token).digest('hex').slice(0, 16);
+  if (st.tokenHash && st.tokenHash !== th) { st.tokenOk = null; st.error = null; }
+  st.tokenHash = th;
+  if (st.tokenOk === false && !manual) return { ok: false, reason: 'token inválido' };
+  let built;
+  try { built = buildPublicCatalog(); } catch (e) { st.error = 'no se pudo generar'; return { ok: false, reason: st.error }; }
+  const hash = crypto.createHash('sha256').update(built.dataJson + '\n' + built.csv).digest('hex');
+  if (!manual && st.lastHash === hash && st.lastAt) return { ok: true, unchanged: true };
+  const dir = publishDir();
+  try { fs.mkdirSync(dir, { recursive: true }); } catch {}
+  try {
+    if (!fs.existsSync(path.join(dir, '.git'))) {
+      const cl = await gitRun(['clone', '--depth', '1', `https://github.com/${user}/${name}.git`, dir], ROOT);
+      if (!cl.ok) { st.error = 'no se pudo clonar'; return { ok: false, reason: st.error }; }
+    } else {
+      await gitRun(['fetch', 'origin', 'master'], dir);
+      await gitRun(['reset', '--hard', 'origin/master'], dir);
+    }
+    fs.writeFileSync(path.join(dir, 'web', 'data.json'), built.dataJson, 'utf-8');
+    fs.writeFileSync(path.join(dir, 'web', 'catalog.csv'), built.csv, 'utf-8');
+    await gitRun(['add', 'web/data.json', 'web/catalog.csv'], dir);
+    const stt = await gitRun(['status', '--porcelain', 'web/data.json', 'web/catalog.csv'], dir);
+    if (!stt.out.trim()) {
+      st.lastHash = hash; st.lastAt = Date.now(); st.pending = false; st.error = null;
+      return { ok: true, unchanged: true };
+    }
+    await gitRun(['-c', 'user.name=Nexus', '-c', 'user.email=nexus@local', 'commit', '-m', 'Catálogo automático GIGA'], dir);
+    const b64 = Buffer.from('x-access-token:' + token).toString('base64');
+    const push = await gitRun(['-c', `http.extraHeader=AUTHORIZATION: basic ${b64}`, 'push', 'origin', 'master'], dir);
+    if (!push.ok) {
+      if (/401|403|authentic/i.test(push.err)) {
+        st.tokenOk = false; st.error = 'token inválido';
+        return { ok: false, reason: 'token inválido' };
+      }
+      st.error = 'falló el push';
+      return { ok: false, reason: st.error };
+    }
+    st.tokenOk = true; st.lastHash = hash; st.lastAt = Date.now(); st.pending = false; st.error = null;
+    return { ok: true, pushed: true };
+  } catch (e) {
+    st.error = 'error interno';
+    return { ok: false, reason: st.error };
+  }
+}
+let catalogTimer = null;
+function startCatalogPublishScheduler() {
+  try {
+    if (catalogTimer) return;
+    const tick = async () => { try { await runCatalogPublish(false); } catch {} };
+    catalogTimer = setInterval(tick, 30 * 60 * 1000);
+    if (catalogTimer.unref) catalogTimer.unref();
+    setTimeout(() => { try { tick(); } catch {} }, 120000);
+  } catch {}
+}
 startServer(PORT, () => {
   migrateLegacyDb();
+  importPendingLink();
+  startTenantSyncPoller();
+  startCatalogPublishScheduler();
   console.log(`=========================================`);
   console.log(`  Nexus Full - API Server`);
   console.log(`  Puerto: ${PORT}`);
