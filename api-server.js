@@ -1224,29 +1224,55 @@ app.post('/api/deploy-ghpages', rateLimit({ windowMs: 60000, max: 5 }), async (r
     const BLOB_THRESHOLD = 90000;
     const blobItems = [];
     const smallItems = [];
-    for (const it of treeItems) {
+    // helper con retry para 500/502/503/429 y No server available
+    async function createBlobWithRetry(item, attempt = 1) {
+      const maxAttempts = 4;
+      const backoff = Math.min(1000 * Math.pow(2, attempt - 1) + Math.random() * 500, 8000);
+      try {
+        const blobResp = await fetch(`${api}/repos/${repo}/git/blobs`, {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: item.content, encoding: item.encoding || 'utf-8' }),
+        });
+        if (blobResp.ok) {
+          const bj = await blobResp.json();
+          return { path: item.path, mode: item.mode, type: item.type, sha: bj.sha };
+        }
+        const be = await blobResp.text().catch(() => '');
+        const isRetryable = blobResp.status === 500 || blobResp.status === 502 || blobResp.status === 503 || blobResp.status === 429 || be.includes('No server is currently available');
+        if (isRetryable && attempt < maxAttempts) {
+          const retryAfter = blobResp.headers.get('retry-after');
+          const wait = retryAfter ? parseInt(retryAfter) * 1000 : backoff;
+          console.warn(`[deploy] Blob ${item.path} ${blobResp.status} retry ${attempt}/${maxAttempts} en ${wait}ms`);
+          await new Promise(r => setTimeout(r, wait));
+          return createBlobWithRetry(item, attempt + 1);
+        }
+        throw new Error(`Blob ${item.path}: ${be || blobResp.statusText} (${blobResp.status})`);
+      } catch (e) {
+        if (attempt < maxAttempts && (e.message.includes('No server') || e.message.includes('fetch failed') || e.code === 'ECONNRESET')) {
+          console.warn(`[deploy] Blob ${item.path} error ${e.message} retry ${attempt}/${maxAttempts}`);
+          await new Promise(r => setTimeout(r, backoff));
+          return createBlobWithRetry(item, attempt + 1);
+        }
+        throw e;
+      }
+    }
+    // batch con concurrencia 5 para no saturar GitHub
+    const CONCURRENCY = 5;
+    const queue = treeItems.filter(it => {
       const isAsset = it.path.includes('assets/products/');
       const contentLen = it.content ? Buffer.byteLength(it.content, it.encoding === 'base64' ? 'base64' : 'utf8') : 0;
-      if (isAsset || contentLen > BLOB_THRESHOLD) {
-        try {
-          const blobResp = await fetch(`${api}/repos/${repo}/git/blobs`, {
-            method: 'POST',
-            headers: { ...headers, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content: it.content, encoding: it.encoding || 'utf-8' }),
-          });
-          if (!blobResp.ok) {
-            const be = await blobResp.text().catch(() => '');
-            throw new Error(`Blob ${it.path}: ${be || blobResp.statusText}`);
-          }
-          const bj = await blobResp.json();
-          blobItems.push({ path: it.path, mode: it.mode, type: it.type, sha: bj.sha });
-        } catch (e) {
-          console.error('[deploy] Blob error', it.path, e.message);
-          return res.status(500).json({ success: false, error: 'Error al subir blob ' + it.path + ': ' + e.message });
-        }
-      } else {
-        smallItems.push(it);
-      }
+      return isAsset || contentLen > BLOB_THRESHOLD;
+    });
+    const smallQueue = treeItems.filter(it => !queue.includes(it));
+    smallItems.push(...smallQueue);
+    for (let i = 0; i < queue.length; i += CONCURRENCY) {
+      const batch = queue.slice(i, i + CONCURRENCY);
+      const results = await Promise.all(batch.map(it => createBlobWithRetry(it).catch(e => {
+        console.error('[deploy] Blob error', it.path, e.message);
+        throw e;
+      })));
+      blobItems.push(...results);
     }
     treeItems = [...smallItems, ...blobItems];
 
