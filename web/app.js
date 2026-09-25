@@ -10,7 +10,8 @@ const DB = {
         repairs: 'techstore_repairs',
         services: 'techstore_services',
         config: 'techstore_config',
-        categories: 'techstore_categories'
+        categories: 'techstore_categories',
+        repairStatus: 'techstore_repairstatus'
     },
     
     _cache: {},
@@ -27,7 +28,7 @@ const DB = {
     
     async init() {
         // Forzar limpieza de localStorage si cambia versión (para migraciones)
-        const APP_VERSION = 2;
+        const APP_VERSION = 3;
         const storedVersion = parseInt(localStorage.getItem('techstore_version') || '0', 10);
         if (storedVersion < APP_VERSION) {
             Object.values(this.keys).forEach(k => localStorage.removeItem(k));
@@ -832,12 +833,20 @@ const Pages = {
                     }
                 } catch { offline = true; }
             } else {
-                const t = await Cart.lookupRepairRemote(query);
-                repair = t.repair;
-                offline = !t.repair && t.offline;
-                if (!repair && t.reason === 'no-config') {
-                    resultDiv.innerHTML = `<div class="glass" style="padding: 1.5rem; border-radius: 1rem; color: var(--warning); text-align: center;">Consulta online en mantenimiento. Probá recargar la página.</div>`;
-                    return;
+                // Tienda directa sin tenant: buscar primero en el mapa público de estados (data.json)
+                const pub = DB.get('repairStatus') || [];
+                const hit = Array.isArray(pub) ? pub.find(r => String(r.code || '').toUpperCase() === query) : null;
+                if (hit) {
+                    repair = { ...hit, id: hit.code };
+                    offline = false;
+                } else {
+                    const t = await Cart.lookupRepairRemote(query);
+                    repair = t.repair;
+                    offline = !t.repair && t.offline;
+                    if (!repair && t.reason === 'no-config') {
+                        resultDiv.innerHTML = `<div class="glass" style="padding: 1.5rem; border-radius: 1rem; color: var(--warning); text-align: center;">Consulta online en mantenimiento. Probá recargar la página.</div>`;
+                        return;
+                    }
                 }
             }
 
@@ -899,8 +908,9 @@ const Pages = {
                 }
             } catch {}
         } else {
-            const t = await Cart.lookupRepairRemote(code);
-            repair = t.repair;
+            const pub = DB.get('repairStatus') || [];
+            const hit = Array.isArray(pub) ? pub.find(r => String(r.code || '').toUpperCase() === String(code || '').toUpperCase()) : null;
+            repair = hit ? { ...hit, id: hit.code } : (await Cart.lookupRepairRemote(code)).repair;
         }
         if (!repair) { Toast.show('Servidor no disponible para obtener la orden.', 'error'); return; }
         const clientName = repair.clientName || 'N/A';
@@ -3268,7 +3278,7 @@ app.post('/api/save', (req, res) => {
         setTimeout(() => {
             console.log("-> Cambio detectado. Sincronizando con GitHub de fondo...");
             const { execSync } = require('child_process');
-            const repoUrl = "https://github.com/gigacomputers2025-bot/Web.git";
+            const repoUrl = "https://github.com/lucianodzienciol-hue/NexusGiga.git";
             const tmpDir = path.join(__dirname, '.sync_tmp');
             
             try {
@@ -3726,19 +3736,8 @@ const Cart = {
     },
 
     async lookupRepairRemote(code) {
-        const cfg = DB.getConfig();
-        const worker = String(cfg.tenantWorker || '').replace(/\/+$/, '');
-        const slug = String(cfg.tenantSlug || '');
-        if (!worker || !slug) return { repair: null, offline: true, reason: 'no-config' };
-        try {
-            const r = await fetch(worker + '/repair-lookup?slug=' + encodeURIComponent(slug) + '&code=' + encodeURIComponent(code));
-            if (r.ok) {
-                const j = await r.json();
-                return { repair: j.repair || null, offline: false, reason: '' };
-            }
-            if (r.status === 404) return { repair: null, offline: false, reason: 'not-found' };
-            return { repair: null, offline: true, reason: 'http-' + r.status };
-        } catch { return { repair: null, offline: true, reason: 'net' }; }
+        // Tenant eliminado: tienda directa, sin Worker remoto.
+        return { repair: null, offline: true, reason: 'no-config' };
     },
 
     _idemKey() {
@@ -3746,29 +3745,8 @@ const Cart = {
         return Date.now().toString(36) + Math.random().toString(36).slice(2,10);
     },
     async submitOrderRemote(payload) {
-        const cfg = DB.getConfig();
-        const worker = String(cfg.tenantWorker || '').replace(/\/+$/, '');
-        const slug = String(cfg.tenantSlug || '');
-        if (!worker || !slug) return null;
-        if (!payload.idempotencyKey) payload.idempotencyKey = this._idemKey();
-        try {
-            const r = await fetch(worker + '/order?slug=' + encodeURIComponent(slug), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': payload.idempotencyKey },
-                body: JSON.stringify({
-                    items: payload.items.map((i) => ({ productId: i.productId, productName: i.name, quantity: i.quantity, price: i.price })),
-                    total: payload.total,
-                    clientName: payload.clientName,
-                    clientPhone: payload.clientPhone,
-                    notes: payload.notes,
-                    deliveryType: payload.deliveryType,
-                    idempotencyKey: payload.idempotencyKey,
-                }),
-            });
-            if (!r.ok) return null;
-            const j = await r.json();
-            return (j && (j.id || j.ok)) ? j : null;
-        } catch { return null; }
+        // Tenant eliminado: tienda directa, sin Worker remoto. El checkout online usa WhatsApp.
+        return null;
     },
 
     showCheckout() {
