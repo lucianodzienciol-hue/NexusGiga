@@ -440,7 +440,7 @@ const StatusBar = {
             </div>
             <div class="status-item">
                 <i class="ph ph-cloud-check"></i>
-                <strong>Ãšltimo Sync GitHub:</strong> ${lastSync}
+                <strong>Último Sync GitHub:</strong> ${lastSync}
             </div>
         `;
     }
@@ -1109,7 +1109,7 @@ const Pages = {
                     <div>
                         <div class="company-name">${config.companyName}</div>
                         <div class="company-info">${config.address}</div>
-                        <div class="company-info">${config.phone} â€¢ ${config.email}</div>
+                        <div class="company-info">${config.phone} • ${config.email}</div>
                     </div>
                     <div style="text-align: right;">
                         <div style="font-size: 1.5rem; font-weight: 800; color: var(--gray-700);">ORDEN DE SERVICIO</div>
@@ -1160,7 +1160,7 @@ const Pages = {
                 <div class="stamp">ORDEN<br>RECIBIDA</div>
 
                 <div class="footer">
-                    <p>Conserve este comprobante para retirar su equipo. | ${new Date().toLocaleDateString('es-AR')} â€” ${config.companyName}</p>
+                    <p>Conserve este comprobante para retirar su equipo. | ${new Date().toLocaleDateString('es-AR')} — ${config.companyName}</p>
                 </div>
             </div>
             <script>
@@ -1346,7 +1346,7 @@ const Pages = {
             if (visitsEl) visitsEl.textContent = hits;
         } catch (e) {
             const visitsEl = document.getElementById('dash-visits-count');
-            if (visitsEl) visitsEl.textContent = 'â€”';
+            if (visitsEl) visitsEl.textContent = '—';
         }
 
         // Double click listener to view/edit order
@@ -1949,7 +1949,7 @@ const Pages = {
             return `
                 <tr>
                     <td><strong>${r.id}</strong></td>
-                    <td><span style="font-size: 1.1rem; font-weight: 700; letter-spacing: 0.2rem; color: var(--accent-blue);">${r.code || 'â€”'}</span></td>
+                    <td><span style="font-size: 1.1rem; font-weight: 700; letter-spacing: 0.2rem; color: var(--accent-blue);">${r.code || '—'}</span></td>
                     <td>${client.name}</td>
                     <td>${r.equipment}</td>
                     <td><span class="status-badge ${statusClass}">${r.status}</span></td>
@@ -2418,7 +2418,7 @@ const Pages = {
                 setTimeout(() => {
                     Modal.open(`
                         <div class="modal-header">
-                            <h3>âœ… Orden Creada Exitosamente</h3>
+                            <h3>✅ Orden Creada Exitosamente</h3>
                             <button class="modal-close" onclick="Modal.close()"><i class="ph ph-x"></i></button>
                         </div>
                         <div style="text-align: center; padding: 1rem 0;">
