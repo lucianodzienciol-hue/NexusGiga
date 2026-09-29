@@ -12783,7 +12783,7 @@
     },
     {
       "code": "KJJAT",
-      "status": "En Reparacion",
+      "status": "Finalizada",
       "equipment": "Pc Slim",
       "marca": "Ninguno",
       "modelo": "ninguno",
@@ -12807,7 +12807,7 @@
     },
     {
       "code": "RQC76",
-      "status": "Recibida",
+      "status": "En Reparacion",
       "equipment": "notebook",
       "marca": "lenovo",
       "modelo": "15 gris",
