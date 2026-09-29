@@ -12815,7 +12815,7 @@
     },
     {
       "code": "MJ3YW",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Notebook",
       "marca": "Dell",
       "modelo": "15 negra",
@@ -12831,7 +12831,7 @@
     },
     {
       "code": "6XVBX",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Notebook",
       "marca": "Asus",
       "modelo": "15 Gris",
