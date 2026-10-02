@@ -12844,6 +12844,14 @@
       "marca": "Clon",
       "modelo": "Ninguno",
       "date": "2026-10-01"
+    },
+    {
+      "code": "S9N8M",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Lenovo",
+      "modelo": "15 Negra",
+      "date": "2026-10-02"
     }
   ]
 }
