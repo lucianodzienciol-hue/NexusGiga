@@ -12852,6 +12852,14 @@
       "marca": "Lenovo",
       "modelo": "15 Negra",
       "date": "2026-10-02"
+    },
+    {
+      "code": "P5NTV",
+      "status": "Recibida",
+      "equipment": "notebook",
+      "marca": "SONY",
+      "modelo": "15 azul",
+      "date": "2026-10-02"
     }
   ]
 }
