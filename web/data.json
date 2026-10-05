@@ -12980,6 +12980,14 @@
       "marca": "SONY",
       "modelo": "15 azul",
       "date": "2026-10-02"
+    },
+    {
+      "code": "WMUQA",
+      "status": "Recibida",
+      "equipment": "pc de escritorio",
+      "marca": "ninguna",
+      "modelo": "ninguno",
+      "date": "2026-10-05"
     }
   ]
 }
