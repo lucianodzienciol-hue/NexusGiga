@@ -29,7 +29,7 @@
       "stock": 0,
       "category": "Redes",
       "source": "web",
-      "description": "Importado masivamente",
+      "description": "",
       "image": "assets/products/prod_1778695173925rwgi.jpg",
       "oferta": 0,
       "nuevo": 0,
@@ -1163,7 +1163,7 @@
     {
       "id": "1778691172081evqq",
       "code": "1778691172081evqq",
-      "name": "Auricular Motorola XT200",
+      "name": "Auricular Motorola XT2",
       "price": 60500,
       "cost": 0,
       "stock": 0,
@@ -3623,7 +3623,7 @@
     {
       "id": "1778691439677apdb",
       "code": "1778691439677apdb",
-      "name": "Calculadora Kenko 1200",
+      "name": "Calculadora Kenko 12",
       "price": 10000,
       "cost": 0,
       "stock": 0,
@@ -7023,7 +7023,7 @@
     {
       "id": "17786915130132g2y",
       "code": "17786915130132g2y",
-      "name": "Mouse Gamer Raptor Wireless 12800",
+      "name": "Mouse Gamer Raptor Wireless 128",
       "price": 35000,
       "cost": 0,
       "stock": 0,
@@ -7043,7 +7043,7 @@
     {
       "id": "1778691513014wbpx",
       "code": "1778691513014wbpx",
-      "name": "Mouse Gamer Raptor Wireless 24000",
+      "name": "Mouse Gamer Raptor Wireless 240",
       "price": 45000,
       "cost": 0,
       "stock": 0,
@@ -7103,7 +7103,7 @@
     {
       "id": "1778694599898gek1",
       "code": "1778694599898gek1",
-      "name": "Mouse Inalambrico Genius 7000",
+      "name": "Mouse Inalambrico Genius 70",
       "price": 15000,
       "cost": 0,
       "stock": 0,
@@ -7303,7 +7303,7 @@
     {
       "id": "1778691172084ygo0",
       "code": "1778691172084ygo0",
-      "name": "Mouse Raptor 3600",
+      "name": "Mouse Raptor 36",
       "price": 14000,
       "cost": 0,
       "stock": 0,
@@ -7323,7 +7323,7 @@
     {
       "id": "1778691172085uq73",
       "code": "1778691172085uq73",
-      "name": "Mouse Raptor 8000",
+      "name": "Mouse Raptor 80",
       "price": 17000,
       "cost": 0,
       "stock": 0,
@@ -7443,7 +7443,7 @@
     {
       "id": "1778694665897y2ci",
       "code": "1778694665897y2ci",
-      "name": "MousePad Corsair M100",
+      "name": "MousePad Corsair M1",
       "price": 29000,
       "cost": 0,
       "stock": 0,
@@ -7483,7 +7483,7 @@
     {
       "id": "1778694665900nj7j",
       "code": "1778694665900nj7j",
-      "name": "MousePad Genius P100",
+      "name": "MousePad Genius P1",
       "price": 25000,
       "cost": 0,
       "stock": 0,
@@ -8523,7 +8523,7 @@
     {
       "id": "1781117104962",
       "code": "RED453435",
-      "name": "Placa Dual USB AC1300",
+      "name": "Placa Dual USB AC13",
       "price": 35000,
       "cost": 0,
       "stock": 0,
@@ -8623,7 +8623,7 @@
     {
       "id": "1778695711419k6jr",
       "code": "1778695711419k6jr",
-      "name": "Placa Wifi Mercusys 300",
+      "name": "Placa Wifi Mercusys 3",
       "price": 19000,
       "cost": 0,
       "stock": 0,
@@ -8663,7 +8663,7 @@
     {
       "id": "1778695711422fsro",
       "code": "1778695711422fsro",
-      "name": "Placa Wifi USB Dinax 300",
+      "name": "Placa Wifi USB Dinax 3",
       "price": 9500,
       "cost": 0,
       "stock": 0,
@@ -9223,7 +9223,7 @@
     {
       "id": "177928311124400ny",
       "code": "177928311124400ny",
-      "name": "Router Mercusys AC1200",
+      "name": "Router Mercusys AC12",
       "price": 49000,
       "cost": 0,
       "stock": 0,
@@ -9243,7 +9243,7 @@
     {
       "id": "1779283159139aux6",
       "code": "1779283159139aux6",
-      "name": "Router Mercusys AC300",
+      "name": "Router Mercusys AC3",
       "price": 35000,
       "cost": 0,
       "stock": 0,
@@ -9923,7 +9923,7 @@
     {
       "id": "17786964541008hdf",
       "code": "17786964541008hdf",
-      "name": "Teclado Genius Luxemate i100",
+      "name": "Teclado Genius Luxemate i1",
       "price": 19500,
       "cost": 0,
       "stock": 0,
@@ -10003,7 +10003,7 @@
     {
       "id": "1778696454107vzmv",
       "code": "1778696454107vzmv",
-      "name": "Teclado Inalambrico Genius KB-8000",
+      "name": "Teclado Inalambrico Genius KB-80",
       "price": 39000,
       "cost": 0,
       "stock": 0,
@@ -10463,7 +10463,7 @@
     {
       "id": "177869630801214yu",
       "code": "177869630801214yu",
-      "name": "Toner W1500",
+      "name": "Toner W15",
       "price": 32000,
       "cost": 0,
       "stock": 0,
