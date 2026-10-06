@@ -12996,6 +12996,14 @@
       "marca": "Acer",
       "modelo": "15 negra",
       "date": "2026-10-05"
+    },
+    {
+      "code": "N493Q",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Lenovo",
+      "modelo": "Azul",
+      "date": "2026-10-06"
     }
   ]
 }
