@@ -6724,7 +6724,7 @@
       "id": "1781099998193",
       "code": "Mic4763",
       "name": "Microfono Bluetooth Doble",
-      "price": 19500,
+      "price": 25000,
       "cost": 0,
       "stock": 0,
       "category": "Microfonos",
@@ -13011,6 +13011,14 @@
       "equipment": "Telefono",
       "marca": "Samsung",
       "modelo": "Serie A",
+      "date": "2026-10-06"
+    },
+    {
+      "code": "3LL8Y",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Yoga",
+      "modelo": "15 Gris",
       "date": "2026-10-06"
     }
   ]
