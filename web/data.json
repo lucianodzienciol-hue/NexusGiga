@@ -13004,6 +13004,14 @@
       "marca": "Lenovo",
       "modelo": "Azul",
       "date": "2026-10-06"
+    },
+    {
+      "code": "R9MGG",
+      "status": "Recibida",
+      "equipment": "Telefono",
+      "marca": "Samsung",
+      "modelo": "Serie A",
+      "date": "2026-10-06"
     }
   ]
 }
