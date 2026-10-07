@@ -13036,6 +13036,14 @@
       "marca": "Lenovo",
       "modelo": "14 Negro",
       "date": "2026-10-07"
+    },
+    {
+      "code": "QTMRQ",
+      "status": "Recibida",
+      "equipment": "PC Escritorio",
+      "marca": "Ninguno",
+      "modelo": "Ninguno",
+      "date": "2026-10-07"
     }
   ]
 }
