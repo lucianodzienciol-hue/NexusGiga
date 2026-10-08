@@ -13060,6 +13060,22 @@
       "marca": "Asus",
       "modelo": "15 Marron",
       "date": "2026-10-08"
+    },
+    {
+      "code": "8L5AT",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Asus",
+      "modelo": "15",
+      "date": "2026-10-08"
+    },
+    {
+      "code": "6M5EK",
+      "status": "Recibida",
+      "equipment": "notebook",
+      "marca": "lenovo",
+      "modelo": "15 gris",
+      "date": "2026-10-08"
     }
   ]
 }
