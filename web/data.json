@@ -13052,6 +13052,14 @@
       "marca": "Ninguno",
       "modelo": "Ninguno",
       "date": "2026-10-08"
+    },
+    {
+      "code": "XEGAK",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Asus",
+      "modelo": "15 Marron",
+      "date": "2026-10-08"
     }
   ]
 }
