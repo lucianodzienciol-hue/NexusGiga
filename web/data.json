@@ -13100,6 +13100,14 @@
       "marca": "Toshiba",
       "modelo": "15 Gris",
       "date": "2026-10-13"
+    },
+    {
+      "code": "XSBEX",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Hp",
+      "modelo": "15 Gris",
+      "date": "2026-10-13"
     }
   ]
 }
