@@ -13055,7 +13055,7 @@
     },
     {
       "code": "XEGAK",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Notebook",
       "marca": "Asus",
       "modelo": "15 Marron",
@@ -13092,6 +13092,14 @@
       "marca": "samsung",
       "modelo": "np300",
       "date": "2026-10-09"
+    },
+    {
+      "code": "YFQNV",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Toshiba",
+      "modelo": "15 Gris",
+      "date": "2026-10-13"
     }
   ]
 }
