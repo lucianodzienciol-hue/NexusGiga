@@ -13108,6 +13108,14 @@
       "marca": "Hp",
       "modelo": "15 Gris",
       "date": "2026-10-13"
+    },
+    {
+      "code": "LT7DD",
+      "status": "Recibida",
+      "equipment": "noetbook",
+      "marca": "hp",
+      "modelo": "14 gris",
+      "date": "2026-10-13"
     }
   ]
 }
