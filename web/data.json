@@ -13262,6 +13262,14 @@
       "marca": "Hp",
       "modelo": "14 Gris",
       "date": "2026-10-14"
+    },
+    {
+      "code": "NHEJB",
+      "status": "Recibida",
+      "equipment": "notebook",
+      "marca": "lenovo",
+      "modelo": "14 gris",
+      "date": "2026-10-14"
     }
   ]
 }
