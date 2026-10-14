@@ -13270,6 +13270,14 @@
       "marca": "lenovo",
       "modelo": "14 gris",
       "date": "2026-10-14"
+    },
+    {
+      "code": "CR9XP",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Bangho",
+      "modelo": "15 gris",
+      "date": "2026-10-14"
     }
   ]
 }
