@@ -13286,6 +13286,14 @@
       "marca": "Ninguno",
       "modelo": "Ninguno",
       "date": "2026-10-15"
+    },
+    {
+      "code": "G76G3",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Hp",
+      "modelo": "13 Calcos",
+      "date": "2026-10-15"
     }
   ]
 }
