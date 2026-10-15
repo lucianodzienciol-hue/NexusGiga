@@ -13294,6 +13294,14 @@
       "marca": "Hp",
       "modelo": "13 Calcos",
       "date": "2026-10-15"
+    },
+    {
+      "code": "4U6AT",
+      "status": "Recibida",
+      "equipment": "Pc Slim",
+      "marca": "Ninguno",
+      "modelo": "ninguno",
+      "date": "2026-10-15"
     }
   ]
 }
