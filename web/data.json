@@ -15,9 +15,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -35,9 +35,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -55,9 +55,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -75,9 +75,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -95,9 +95,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -106,7 +106,7 @@
       "name": "Adaptador HDMI VGA Sin Audio",
       "price": 7500,
       "cost": 0,
-      "stock": 1,
+      "stock": 0,
       "category": "Adaptadores",
       "source": "web",
       "description": "Importado masivamente",
@@ -115,9 +115,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -135,9 +135,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -155,9 +155,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -175,9 +175,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -195,9 +195,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -215,9 +215,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -235,9 +235,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -255,9 +255,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -275,9 +275,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -295,9 +295,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -315,9 +315,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -335,9 +335,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -355,9 +355,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -375,9 +375,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -395,9 +395,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -415,9 +415,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -435,9 +435,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -455,9 +455,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -475,9 +475,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -495,9 +495,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -515,9 +515,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -535,9 +535,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -555,9 +555,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -575,9 +575,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -595,9 +595,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -615,9 +615,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -635,9 +635,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -655,9 +655,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -675,9 +675,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -695,9 +695,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -715,9 +715,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -735,9 +735,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -755,9 +755,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -775,9 +775,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -795,9 +795,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -815,9 +815,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -835,9 +835,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -855,9 +855,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -875,9 +875,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -895,9 +895,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -915,9 +915,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -935,9 +935,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -955,9 +955,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -975,9 +975,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -995,9 +995,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -1015,9 +1015,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1035,9 +1035,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -1055,9 +1055,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1075,9 +1075,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1095,9 +1095,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1115,9 +1115,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1135,9 +1135,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1155,9 +1155,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1175,9 +1175,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -1195,9 +1195,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1215,9 +1215,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -1235,9 +1235,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -1255,9 +1255,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1275,9 +1275,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1295,9 +1295,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -1315,9 +1315,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1335,9 +1335,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1355,9 +1355,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1375,9 +1375,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1395,9 +1395,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1415,9 +1415,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -1435,9 +1435,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -1455,9 +1455,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -1475,9 +1475,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -1495,9 +1495,9 @@
       "nuevo": 1,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1515,9 +1515,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -1535,9 +1535,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1555,9 +1555,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1575,9 +1575,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -1595,9 +1595,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1615,9 +1615,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1635,9 +1635,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1655,9 +1655,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -1675,9 +1675,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1695,9 +1695,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1715,9 +1715,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1735,9 +1735,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1755,9 +1755,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1775,9 +1775,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1795,9 +1795,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1815,9 +1815,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1835,9 +1835,9 @@
       "nuevo": 1,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1855,9 +1855,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1875,9 +1875,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1895,9 +1895,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -1915,9 +1915,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1935,9 +1935,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1955,9 +1955,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1975,9 +1975,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -1995,9 +1995,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2015,9 +2015,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2035,9 +2035,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2055,9 +2055,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -2075,9 +2075,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2095,9 +2095,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2115,9 +2115,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2135,9 +2135,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2155,9 +2155,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2175,9 +2175,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2195,9 +2195,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2215,9 +2215,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2235,9 +2235,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2255,9 +2255,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2275,9 +2275,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2295,9 +2295,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -2315,9 +2315,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2335,9 +2335,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2355,9 +2355,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2375,9 +2375,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2395,9 +2395,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2415,9 +2415,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2435,9 +2435,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2455,9 +2455,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2475,9 +2475,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2495,9 +2495,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2515,9 +2515,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2535,9 +2535,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2555,9 +2555,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2575,9 +2575,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2595,9 +2595,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2615,9 +2615,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2635,9 +2635,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2655,9 +2655,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2675,9 +2675,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2695,9 +2695,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2715,9 +2715,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2735,9 +2735,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2755,9 +2755,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -2775,9 +2775,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2795,9 +2795,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2815,9 +2815,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2835,9 +2835,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2855,9 +2855,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2875,9 +2875,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2895,9 +2895,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2915,9 +2915,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2935,9 +2935,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2955,9 +2955,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2975,9 +2975,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -2995,9 +2995,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3015,9 +3015,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3035,9 +3035,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3055,9 +3055,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3075,9 +3075,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3095,9 +3095,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3115,9 +3115,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3135,9 +3135,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3155,9 +3155,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -3175,9 +3175,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -3195,9 +3195,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -3215,9 +3215,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3235,9 +3235,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3255,9 +3255,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3275,9 +3275,9 @@
       "nuevo": 1,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3295,9 +3295,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3315,9 +3315,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3335,9 +3335,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3355,9 +3355,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3375,9 +3375,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3395,9 +3395,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3415,9 +3415,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3435,9 +3435,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3455,9 +3455,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3475,9 +3475,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3495,9 +3495,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3515,9 +3515,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3535,9 +3535,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3555,9 +3555,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3575,9 +3575,9 @@
       "nuevo": 0,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -3595,9 +3595,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3615,9 +3615,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3635,9 +3635,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3655,9 +3655,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3675,9 +3675,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3695,9 +3695,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3715,9 +3715,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3735,9 +3735,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3755,9 +3755,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3775,9 +3775,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3795,9 +3795,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3815,9 +3815,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -3835,9 +3835,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3855,9 +3855,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3875,9 +3875,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3895,9 +3895,9 @@
       "nuevo": 0,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -3915,9 +3915,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -3935,9 +3935,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3955,9 +3955,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3975,9 +3975,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -3995,9 +3995,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4015,9 +4015,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4035,9 +4035,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4055,9 +4055,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4075,9 +4075,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -4095,9 +4095,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4115,9 +4115,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4135,9 +4135,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4155,9 +4155,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4175,9 +4175,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4195,9 +4195,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4215,9 +4215,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4235,9 +4235,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4255,9 +4255,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4275,9 +4275,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4295,9 +4295,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4315,9 +4315,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -4335,9 +4335,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4355,9 +4355,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4375,9 +4375,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4395,9 +4395,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4415,9 +4415,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4435,9 +4435,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4455,9 +4455,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4475,9 +4475,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4495,9 +4495,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4515,9 +4515,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4535,9 +4535,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4555,9 +4555,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4575,9 +4575,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4595,9 +4595,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4615,9 +4615,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4635,9 +4635,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4655,9 +4655,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4675,9 +4675,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4695,9 +4695,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4715,9 +4715,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4735,9 +4735,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4755,9 +4755,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4775,9 +4775,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4795,9 +4795,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4815,9 +4815,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4835,9 +4835,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4855,9 +4855,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4875,9 +4875,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -4895,9 +4895,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4915,9 +4915,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4935,9 +4935,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -4955,9 +4955,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -4975,9 +4975,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -4995,9 +4995,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5015,9 +5015,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5035,9 +5035,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5055,9 +5055,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5075,9 +5075,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -5095,9 +5095,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5115,9 +5115,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5135,9 +5135,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5155,9 +5155,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5175,9 +5175,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5195,9 +5195,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -5215,9 +5215,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -5235,9 +5235,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5255,9 +5255,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5275,9 +5275,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5295,9 +5295,9 @@
       "nuevo": 1,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5315,9 +5315,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -5335,9 +5335,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -5355,9 +5355,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5375,9 +5375,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5395,9 +5395,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -5415,9 +5415,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -5435,9 +5435,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5455,9 +5455,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5475,9 +5475,9 @@
       "nuevo": 0,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -5495,9 +5495,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5515,9 +5515,9 @@
       "nuevo": 0,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -5535,9 +5535,9 @@
       "nuevo": 0,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -5555,9 +5555,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5575,9 +5575,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5595,9 +5595,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5615,29 +5615,29 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
       "id": "177869408601333ny",
       "code": "177869408601333ny",
       "name": "Fuente ATX 650W Noga",
-      "price": 45000,
+      "price": 38500,
       "cost": 0,
       "stock": 0,
       "category": "Fuentes",
       "source": "web",
-      "description": "",
+      "description": "Importado masivamente",
       "image": "assets/products/prod_177869408601333ny.jpg",
       "oferta": 0,
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5655,9 +5655,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5675,9 +5675,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5695,9 +5695,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5715,9 +5715,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5735,29 +5735,29 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
       "id": "17786940860211po6",
       "code": "17786940860211po6",
       "name": "Fuente Noganet ATX 550W",
-      "price": 39000,
+      "price": 35000,
       "cost": 0,
       "stock": 0,
       "category": "Fuentes",
       "source": "web",
-      "description": "",
+      "description": "Importado masivamente",
       "image": "assets/products/prod_17786940860211po6.jpg",
       "oferta": 0,
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5775,9 +5775,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5795,9 +5795,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5815,9 +5815,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5835,9 +5835,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5855,9 +5855,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5875,9 +5875,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5895,9 +5895,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5915,9 +5915,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5935,9 +5935,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5955,9 +5955,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5975,9 +5975,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -5995,9 +5995,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6015,9 +6015,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6035,9 +6035,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6055,9 +6055,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6075,9 +6075,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6095,9 +6095,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6115,9 +6115,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6135,9 +6135,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6155,9 +6155,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6175,9 +6175,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6195,9 +6195,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6215,9 +6215,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -6235,9 +6235,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6255,9 +6255,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6275,9 +6275,9 @@
       "nuevo": 0,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -6295,9 +6295,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6315,9 +6315,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6335,9 +6335,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -6355,9 +6355,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6375,9 +6375,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6395,9 +6395,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6415,9 +6415,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6435,9 +6435,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6455,9 +6455,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6475,9 +6475,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -6495,9 +6495,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6515,9 +6515,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6535,9 +6535,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6555,9 +6555,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6575,9 +6575,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6595,9 +6595,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6615,9 +6615,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6635,9 +6635,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6655,9 +6655,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -6675,9 +6675,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -6695,9 +6695,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6715,9 +6715,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -6735,9 +6735,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6755,9 +6755,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6775,9 +6775,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -6795,9 +6795,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6815,9 +6815,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6835,9 +6835,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6855,9 +6855,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6875,9 +6875,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6895,9 +6895,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -6915,9 +6915,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6935,9 +6935,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6955,9 +6955,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -6975,9 +6975,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -6995,9 +6995,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7015,9 +7015,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -7035,9 +7035,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7055,9 +7055,9 @@
       "nuevo": 0,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -7075,9 +7075,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7095,9 +7095,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -7115,9 +7115,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -7135,9 +7135,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7155,9 +7155,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7175,9 +7175,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -7195,9 +7195,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7215,9 +7215,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7235,9 +7235,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7255,9 +7255,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7275,9 +7275,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7295,9 +7295,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7315,9 +7315,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7335,9 +7335,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7355,9 +7355,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7375,9 +7375,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7395,9 +7395,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7415,9 +7415,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7435,9 +7435,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7455,9 +7455,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7475,9 +7475,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7495,9 +7495,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7515,9 +7515,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7535,9 +7535,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7555,9 +7555,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7575,9 +7575,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7595,9 +7595,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7615,9 +7615,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7635,9 +7635,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7655,9 +7655,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7675,9 +7675,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -7695,9 +7695,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -7715,9 +7715,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7735,9 +7735,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7755,9 +7755,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7775,9 +7775,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7795,9 +7795,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7815,9 +7815,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -7835,9 +7835,9 @@
       "nuevo": 0,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -7855,9 +7855,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -7875,9 +7875,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -7895,9 +7895,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -7915,9 +7915,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7935,9 +7935,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7955,9 +7955,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7975,9 +7975,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -7995,9 +7995,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -8015,9 +8015,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8035,9 +8035,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -8055,9 +8055,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8075,9 +8075,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8095,9 +8095,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8115,9 +8115,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -8135,9 +8135,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8155,9 +8155,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8175,9 +8175,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8195,9 +8195,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8215,9 +8215,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8235,9 +8235,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8255,9 +8255,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8275,9 +8275,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8295,9 +8295,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8315,9 +8315,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8335,9 +8335,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8355,9 +8355,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8375,9 +8375,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8395,9 +8395,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8415,9 +8415,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8435,9 +8435,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8455,9 +8455,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8475,9 +8475,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8495,9 +8495,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8515,9 +8515,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8535,9 +8535,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8555,9 +8555,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -8575,9 +8575,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8595,9 +8595,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8615,9 +8615,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8635,9 +8635,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8655,9 +8655,9 @@
       "nuevo": 1,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8675,9 +8675,9 @@
       "nuevo": 1,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8695,9 +8695,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -8715,9 +8715,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -8735,9 +8735,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8755,9 +8755,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8775,9 +8775,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8795,9 +8795,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8815,9 +8815,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8835,9 +8835,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8855,9 +8855,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8875,9 +8875,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8895,9 +8895,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8915,9 +8915,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8935,9 +8935,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8955,9 +8955,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8975,9 +8975,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -8995,9 +8995,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9015,9 +9015,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9035,9 +9035,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9055,9 +9055,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9075,9 +9075,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9095,9 +9095,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9115,9 +9115,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9135,9 +9135,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9155,9 +9155,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9175,9 +9175,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9195,9 +9195,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9215,9 +9215,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9235,9 +9235,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9255,9 +9255,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9275,9 +9275,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9295,9 +9295,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9315,9 +9315,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9335,9 +9335,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9355,9 +9355,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9375,9 +9375,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9395,9 +9395,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9415,9 +9415,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9435,9 +9435,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9455,9 +9455,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9475,9 +9475,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9495,9 +9495,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9515,9 +9515,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9535,9 +9535,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9555,9 +9555,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9575,9 +9575,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9595,9 +9595,9 @@
       "nuevo": 0,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9615,9 +9615,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9635,9 +9635,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9655,9 +9655,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9675,9 +9675,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9695,9 +9695,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9715,9 +9715,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9735,9 +9735,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9755,9 +9755,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9775,9 +9775,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9795,9 +9795,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9815,9 +9815,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9835,9 +9835,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9855,9 +9855,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -9875,9 +9875,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9895,9 +9895,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9915,9 +9915,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9935,9 +9935,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9955,9 +9955,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9975,9 +9975,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -9995,9 +9995,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10015,9 +10015,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10035,9 +10035,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10055,9 +10055,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10075,9 +10075,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10095,9 +10095,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10115,9 +10115,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10135,9 +10135,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10155,9 +10155,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10175,9 +10175,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10195,9 +10195,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10215,9 +10215,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10235,9 +10235,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -10255,9 +10255,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10275,9 +10275,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10295,9 +10295,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10315,9 +10315,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10335,9 +10335,9 @@
       "nuevo": 0,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -10355,9 +10355,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10375,9 +10375,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10395,9 +10395,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10415,9 +10415,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10435,9 +10435,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10455,9 +10455,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10475,9 +10475,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10495,9 +10495,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10515,9 +10515,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10535,9 +10535,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10555,9 +10555,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10575,9 +10575,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10595,9 +10595,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10615,9 +10615,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10635,9 +10635,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10655,9 +10655,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10675,9 +10675,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10695,9 +10695,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10715,9 +10715,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -10735,9 +10735,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -10755,9 +10755,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10775,9 +10775,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -10795,9 +10795,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10815,9 +10815,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10835,9 +10835,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     },
     {
@@ -10855,9 +10855,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10875,9 +10875,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10895,9 +10895,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10915,9 +10915,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10935,9 +10935,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10955,9 +10955,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10975,9 +10975,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -10995,9 +10995,9 @@
       "nuevo": 0,
       "webDesc": "Importado masivamente",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": "Importado masivamente"
     },
     {
@@ -11015,9 +11015,9 @@
       "nuevo": 1,
       "webDesc": "",
       "ofertaPrice": 0,
+      "price_mayorista": 0,
       "fichaTecnica": "",
       "fichaTecnicaFile": "",
-      "price_mayorista": 0,
       "desc": ""
     }
   ],
@@ -11236,2072 +11236,5 @@
     "banners": [],
     "currency": "ARS",
     "priceListsEnabled": false
-  },
-  "whatsapp": "5491136067622",
-  "repairStatus": [
-    {
-      "code": "YNH3U",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Samsung",
-      "modelo": "15",
-      "date": "2026-09-14"
-    },
-    {
-      "code": "VUEU3",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Dell",
-      "modelo": "15 Gris",
-      "date": "2026-09-14"
-    },
-    {
-      "code": "RXFBS",
-      "status": "Entregada",
-      "equipment": "2 Notebooks",
-      "marca": "Acer",
-      "modelo": "Bgh",
-      "date": "2026-09-14"
-    },
-    {
-      "code": "VRDPR",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "lenovo",
-      "modelo": "14 Gris",
-      "date": "2026-09-14"
-    },
-    {
-      "code": "MP4EN",
-      "status": "Entregada",
-      "equipment": "Ryzen 3 Nueva",
-      "marca": "Nueva",
-      "modelo": "Nueva",
-      "date": "2026-09-14"
-    },
-    {
-      "code": "QSW54",
-      "status": "Entregada",
-      "equipment": "memorias",
-      "marca": "128gb",
-      "modelo": "Kingston",
-      "date": "2026-09-11"
-    },
-    {
-      "code": "AV5J2",
-      "status": "Entregada",
-      "equipment": "Telefono Celular",
-      "marca": "Samsung",
-      "modelo": "Samsung",
-      "date": "2026-09-10"
-    },
-    {
-      "code": "ZHA6U",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Hp",
-      "modelo": "17 Gris",
-      "date": "2026-09-10"
-    },
-    {
-      "code": "KY89P",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Samsung",
-      "modelo": "NP300",
-      "date": "2026-09-10"
-    },
-    {
-      "code": "NFZT5",
-      "status": "Entregada",
-      "equipment": "Pc Nueva",
-      "marca": "Ninguno",
-      "modelo": "Ryzen 3",
-      "date": "2026-09-10"
-    },
-    {
-      "code": "S6P9T",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Acer",
-      "modelo": "15 negra",
-      "date": "2026-09-09"
-    },
-    {
-      "code": "YNF7T",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Slim",
-      "date": "2026-09-09"
-    },
-    {
-      "code": "VEXPA",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-09-09"
-    },
-    {
-      "code": "KGH2K",
-      "status": "Entregada",
-      "equipment": "2 Notebook",
-      "marca": "Samsung Exo",
-      "modelo": "15 y 14",
-      "date": "2026-09-08"
-    },
-    {
-      "code": "BBH5R",
-      "status": "Entregada",
-      "equipment": "pc escritorio",
-      "marca": "ninguna",
-      "modelo": "ninguno",
-      "date": "2026-09-08"
-    },
-    {
-      "code": "2RC6Y",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "lenovo",
-      "modelo": "15 celeste",
-      "date": "2026-09-08"
-    },
-    {
-      "code": "PEWGN",
-      "status": "Entregada",
-      "equipment": "pc escritorio",
-      "marca": "ninguna",
-      "modelo": "ninguna",
-      "date": "2026-09-08"
-    },
-    {
-      "code": "ZVDMW",
-      "status": "Entregada",
-      "equipment": "tv box",
-      "marca": "mx9",
-      "modelo": "caja neghra",
-      "date": "2026-09-08"
-    },
-    {
-      "code": "E9XAU",
-      "status": "Entregada",
-      "equipment": "Tv Box",
-      "marca": "mxq",
-      "modelo": "mxq",
-      "date": "2026-09-07"
-    },
-    {
-      "code": "Z8CRC",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Asus",
-      "modelo": "15 Gris",
-      "date": "2026-09-07"
-    },
-    {
-      "code": "2FGSP",
-      "status": "Entregada",
-      "equipment": "Tv Box",
-      "marca": "8k",
-      "modelo": "Mx",
-      "date": "2026-09-07"
-    },
-    {
-      "code": "8DX93",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "dell",
-      "modelo": "14 negra",
-      "date": "2026-09-07"
-    },
-    {
-      "code": "PB97S",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-09-07"
-    },
-    {
-      "code": "FN4SH",
-      "status": "Entregada",
-      "equipment": "pc escritorio",
-      "marca": "ninguna",
-      "modelo": "ninguno",
-      "date": "2026-09-04"
-    },
-    {
-      "code": "CCXYD",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "hp",
-      "modelo": "14 negra",
-      "date": "2026-09-04"
-    },
-    {
-      "code": "VBFY4",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "14 Azul",
-      "date": "2026-09-04"
-    },
-    {
-      "code": "MYSKG",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "Legion",
-      "date": "2026-09-03"
-    },
-    {
-      "code": "ANWFX",
-      "status": "Entregada",
-      "equipment": "Varios",
-      "marca": "cargador",
-      "modelo": "Inalambrico",
-      "date": "2026-09-03"
-    },
-    {
-      "code": "T6VB6",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-09-02"
-    },
-    {
-      "code": "BDXZH",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "exo",
-      "modelo": "14gris",
-      "date": "2026-09-02"
-    },
-    {
-      "code": "LRB9T",
-      "status": "Finalizada",
-      "equipment": "Disco Rigido",
-      "marca": "Ninguno",
-      "modelo": "ninguno",
-      "date": "2026-09-02"
-    },
-    {
-      "code": "TY2WJ",
-      "status": "Entregada",
-      "equipment": "Telefono Celulares",
-      "marca": "2 Equipos",
-      "modelo": "Ninguno",
-      "date": "2026-09-02"
-    },
-    {
-      "code": "BK3BC",
-      "status": "Entregada",
-      "equipment": "pc de escritorio",
-      "marca": "ninguna",
-      "modelo": "ninguna",
-      "date": "2026-09-01"
-    },
-    {
-      "code": "Z6SQM",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Thinkpad",
-      "modelo": "14 Gris",
-      "date": "2026-08-31"
-    },
-    {
-      "code": "BW82D",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Exo",
-      "modelo": "15 gris",
-      "date": "2026-08-31"
-    },
-    {
-      "code": "X6QHG",
-      "status": "Entregada",
-      "equipment": "PC escritorio",
-      "marca": "Ninguno",
-      "modelo": "ninguno",
-      "date": "2026-08-31"
-    },
-    {
-      "code": "4WFTK",
-      "status": "Entregada",
-      "equipment": "Telefono Celular",
-      "marca": "Samsung",
-      "modelo": "S20",
-      "date": "2026-08-31"
-    },
-    {
-      "code": "X4PK9",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-08-31"
-    },
-    {
-      "code": "QFJY8",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Exo",
-      "modelo": "14 Gris",
-      "date": "2026-08-28"
-    },
-    {
-      "code": "873Q3",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Hp",
-      "modelo": "14 Gris",
-      "date": "2026-08-27"
-    },
-    {
-      "code": "4VVA5",
-      "status": "Entregada",
-      "equipment": "Telefono Celular",
-      "marca": "Motorola",
-      "modelo": "Motorola",
-      "date": "2026-08-27"
-    },
-    {
-      "code": "ECXKE",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "15 Azul/Negra",
-      "date": "2026-08-27"
-    },
-    {
-      "code": "A8SJF",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Gateway",
-      "modelo": "14 Azul",
-      "date": "2026-08-27"
-    },
-    {
-      "code": "MWUKB",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "HP",
-      "modelo": "15 Gris",
-      "date": "2026-08-26"
-    },
-    {
-      "code": "24FKZ",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "15 Gris",
-      "date": "2026-08-26"
-    },
-    {
-      "code": "M85RH",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-08-25"
-    },
-    {
-      "code": "TBMCP",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguna",
-      "modelo": "Ninguna",
-      "date": "2026-08-25"
-    },
-    {
-      "code": "5ARCH",
-      "status": "Entregada",
-      "equipment": "Mini PC",
-      "marca": "Dell",
-      "modelo": "Dell",
-      "date": "2026-08-25"
-    },
-    {
-      "code": "6KRXT",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "14 negra",
-      "date": "2026-08-25"
-    },
-    {
-      "code": "JMWNJ",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Dell",
-      "modelo": "15 Negra",
-      "date": "2026-08-24"
-    },
-    {
-      "code": "7TP3P",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "14 Azul",
-      "date": "2026-08-24"
-    },
-    {
-      "code": "DMRJA",
-      "status": "Entregada",
-      "equipment": "pc escritorio",
-      "marca": "ninguna",
-      "modelo": "ninguna",
-      "date": "2026-08-24"
-    },
-    {
-      "code": "KMM6M",
-      "status": "Entregada",
-      "equipment": "Pc escritorio",
-      "marca": "Ninguno",
-      "modelo": "ninguno",
-      "date": "2026-08-21"
-    },
-    {
-      "code": "LFGNW",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Bangho",
-      "modelo": "15 Negra",
-      "date": "2026-08-21"
-    },
-    {
-      "code": "66QQH",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "compaq",
-      "modelo": "14 negra",
-      "date": "2026-08-21"
-    },
-    {
-      "code": "XYUMD",
-      "status": "Entregada",
-      "equipment": "PC escritorio",
-      "marca": "Ninguno",
-      "modelo": "ninguno",
-      "date": "2026-08-20"
-    },
-    {
-      "code": "484FC",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-08-19"
-    },
-    {
-      "code": "WEW52",
-      "status": "Entregada",
-      "equipment": "tvbox",
-      "marca": "cuadrado",
-      "modelo": "negro",
-      "date": "2026-08-19"
-    },
-    {
-      "code": "S33JD",
-      "status": "Entregada",
-      "equipment": "Telefono Celular",
-      "marca": "Samsung",
-      "modelo": "S24",
-      "date": "2026-08-18"
-    },
-    {
-      "code": "CB7JJ",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Dell",
-      "modelo": "15 negra",
-      "date": "2026-08-18"
-    },
-    {
-      "code": "7DXU3",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "15 Negra",
-      "date": "2026-08-18"
-    },
-    {
-      "code": "4C8DL",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-08-18"
-    },
-    {
-      "code": "J64CS",
-      "status": "Entregada",
-      "equipment": "Pc Mini",
-      "marca": "Mini",
-      "modelo": "Mini",
-      "date": "2026-08-18"
-    },
-    {
-      "code": "497GA",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "ninguno",
-      "date": "2026-08-14"
-    },
-    {
-      "code": "WEP8Y",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "dell",
-      "modelo": "15 gris",
-      "date": "2026-08-13"
-    },
-    {
-      "code": "Y63NU",
-      "status": "Entregada",
-      "equipment": "Tv box",
-      "marca": "Mx",
-      "modelo": "Mx",
-      "date": "2026-08-13"
-    },
-    {
-      "code": "WTPEP",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "lenovo",
-      "modelo": "14 gris",
-      "date": "2026-08-13"
-    },
-    {
-      "code": "PBZLW",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "14 Gris",
-      "date": "2026-08-11"
-    },
-    {
-      "code": "A3UW7",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Samsung",
-      "modelo": "15",
-      "date": "2026-08-11"
-    },
-    {
-      "code": "KVH8G",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "lenovo",
-      "modelo": "17 Gris",
-      "date": "2026-08-11"
-    },
-    {
-      "code": "T62AU",
-      "status": "Entregada",
-      "equipment": "Telefono",
-      "marca": "Motorola",
-      "modelo": "Motorola",
-      "date": "2026-08-11"
-    },
-    {
-      "code": "HEL8B",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "14 Gris",
-      "date": "2026-08-10"
-    },
-    {
-      "code": "KKBQ4",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-08-10"
-    },
-    {
-      "code": "HC2NV",
-      "status": "Entregada",
-      "equipment": "tvbox",
-      "marca": "cuadrado",
-      "modelo": "negro",
-      "date": "2026-08-07"
-    },
-    {
-      "code": "5SFQV",
-      "status": "Entregada",
-      "equipment": "pc de escritorio",
-      "marca": "ninguna",
-      "modelo": "ninguna",
-      "date": "2026-08-05"
-    },
-    {
-      "code": "DHR8K",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-08-04"
-    },
-    {
-      "code": "EFDLF",
-      "status": "Entregada",
-      "equipment": "All in One",
-      "marca": "Memoria",
-      "modelo": "ninguno",
-      "date": "2026-08-04"
-    },
-    {
-      "code": "VHQKQ",
-      "status": "Entregada",
-      "equipment": "pc escritorio",
-      "marca": "ninguna",
-      "modelo": "ninguna",
-      "date": "2026-08-03"
-    },
-    {
-      "code": "3HV39",
-      "status": "Entregada",
-      "equipment": "tvbox",
-      "marca": "caja",
-      "modelo": "negra",
-      "date": "2026-07-31"
-    },
-    {
-      "code": "SRWCT",
-      "status": "Entregada",
-      "equipment": "pc escritorio",
-      "marca": "ninguna",
-      "modelo": "ninguno",
-      "date": "2026-07-31"
-    },
-    {
-      "code": "VGBU8",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Asus",
-      "modelo": "Gamer",
-      "date": "2026-07-29"
-    },
-    {
-      "code": "42CE7",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Hp",
-      "modelo": "15 Negra",
-      "date": "2026-07-29"
-    },
-    {
-      "code": "YM7UY",
-      "status": "Entregada",
-      "equipment": "PC Escritorio",
-      "marca": "Ninguno",
-      "modelo": "ninguno",
-      "date": "2026-07-28"
-    },
-    {
-      "code": "VQSLG",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-07-28"
-    },
-    {
-      "code": "D2N4Z",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Dell",
-      "modelo": "15",
-      "date": "2026-07-28"
-    },
-    {
-      "code": "V8YU3",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-07-27"
-    },
-    {
-      "code": "SLKUY",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-07-27"
-    },
-    {
-      "code": "5U4P7",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "17 Gris",
-      "date": "2026-07-27"
-    },
-    {
-      "code": "4SK6M",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Samsung",
-      "modelo": "NP300",
-      "date": "2026-07-27"
-    },
-    {
-      "code": "QNKVG",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Hp",
-      "modelo": "15 Gris",
-      "date": "2026-07-27"
-    },
-    {
-      "code": "EGW8S",
-      "status": "Entregada",
-      "equipment": "Tv Box",
-      "marca": "Android Tv",
-      "modelo": "Violeta Caja",
-      "date": "2026-07-27"
-    },
-    {
-      "code": "4VKSY",
-      "status": "Entregada",
-      "equipment": "Pc Slim",
-      "marca": "Lenovo",
-      "modelo": "Slim",
-      "date": "2026-07-24"
-    },
-    {
-      "code": "9SLJ4",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "dell",
-      "modelo": "15 negra",
-      "date": "2026-07-24"
-    },
-    {
-      "code": "XAR9N",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Bangho",
-      "modelo": "15 Gris",
-      "date": "2026-07-24"
-    },
-    {
-      "code": "R7SGV",
-      "status": "Finalizada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "15 Gris",
-      "date": "2026-07-23"
-    },
-    {
-      "code": "BNASA",
-      "status": "Entregada",
-      "equipment": "Netbook",
-      "marca": "Exo",
-      "modelo": "13 Gris",
-      "date": "2026-07-23"
-    },
-    {
-      "code": "YWW4G",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "15 gris",
-      "date": "2026-07-23"
-    },
-    {
-      "code": "5PGHE",
-      "status": "Entregada",
-      "equipment": "Netbook",
-      "marca": "Dell",
-      "modelo": "10",
-      "date": "2026-07-22"
-    },
-    {
-      "code": "3FXKP",
-      "status": "Entregada",
-      "equipment": "All in One",
-      "marca": "Viewsonic",
-      "modelo": "23",
-      "date": "2026-07-22"
-    },
-    {
-      "code": "8Y2T8",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "venturer",
-      "modelo": "14 negra",
-      "date": "2026-07-22"
-    },
-    {
-      "code": "AMGBR",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "bangho",
-      "modelo": "14 negra",
-      "date": "2026-07-22"
-    },
-    {
-      "code": "G5CLQ",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "bangho",
-      "modelo": "14 negra",
-      "date": "2026-07-22"
-    },
-    {
-      "code": "U7UGP",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Toshiba",
-      "modelo": "15 negro",
-      "date": "2026-07-21"
-    },
-    {
-      "code": "T9KQ2",
-      "status": "Entregada",
-      "equipment": "Telefono Celular",
-      "marca": "Umidigi",
-      "modelo": "Negro",
-      "date": "2026-07-21"
-    },
-    {
-      "code": "J5ZYM",
-      "status": "Entregada",
-      "equipment": "Telefono celular",
-      "marca": "Samsung",
-      "modelo": "A",
-      "date": "2026-07-20"
-    },
-    {
-      "code": "Q8NXJ",
-      "status": "Entregada",
-      "equipment": "Tv Stick",
-      "marca": "MXC",
-      "modelo": "MXC",
-      "date": "2026-07-16"
-    },
-    {
-      "code": "JU99D",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Bangho",
-      "modelo": "15 negra",
-      "date": "2026-07-15"
-    },
-    {
-      "code": "YTSXY",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Exo",
-      "modelo": "14 Gris",
-      "date": "2026-07-15"
-    },
-    {
-      "code": "CFLCN",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-07-14"
-    },
-    {
-      "code": "GABX8",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Toshiba",
-      "modelo": "15 Gris",
-      "date": "2026-07-14"
-    },
-    {
-      "code": "5HKYS",
-      "status": "Entregada",
-      "equipment": "pc",
-      "marca": "ninguna",
-      "modelo": "ninguna",
-      "date": "2026-07-14"
-    },
-    {
-      "code": "GGGZY",
-      "status": "Entregada",
-      "equipment": "tvbox",
-      "marca": "cuadrado",
-      "modelo": "negro",
-      "date": "2026-07-14"
-    },
-    {
-      "code": "2KVLN",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "15 Gris",
-      "date": "2026-07-13"
-    },
-    {
-      "code": "G6TK3",
-      "status": "Entregada",
-      "equipment": "Telefono Celular",
-      "marca": "Samsung",
-      "modelo": "A",
-      "date": "2026-07-13"
-    },
-    {
-      "code": "VNKD6",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "lenovo",
-      "modelo": "15 gris",
-      "date": "2026-07-13"
-    },
-    {
-      "code": "S4FZ7",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-07-13"
-    },
-    {
-      "code": "KKCPF",
-      "status": "Entregada",
-      "equipment": "Tv Stick",
-      "marca": "X 2",
-      "modelo": "Ninguno",
-      "date": "2026-07-13"
-    },
-    {
-      "code": "AJM9U",
-      "status": "Entregada",
-      "equipment": "pc escritorio",
-      "marca": "ninguna",
-      "modelo": "ninguna",
-      "date": "2026-07-13"
-    },
-    {
-      "code": "J4Y6K",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "nueva",
-      "modelo": "nueva",
-      "date": "2026-07-13"
-    },
-    {
-      "code": "CPZJ6",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "ninguno",
-      "date": "2026-07-09"
-    },
-    {
-      "code": "YYW9E",
-      "status": "Entregada",
-      "equipment": "All in One",
-      "marca": "Ninguna",
-      "modelo": "Ninguna",
-      "date": "2026-07-09"
-    },
-    {
-      "code": "3A5QW",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Vivobook",
-      "modelo": "14 gris",
-      "date": "2026-07-08"
-    },
-    {
-      "code": "LNH6E",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Toshiba",
-      "modelo": "15 gris",
-      "date": "2026-07-08"
-    },
-    {
-      "code": "AC6N4",
-      "status": "Entregada",
-      "equipment": "tb stick",
-      "marca": "tokio stile",
-      "modelo": "negro",
-      "date": "2026-07-08"
-    },
-    {
-      "code": "RPJCM",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Sarmiento",
-      "modelo": "13 Blanca",
-      "date": "2026-07-07"
-    },
-    {
-      "code": "DP2G8",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Dell",
-      "modelo": "15 Celeste",
-      "date": "2026-07-07"
-    },
-    {
-      "code": "PZQAJ",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Hp",
-      "modelo": "15 Gris",
-      "date": "2026-07-07"
-    },
-    {
-      "code": "6EDCC",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-07-07"
-    },
-    {
-      "code": "QFGTZ",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "15 Gris",
-      "date": "2026-07-06"
-    },
-    {
-      "code": "6DBFU",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-07-06"
-    },
-    {
-      "code": "L78N6",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Dell",
-      "modelo": "13.3 Negro",
-      "date": "2026-07-03"
-    },
-    {
-      "code": "ST2K7",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Dell",
-      "modelo": "17 gris Calcos",
-      "date": "2026-07-03"
-    },
-    {
-      "code": "28VAQ",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Exo",
-      "modelo": "17 gris",
-      "date": "2026-07-03"
-    },
-    {
-      "code": "CZLJG",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "asus",
-      "modelo": "15 gris",
-      "date": "2026-07-03"
-    },
-    {
-      "code": "VB7HH",
-      "status": "Entregada",
-      "equipment": "Telefono",
-      "marca": "Samsung",
-      "modelo": "ninguno",
-      "date": "2026-07-02"
-    },
-    {
-      "code": "S56PF",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-07-02"
-    },
-    {
-      "code": "JQK2N",
-      "status": "Entregada",
-      "equipment": "PC Escritorio",
-      "marca": "Ninguno",
-      "modelo": "ninguno",
-      "date": "2026-07-02"
-    },
-    {
-      "code": "DMB7W",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-07-01"
-    },
-    {
-      "code": "KACHM",
-      "status": "Entregada",
-      "equipment": "Play 4",
-      "marca": "Sony",
-      "modelo": "Slim",
-      "date": "2026-07-01"
-    },
-    {
-      "code": "HFN2Y",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "ninguno",
-      "modelo": "ninguno",
-      "date": "2026-07-01"
-    },
-    {
-      "code": "LM8RP",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "15 Azul",
-      "date": "2026-07-01"
-    },
-    {
-      "code": "4QH9S",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "15 Azul",
-      "date": "2026-06-30"
-    },
-    {
-      "code": "UDKUK",
-      "status": "Entregada",
-      "equipment": "All in One",
-      "marca": "HP",
-      "modelo": "Blanca",
-      "date": "2026-06-30"
-    },
-    {
-      "code": "H2FQM",
-      "status": "Entregada",
-      "equipment": "pc de escritorio",
-      "marca": "ninguna",
-      "modelo": "ninguna",
-      "date": "2026-06-30"
-    },
-    {
-      "code": "7KX2N",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lapbook",
-      "modelo": "15 Gris",
-      "date": "2026-06-30"
-    },
-    {
-      "code": "ARFZT",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "hp",
-      "modelo": "15 gris",
-      "date": "2026-06-30"
-    },
-    {
-      "code": "7VCGP",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Asus",
-      "modelo": "15 Marron",
-      "date": "2026-06-29"
-    },
-    {
-      "code": "L69CL",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Dell",
-      "modelo": "13 negra",
-      "date": "2026-06-29"
-    },
-    {
-      "code": "ZX7QM",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "15 Gris",
-      "date": "2026-06-29"
-    },
-    {
-      "code": "FKK62",
-      "status": "Entregada",
-      "equipment": "Placa de Video",
-      "marca": "R9",
-      "modelo": "Varios",
-      "date": "2026-06-29"
-    },
-    {
-      "code": "FTDME",
-      "status": "Entregada",
-      "equipment": "PC Box",
-      "marca": "14 Gris",
-      "modelo": "GLw2",
-      "date": "2026-06-29"
-    },
-    {
-      "code": "5HT58",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Sarmiento",
-      "modelo": "BGH",
-      "date": "2026-06-29"
-    },
-    {
-      "code": "P99AJ",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Dell",
-      "modelo": "15 Gris",
-      "date": "2026-06-26"
-    },
-    {
-      "code": "8BJGQ",
-      "status": "Entregada",
-      "equipment": "Tv stick",
-      "marca": "Mx9",
-      "modelo": "ninguno",
-      "date": "2026-06-26"
-    },
-    {
-      "code": "TXHMJ",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Hp",
-      "modelo": "14 Negra",
-      "date": "2026-06-26"
-    },
-    {
-      "code": "4S8UE",
-      "status": "Entregada",
-      "equipment": "Cds x 4",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-06-25"
-    },
-    {
-      "code": "3VEFY",
-      "status": "Entregada",
-      "equipment": "Telefono Celular",
-      "marca": "Ninguno",
-      "modelo": "ninguno",
-      "date": "2026-06-25"
-    },
-    {
-      "code": "G9M39",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Asus",
-      "modelo": "15 Dorada",
-      "date": "2026-06-25"
-    },
-    {
-      "code": "QNBD6",
-      "status": "Entregada",
-      "equipment": "Tv Stick",
-      "marca": "Mq6",
-      "modelo": "Mq6",
-      "date": "2026-06-25"
-    },
-    {
-      "code": "73MC2",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Gfast",
-      "modelo": "15 gris",
-      "date": "2026-06-24"
-    },
-    {
-      "code": "UXXBD",
-      "status": "Entregada",
-      "equipment": "Celular",
-      "marca": "Samsung",
-      "modelo": "varios",
-      "date": "2026-06-24"
-    },
-    {
-      "code": "7ME7Z",
-      "status": "Entregada",
-      "equipment": "tvbox",
-      "marca": "ninguna",
-      "modelo": "cuadrado",
-      "date": "2026-06-24"
-    },
-    {
-      "code": "RL842",
-      "status": "Entregada",
-      "equipment": "telefono celular",
-      "marca": "Motorola",
-      "modelo": "g52",
-      "date": "2026-06-24"
-    },
-    {
-      "code": "A8XB7",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "HP",
-      "modelo": "14 Gris",
-      "date": "2026-06-23"
-    },
-    {
-      "code": "QGFKG",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Asus",
-      "modelo": "Vivobook",
-      "date": "2026-06-23"
-    },
-    {
-      "code": "ACNNW",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "HP",
-      "modelo": "15 Gris",
-      "date": "2026-06-23"
-    },
-    {
-      "code": "8TT77",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "ninguno",
-      "modelo": "ninguno",
-      "date": "2026-06-22"
-    },
-    {
-      "code": "EE5UE",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "ninguno",
-      "modelo": "ninguno",
-      "date": "2026-06-19"
-    },
-    {
-      "code": "Q3TSD",
-      "status": "Entregada",
-      "equipment": "Cds",
-      "marca": "2",
-      "modelo": "ninguno",
-      "date": "2026-06-19"
-    },
-    {
-      "code": "67S3Z",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Dell",
-      "modelo": "15 Azul",
-      "date": "2026-06-19"
-    },
-    {
-      "code": "A2UC3",
-      "status": "Entregada",
-      "equipment": "Tv Stick",
-      "marca": "Dinax",
-      "modelo": "Dinax",
-      "date": "2026-06-18"
-    },
-    {
-      "code": "XPPRA",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Asus",
-      "modelo": "15 Negra",
-      "date": "2026-06-18"
-    },
-    {
-      "code": "WNAPY",
-      "status": "Entregada",
-      "equipment": "tvbox",
-      "marca": "caja negra",
-      "modelo": "ninguno",
-      "date": "2026-06-18"
-    },
-    {
-      "code": "9ZBDU",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-06-16"
-    },
-    {
-      "code": "8EBD8",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "exo",
-      "modelo": "15 negra",
-      "date": "2026-06-16"
-    },
-    {
-      "code": "82VZN",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Bangho",
-      "modelo": "15 negra",
-      "date": "2026-06-16"
-    },
-    {
-      "code": "5CF4W",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "ninguno",
-      "date": "2026-06-16"
-    },
-    {
-      "code": "DLVZQ",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Samsung",
-      "modelo": "15 negra",
-      "date": "2026-06-16"
-    },
-    {
-      "code": "9LN32",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "ninguno",
-      "modelo": "ninguno",
-      "date": "2026-06-12"
-    },
-    {
-      "code": "ASFN5",
-      "status": "Entregada",
-      "equipment": "Tv Box",
-      "marca": "Mxq",
-      "modelo": "Negro",
-      "date": "2026-06-12"
-    },
-    {
-      "code": "AC5FE",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "HP",
-      "modelo": "15 Gris",
-      "date": "2026-06-12"
-    },
-    {
-      "code": "P5WNY",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-06-11"
-    },
-    {
-      "code": "9D4M9",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Toshiba",
-      "modelo": "15 Gris",
-      "date": "2026-06-11"
-    },
-    {
-      "code": "Q2WD8",
-      "status": "Entregada",
-      "equipment": "tvbox",
-      "marca": "ninguna",
-      "modelo": "caja negra x4",
-      "date": "2026-06-11"
-    },
-    {
-      "code": "ZRYU9",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "victus",
-      "modelo": "15 gris",
-      "date": "2026-06-11"
-    },
-    {
-      "code": "63SYX",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "14 negro",
-      "date": "2026-06-11"
-    },
-    {
-      "code": "VKM62",
-      "status": "Entregada",
-      "equipment": "Tv Box",
-      "marca": "Mxq",
-      "modelo": "Mxq",
-      "date": "2026-06-11"
-    },
-    {
-      "code": "HU64V",
-      "status": "Entregada",
-      "equipment": "Tv Box",
-      "marca": "Gadnic",
-      "modelo": "negro",
-      "date": "2026-06-11"
-    },
-    {
-      "code": "DZH8Q",
-      "status": "Entregada",
-      "equipment": "Tv Box",
-      "marca": "Xiaomi",
-      "modelo": "Negro",
-      "date": "2026-06-11"
-    },
-    {
-      "code": "4AZ8C",
-      "status": "Entregada",
-      "equipment": "Tv Box",
-      "marca": "Nuevo",
-      "modelo": "Nuevo",
-      "date": "2026-06-11"
-    },
-    {
-      "code": "E6V23",
-      "status": "Entregada",
-      "equipment": "pc escritorio",
-      "marca": "ninguna",
-      "modelo": "ninguno",
-      "date": "2026-06-10"
-    },
-    {
-      "code": "7L55V",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "ninguno",
-      "modelo": "ninguno",
-      "date": "2026-06-10"
-    },
-    {
-      "code": "JXEUZ",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Hp",
-      "modelo": "14 Dorada",
-      "date": "2026-06-09"
-    },
-    {
-      "code": "F4L4Y",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "hp",
-      "modelo": "15 blanca",
-      "date": "2026-06-09"
-    },
-    {
-      "code": "B8R3V",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Dell",
-      "modelo": "15 Negra",
-      "date": "2026-06-09"
-    },
-    {
-      "code": "DTRQG",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Asus",
-      "modelo": "15 Gris",
-      "date": "2026-06-08"
-    },
-    {
-      "code": "JAR9L",
-      "status": "Entregada",
-      "equipment": "tv box",
-      "marca": "",
-      "modelo": "caja cuadrada",
-      "date": "2026-06-08"
-    },
-    {
-      "code": "8WM9A",
-      "status": "Entregada",
-      "equipment": "Tv Box",
-      "marca": "Mxq-4K",
-      "modelo": "Negro",
-      "date": "2026-06-08"
-    },
-    {
-      "code": "X97XM",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "ninguno",
-      "modelo": "ninguno",
-      "date": "2026-06-05"
-    },
-    {
-      "code": "RFXQM",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "15 Gris",
-      "date": "2026-06-05"
-    },
-    {
-      "code": "584U4",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "ninguno",
-      "modelo": "ninguno",
-      "date": "2026-06-04"
-    },
-    {
-      "code": "LPEUW",
-      "status": "Entregada",
-      "equipment": "All in One",
-      "marca": "lenovo",
-      "modelo": "Lenovo",
-      "date": "2026-06-04"
-    },
-    {
-      "code": "3YLQY",
-      "status": "Entregada",
-      "equipment": "Tv Box",
-      "marca": "Mx9",
-      "modelo": "Mx9",
-      "date": "2026-06-03"
-    },
-    {
-      "code": "C836X",
-      "status": "Entregada",
-      "equipment": "Tv Box",
-      "marca": "Mx9",
-      "modelo": "Mx9",
-      "date": "2026-06-03"
-    },
-    {
-      "code": "ZX85K",
-      "status": "Entregada",
-      "equipment": "Disco Rigido Externo",
-      "marca": "Noga",
-      "modelo": "Noga",
-      "date": "2026-06-03"
-    },
-    {
-      "code": "K2Q53",
-      "status": "Entregada",
-      "equipment": "Tv Stick",
-      "marca": "Gen",
-      "modelo": "Gen",
-      "date": "2026-06-03"
-    },
-    {
-      "code": "YEBVL",
-      "status": "Finalizada",
-      "equipment": "Notebook",
-      "marca": "Asus",
-      "modelo": "Gamer",
-      "date": "2026-09-15"
-    },
-    {
-      "code": "XR6BL",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguna",
-      "modelo": "ninguna",
-      "date": "2026-09-15"
-    },
-    {
-      "code": "R6486",
-      "status": "Recibida",
-      "equipment": "Notebook",
-      "marca": "Asus",
-      "modelo": "15 Negra",
-      "date": "2026-09-16"
-    },
-    {
-      "code": "QBHD6",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "15 gris",
-      "date": "2026-09-16"
-    },
-    {
-      "code": "785DN",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "lenovo",
-      "modelo": "15 azul",
-      "date": "2026-09-16"
-    },
-    {
-      "code": "NMVJY",
-      "status": "Entregada",
-      "equipment": "pc mini",
-      "marca": "ninguna",
-      "modelo": "ninguna",
-      "date": "2026-09-16"
-    },
-    {
-      "code": "JG3F3",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Toshiba",
-      "modelo": "Sattelite Pro",
-      "date": "2026-09-17"
-    },
-    {
-      "code": "AAMQC",
-      "status": "Entregada",
-      "equipment": "tvbox",
-      "marca": "negro",
-      "modelo": "caja cuadrada",
-      "date": "2026-09-18"
-    },
-    {
-      "code": "TQ3TH",
-      "status": "Entregada",
-      "equipment": "Disco Externo",
-      "marca": "Externo",
-      "modelo": "Externo",
-      "date": "2026-09-18"
-    },
-    {
-      "code": "7UQZ4",
-      "status": "Entregada",
-      "equipment": "Pc Slim",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-09-22"
-    },
-    {
-      "code": "6HUB3",
-      "status": "Entregada",
-      "equipment": "Tv Box",
-      "marca": "Lambo",
-      "modelo": "Lambo",
-      "date": "2026-09-22"
-    },
-    {
-      "code": "FC29C",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Kelyx",
-      "modelo": "Ninguno",
-      "date": "2026-09-22"
-    },
-    {
-      "code": "HWAT9",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "lenovo",
-      "modelo": "14 gris",
-      "date": "2026-09-23"
-    },
-    {
-      "code": "G99WE",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-09-23"
-    },
-    {
-      "code": "39R2E",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Asus",
-      "modelo": "13 Negra",
-      "date": "2026-09-25"
-    },
-    {
-      "code": "TARQ7",
-      "status": "Entregada",
-      "equipment": "TV Box",
-      "marca": "MXq",
-      "modelo": "Mxq",
-      "date": "2026-09-25"
-    },
-    {
-      "code": "W7NNK",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "lenovo",
-      "modelo": "14 negra",
-      "date": "2026-09-25"
-    },
-    {
-      "code": "H44U9",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "lenovo",
-      "modelo": "14 gris",
-      "date": "2026-09-25"
-    },
-    {
-      "code": "WXV7X",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "acer",
-      "modelo": "15 gris",
-      "date": "2026-09-25"
-    },
-    {
-      "code": "KJJAT",
-      "status": "Entregada",
-      "equipment": "Pc Slim",
-      "marca": "Ninguno",
-      "modelo": "ninguno",
-      "date": "2026-09-25"
-    },
-    {
-      "code": "ZSMUM",
-      "status": "Finalizada",
-      "equipment": "Notebook",
-      "marca": "HP",
-      "modelo": "15 Gris",
-      "date": "2026-09-28"
-    },
-    {
-      "code": "G6FAG",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Dell",
-      "modelo": "15 Gris",
-      "date": "2026-09-28"
-    },
-    {
-      "code": "RQC76",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "lenovo",
-      "modelo": "15 gris",
-      "date": "2026-09-28"
-    },
-    {
-      "code": "MJ3YW",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Dell",
-      "modelo": "15 negra",
-      "date": "2026-09-28"
-    },
-    {
-      "code": "4MZB8",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Samsung",
-      "modelo": "Book 4",
-      "date": "2026-09-29"
-    },
-    {
-      "code": "6XVBX",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Asus",
-      "modelo": "15 Gris",
-      "date": "2026-09-29"
-    },
-    {
-      "code": "NS89X",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Clon",
-      "modelo": "Ninguno",
-      "date": "2026-10-01"
-    },
-    {
-      "code": "S9N8M",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "15 Negra",
-      "date": "2026-10-02"
-    },
-    {
-      "code": "P5NTV",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "SONY",
-      "modelo": "15 azul",
-      "date": "2026-10-02"
-    },
-    {
-      "code": "WMUQA",
-      "status": "Entregada",
-      "equipment": "pc de escritorio",
-      "marca": "ninguna",
-      "modelo": "ninguno",
-      "date": "2026-10-05"
-    },
-    {
-      "code": "5PWG9",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Acer",
-      "modelo": "15 negra",
-      "date": "2026-10-05"
-    },
-    {
-      "code": "N493Q",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "Azul",
-      "date": "2026-10-06"
-    },
-    {
-      "code": "R9MGG",
-      "status": "Entregada",
-      "equipment": "Telefono",
-      "marca": "Samsung",
-      "modelo": "Serie A",
-      "date": "2026-10-06"
-    },
-    {
-      "code": "3LL8Y",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Yoga",
-      "modelo": "15 Gris",
-      "date": "2026-10-06"
-    },
-    {
-      "code": "2VMQ9",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Msi",
-      "modelo": "Gamer",
-      "date": "2026-10-06"
-    },
-    {
-      "code": "YP29H",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Lenovo",
-      "modelo": "14 Negro",
-      "date": "2026-10-07"
-    },
-    {
-      "code": "QTMRQ",
-      "status": "Entregada",
-      "equipment": "PC Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-10-07"
-    },
-    {
-      "code": "X97NY",
-      "status": "Entregada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-10-08"
-    },
-    {
-      "code": "XEGAK",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Asus",
-      "modelo": "15 Marron",
-      "date": "2026-10-08"
-    },
-    {
-      "code": "8L5AT",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Asus",
-      "modelo": "15",
-      "date": "2026-10-08"
-    },
-    {
-      "code": "6M5EK",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "lenovo",
-      "modelo": "15 gris",
-      "date": "2026-10-08"
-    },
-    {
-      "code": "UPRDT",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "bangho",
-      "modelo": "15 negra",
-      "date": "2026-10-08"
-    },
-    {
-      "code": "LFKMP",
-      "status": "Finalizada",
-      "equipment": "Notebook",
-      "marca": "samsung",
-      "modelo": "np300",
-      "date": "2026-10-09"
-    },
-    {
-      "code": "YFQNV",
-      "status": "Entregada",
-      "equipment": "Notebook",
-      "marca": "Toshiba",
-      "modelo": "15 Gris",
-      "date": "2026-10-13"
-    },
-    {
-      "code": "XSBEX",
-      "status": "Recibida",
-      "equipment": "Notebook",
-      "marca": "Hp",
-      "modelo": "15 Gris",
-      "date": "2026-10-13"
-    },
-    {
-      "code": "LT7DD",
-      "status": "Entregada",
-      "equipment": "noetbook",
-      "marca": "hp",
-      "modelo": "14 gris",
-      "date": "2026-10-13"
-    },
-    {
-      "code": "VQ6YP",
-      "status": "Finalizada",
-      "equipment": "Notebook",
-      "marca": "Hp",
-      "modelo": "14 Gris",
-      "date": "2026-10-14"
-    },
-    {
-      "code": "NHEJB",
-      "status": "Entregada",
-      "equipment": "notebook",
-      "marca": "lenovo",
-      "modelo": "14 gris",
-      "date": "2026-10-14"
-    },
-    {
-      "code": "CR9XP",
-      "status": "Recibida",
-      "equipment": "Notebook",
-      "marca": "Bangho",
-      "modelo": "15 gris",
-      "date": "2026-10-14"
-    },
-    {
-      "code": "K4JVR",
-      "status": "Finalizada",
-      "equipment": "Pc Escritorio",
-      "marca": "Ninguno",
-      "modelo": "Ninguno",
-      "date": "2026-10-15"
-    },
-    {
-      "code": "G76G3",
-      "status": "Recibida",
-      "equipment": "Notebook",
-      "marca": "Hp",
-      "modelo": "13 Calcos",
-      "date": "2026-10-15"
-    },
-    {
-      "code": "4U6AT",
-      "status": "Recibida",
-      "equipment": "Pc Slim",
-      "marca": "Ninguno",
-      "modelo": "ninguno",
-      "date": "2026-10-15"
-    }
-  ]
+  }
 }
