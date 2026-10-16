@@ -13241,7 +13241,7 @@
     },
     {
       "code": "XSBEX",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Notebook",
       "marca": "Hp",
       "modelo": "15 Gris",
@@ -13289,7 +13289,7 @@
     },
     {
       "code": "G76G3",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Notebook",
       "marca": "Hp",
       "modelo": "13 Calcos",
@@ -13302,6 +13302,14 @@
       "marca": "Ninguno",
       "modelo": "ninguno",
       "date": "2026-10-15"
+    },
+    {
+      "code": "A29VV",
+      "status": "Recibida",
+      "equipment": "Tv Box",
+      "marca": "Claro",
+      "modelo": "Claro",
+      "date": "2026-10-16"
     }
   ]
 }
