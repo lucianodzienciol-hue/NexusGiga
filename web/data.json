@@ -13326,6 +13326,22 @@
       "marca": "cuadradro",
       "modelo": "negro",
       "date": "2026-10-19"
+    },
+    {
+      "code": "SMLVY",
+      "status": "Recibida",
+      "equipment": "tvbox",
+      "marca": "cuadrado",
+      "modelo": "negro",
+      "date": "2026-10-19"
+    },
+    {
+      "code": "PGXQB",
+      "status": "Recibida",
+      "equipment": "notebook",
+      "marca": "hp",
+      "modelo": "15 gris",
+      "date": "2026-10-19"
     }
   ]
 }
