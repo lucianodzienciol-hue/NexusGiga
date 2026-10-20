@@ -28,7 +28,7 @@ const DB = {
     
     async init() {
         // Forzar limpieza de localStorage si cambia versión (para migraciones)
-        const APP_VERSION = 3;
+        const APP_VERSION = 4;
         const storedVersion = parseInt(localStorage.getItem('techstore_version') || '0', 10);
         if (storedVersion < APP_VERSION) {
             Object.values(this.keys).forEach(k => localStorage.removeItem(k));
@@ -737,16 +737,20 @@ const Pages = {
             <div class="product-card glass ${p.id === highlightId ? 'highlighted' : ''}" data-id="${p.id}">
                 ${p.oferta ? '<span class="product-badge">OFERTA</span>' : ''}
                 ${p.nuevo ? '<span class="product-badge new">NUEVO</span>' : ''}
-                <div class="product-img-container">
-                    <img src="${p.image || 'https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60'}" alt="${p.name}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.src='https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60';">
-                    ${!p.image ? '<div class="no-image-overlay">Sin Foto</div>' : ''}
-                </div>
+                <a class="product-link" href="/producto.html?id=${encodeURIComponent(p.id)}" aria-label="Ver ${esc(p.name)}">
+                    <div class="product-img-container">
+                        <img src="${p.image || 'https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60'}" alt="${esc(p.name)}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.src='https://images.unsplash.com/photo-1588702547919-26089e690ecc?auto=format&fit=crop&w=500&q=60';">
+                        ${!p.image ? '<div class="no-image-overlay">Sin Foto</div>' : ''}
+                    </div>
+                </a>
                 <div class="product-content">
-                    <h3 class="product-title">${esc(p.name)}</h3>
+                    <a class="product-link" href="/producto.html?id=${encodeURIComponent(p.id)}">
+                        <h3 class="product-title">${esc(p.name)}</h3>
+                    </a>
                     <div class="product-price ${p.oferta ? 'oferta' : ''}" style="margin: 0.5rem 0;">${formatMoney(p.price)}</div>
                     ${(DB.getConfig().priceListsEnabled && Number(p.price_mayorista) > 0) ? `<div class="product-wholesale" style="font-size: 0.85rem; color: var(--text-muted);">Mayorista: <strong>${formatMoney(p.price_mayorista)}</strong></div>` : ''}
-                    <button class="btn btn-cart w-100" data-cart-id="${esc(p.id)}">
-                        <i class="ph ph-shopping-cart-simple"></i> Agregar al carrito
+                    <button class="btn btn-cart w-100" data-cart-id="${esc(p.id)}" ${Number(p.stock) > 0 ? '' : 'disabled title="Sin stock"'}>
+                        <i class="ph ph-shopping-cart-simple"></i> ${Number(p.stock) > 0 ? 'Agregar al carrito' : 'Sin stock'}
                     </button>
                     <button class="btn btn-whatsapp w-100" data-product="${esc(p.name)}" style="margin-top: .5rem;">
                         <i class="ph ph-whatsapp-logo"></i> Consultar
@@ -764,6 +768,171 @@ const Pages = {
         });
         document.querySelectorAll('[data-cart-id]').forEach(btn => {
             btn.addEventListener('click', () => Cart.add(btn.dataset.cartId));
+        });
+    },
+
+    _productDescription(p) {
+        const clean = (v) => String(v ?? '').replace(/\s+/g, ' ').trim();
+        const custom = [p.webDesc, p.description].find(v => {
+            const d = clean(v);
+            return d.length >= 15 && !/^importado masivamente\.?$/i.test(d);
+        });
+        if (custom) return clean(custom);
+        return `${clean(p.name)}. Producto de la categoría ${clean(p.category) || 'General'}. Consultá stock y compatibilidad en GIGA Computers.`;
+    },
+
+    renderProductDetail(id) {
+        const products = DB.get('products') || [];
+        const p = products.find(item => String(item.id) === String(id));
+        if (!p) {
+            this.app.innerHTML = `<div class="empty-state" style="padding:4rem 1rem;text-align:center;">
+                <i class="ph ph-package" style="font-size:3rem;"></i>
+                <h1>Producto no encontrado</h1>
+                <p>El producto que buscás no existe o ya no está disponible.</p>
+                <a class="btn btn-primary" href="/#/">Volver al catálogo</a>
+            </div>`;
+            document.title = 'Producto no encontrado | GIGA Computers';
+            return;
+        }
+
+        const config = DB.getConfig();
+        const stock = Number(p.stock) || 0;
+        const inStock = stock > 0;
+        const category = p.category || 'General';
+        const description = this._productDescription(p);
+        const image = p.image || '/assets/favicon.svg';
+        const url = `${window.location.origin}/producto.html?id=${encodeURIComponent(p.id)}`;
+        const waNumber = WA.formatNumber(String(config.whatsapp || ''));
+        const waMessage = encodeURIComponent(`Hola, quiero consultar por ${p.name}${p.code ? ` (código ${p.code})` : ''}.`);
+        const waHref = waNumber ? `https://wa.me/${waNumber}?text=${waMessage}` : '#';
+        const oldPrice = Number(p.ofertaPrice) > Number(p.price) ? Number(p.ofertaPrice) : 0;
+
+        this.app.innerHTML = `
+            <div class="product-detail">
+                <nav class="pd-breadcrumb" aria-label="Ruta de navegación">
+                    <a href="/#/">Inicio</a>
+                    <span>/</span>
+                    <a href="/#/">${esc(category)}</a>
+                    <span>/</span>
+                    <span>${esc(p.name)}</span>
+                </nav>
+
+                <div class="pd-grid">
+                    <div class="pd-media glass">
+                        <img src="${esc(image)}" alt="${esc(p.name)}" onerror="this.src='/assets/favicon.svg';">
+                    </div>
+                    <div class="pd-info">
+                        <span class="product-category">${esc(category)}</span>
+                        <h1 class="pd-title">${esc(p.name)}</h1>
+                        <div class="pd-price-row">
+                            <strong class="product-price ${p.oferta ? 'oferta' : ''}">${formatMoney(p.price)}</strong>
+                            ${oldPrice ? `<span class="product-price-old">${formatMoney(oldPrice)}</span>` : ''}
+                        </div>
+                        <span class="pd-stock ${inStock ? 'pd-stock--in' : 'pd-stock--out'}">
+                            <i class="ph ${inStock ? 'ph-check-circle' : 'ph-x-circle'}"></i>
+                            ${inStock ? 'En stock' : 'Sin stock'}
+                        </span>
+                        <p class="pd-description">${esc(description)}</p>
+
+                        <div class="pd-actions">
+                            ${inStock
+                                ? `<button class="btn btn-cart w-100" id="pd-add"><i class="ph ph-shopping-cart-simple"></i> Agregar al carrito</button>`
+                                : `<button class="btn btn-cart w-100" disabled><i class="ph ph-x-circle"></i> Sin stock</button>`}
+                            <a class="btn btn-whatsapp w-100" id="pd-wa" href="${esc(waHref)}" target="_blank" rel="noopener">
+                                <i class="ph ph-whatsapp-logo"></i> ${inStock ? 'Consultar' : 'Consultar disponibilidad'}
+                            </a>
+                        </div>
+
+                        <dl class="pd-meta">
+                            <div><dt>Código</dt><dd>${esc(p.code || p.id)}</dd></div>
+                            <div><dt>Categoría</dt><dd>${esc(category)}</dd></div>
+                            <div><dt>Condición</dt><dd>Nuevo</dd></div>
+                        </dl>
+
+                        ${p.fichaTecnica ? `<div class="pd-specs"><h2>Especificaciones</h2><p>${esc(p.fichaTecnica)}</p></div>` : ''}
+
+                        <div class="pd-policies">
+                            <a href="/devoluciones.html">Devoluciones y garantía</a>
+                            <a href="/terminos.html">Términos y condiciones</a>
+                            <a href="/privacidad.html">Privacidad</a>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        this._updateProductHead(p, { url, image, description, inStock });
+
+        const addBtn = document.getElementById('pd-add');
+        if (addBtn) addBtn.addEventListener('click', () => Cart.add(p.id));
+        const waBtn = document.getElementById('pd-wa');
+        if (waBtn && !waNumber) {
+            waBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                Toast.show('WhatsApp no configurado', 'error');
+            });
+        }
+    },
+
+    _updateProductHead(p, { url, image, description, inStock }) {
+        document.title = `${p.name} | GIGA Computers`;
+
+        const setMeta = (key, content, attr = 'name') => {
+            let el = document.querySelector(`meta[${attr}="${key}"]`);
+            if (!el) {
+                el = document.createElement('meta');
+                el.setAttribute(attr, key);
+                document.head.appendChild(el);
+            }
+            el.setAttribute('content', content);
+        };
+
+        const absoluteImage = /^data:/i.test(String(image || ''))
+            ? `${window.location.origin}/assets/favicon.svg`
+            : new URL(image || '/assets/favicon.svg', `${window.location.origin}/`).href;
+
+        setMeta('description', description);
+        setMeta('og:title', document.title, 'property');
+        setMeta('og:description', description, 'property');
+        setMeta('og:type', 'product', 'property');
+        setMeta('og:url', url, 'property');
+        setMeta('og:image', absoluteImage, 'property');
+        setMeta('twitter:title', document.title);
+        setMeta('twitter:description', description);
+        setMeta('twitter:image', absoluteImage);
+
+        let canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) {
+            canonical = document.createElement('link');
+            canonical.rel = 'canonical';
+            document.head.appendChild(canonical);
+        }
+        canonical.href = url;
+
+        let ld = document.getElementById('product-jsonld');
+        if (!ld) {
+            ld = document.createElement('script');
+            ld.id = 'product-jsonld';
+            ld.type = 'application/ld+json';
+            document.head.appendChild(ld);
+        }
+        ld.textContent = JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: p.name,
+            image: [absoluteImage],
+            description,
+            sku: p.code || String(p.id),
+            category: p.category || 'General',
+            url,
+            offers: {
+                '@type': 'Offer',
+                url,
+                priceCurrency: 'ARS',
+                price: Number(p.price),
+                availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                itemCondition: 'https://schema.org/NewCondition',
+                seller: { '@type': 'Organization', name: 'GIGA Computers' }
+            }
         });
     },
 
@@ -3665,9 +3834,21 @@ const Cart = {
     add(id) {
         const p = (DB.get('products') || []).find(x => x.id === id);
         if (!p) return;
+        const stock = Number(p.stock) || 0;
+        if (stock <= 0) {
+            Toast.show('Producto sin stock', 'error');
+            return;
+        }
         const existing = this.items.find(i => i.id === id);
-        if (existing) existing.qty += 1;
-        else this.items.push({ id: p.id, name: p.name, price: Number(p.price) || 0, category: p.category || '', image: p.image || '', qty: 1 });
+        if (existing) {
+            if (existing.qty >= stock) {
+                Toast.show(`Solo hay ${stock} unidad${stock === 1 ? '' : 'es'} disponible${stock === 1 ? '' : 's'}`, 'error');
+                return;
+            }
+            existing.qty += 1;
+        } else {
+            this.items.push({ id: p.id, name: p.name, price: Number(p.price) || 0, category: p.category || '', image: p.image || '', qty: 1 });
+        }
         this.save();
         Toast.show(p.name + ' agregado al carrito', 'success');
         this.render();
@@ -3789,6 +3970,16 @@ const Cart = {
         const notes = document.getElementById('co-notes').value.trim();
         if (!name || !phone) { Toast.show('Completá tu nombre y teléfono', 'error'); return null; }
         if (delivery === 'envio' && !address) { Toast.show('Ingresá la dirección de envío', 'error'); return null; }
+        const products = DB.get('products') || [];
+        for (const item of this.items) {
+            const product = products.find(p => p.id === item.id);
+            if (!product) { Toast.show('Un producto del carrito ya no está disponible', 'error'); return null; }
+            if (Number(product.stock) <= 0) { Toast.show(`${product.name} no tiene stock`, 'error'); return null; }
+            if (Number(item.qty) > Number(product.stock)) {
+                Toast.show(`Solo hay ${product.stock} unidad${Number(product.stock) === 1 ? '' : 'es'} de ${product.name}`, 'error');
+                return null;
+            }
+        }
         return {
             items: this.items.map(i => ({ productId: i.id, name: i.name, quantity: i.qty, price: i.price })),
             total: this.total(),
@@ -3926,12 +4117,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     Cart.init();
     
     // Listen for hash changes
-    window.addEventListener('hashchange', () => Router.handleRoute());
+    window.addEventListener('hashchange', () => {
+        if (/\/producto\.html$/i.test(window.location.pathname)) {
+            window.location.href = '/' + window.location.hash;
+            return;
+        }
+        Router.handleRoute();
+    });
     
     // Initial route
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
-    if (productId) {
+    const isProductPage = /\/producto\.html$/i.test(window.location.pathname);
+    if (isProductPage) {
+        Pages.renderProductDetail(productId || '');
+    } else if (productId) {
         Pages.renderCatalog(false, productId);
     } else {
         Router.handleRoute();
