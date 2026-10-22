@@ -13422,6 +13422,14 @@
       "marca": "hp",
       "modelo": "15 gris",
       "date": "2026-10-19"
+    },
+    {
+      "code": "A89AM",
+      "status": "Recibida",
+      "equipment": "Pc Escritorio",
+      "marca": "Ninguno",
+      "modelo": "Ninguno",
+      "date": "2026-10-22"
     }
   ]
 }
