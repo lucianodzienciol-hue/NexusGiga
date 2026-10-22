@@ -13430,6 +13430,14 @@
       "marca": "Ninguno",
       "modelo": "Ninguno",
       "date": "2026-10-22"
+    },
+    {
+      "code": "CRGTN",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Acer",
+      "modelo": "14 Gris Calcos",
+      "date": "2026-10-22"
     }
   ]
 }
