@@ -13462,6 +13462,14 @@
       "marca": "Android",
       "modelo": "Android",
       "date": "2026-10-23"
+    },
+    {
+      "code": "BLYT9",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Lenovo",
+      "modelo": "15 Gris",
+      "date": "2026-10-26"
     }
   ]
 }
