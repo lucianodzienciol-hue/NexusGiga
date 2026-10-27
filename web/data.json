@@ -13478,6 +13478,14 @@
       "marca": "samsung",
       "modelo": "",
       "date": "2026-10-27"
+    },
+    {
+      "code": "S5PGV",
+      "status": "Entregada",
+      "equipment": "Pc Escritorio",
+      "marca": "Ninguno",
+      "modelo": "ninguno",
+      "date": "2026-10-27"
     }
   ]
 }
