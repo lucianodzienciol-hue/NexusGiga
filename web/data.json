@@ -13486,6 +13486,14 @@
       "marca": "Ninguno",
       "modelo": "ninguno",
       "date": "2026-10-27"
+    },
+    {
+      "code": "MXQDJ",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Hp",
+      "modelo": "15 Gris",
+      "date": "2026-10-27"
     }
   ]
 }
