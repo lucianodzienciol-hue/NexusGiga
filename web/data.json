@@ -13505,8 +13505,16 @@
     },
     {
       "code": "VHQ84",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "PC Escritorio",
+      "marca": "Ninguno",
+      "modelo": "Ninguno",
+      "date": "2026-10-28"
+    },
+    {
+      "code": "NYNC6",
+      "status": "Finalizada",
+      "equipment": "Pc Nueva",
       "marca": "Ninguno",
       "modelo": "Ninguno",
       "date": "2026-10-28"
