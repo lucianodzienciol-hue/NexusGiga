@@ -13502,6 +13502,14 @@
       "marca": "Mx9",
       "modelo": "5g",
       "date": "2026-10-27"
+    },
+    {
+      "code": "VHQ84",
+      "status": "Finalizada",
+      "equipment": "PC Escritorio",
+      "marca": "Ninguno",
+      "modelo": "Ninguno",
+      "date": "2026-10-28"
     }
   ]
 }
