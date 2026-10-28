@@ -13489,7 +13489,7 @@
     },
     {
       "code": "MXQDJ",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Notebook",
       "marca": "Hp",
       "modelo": "15 Gris",
@@ -13497,7 +13497,7 @@
     },
     {
       "code": "S9Z7U",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Tv Box",
       "marca": "Mx9",
       "modelo": "5g",
@@ -13515,6 +13515,14 @@
       "code": "NYNC6",
       "status": "Finalizada",
       "equipment": "Pc Nueva",
+      "marca": "Ninguno",
+      "modelo": "Ninguno",
+      "date": "2026-10-28"
+    },
+    {
+      "code": "M7EHB",
+      "status": "Recibida",
+      "equipment": "Pc nueva",
       "marca": "Ninguno",
       "modelo": "Ninguno",
       "date": "2026-10-28"
