@@ -13513,7 +13513,7 @@
     },
     {
       "code": "NYNC6",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Pc Nueva",
       "marca": "Ninguno",
       "modelo": "Ninguno",
@@ -13537,10 +13537,18 @@
     },
     {
       "code": "HCDDW",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Pc Escitorio",
       "marca": "Ninguno",
       "modelo": "Ninguno",
+      "date": "2026-10-29"
+    },
+    {
+      "code": "7NTQC",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Exo",
+      "modelo": "13 Gris",
       "date": "2026-10-29"
     }
   ]
