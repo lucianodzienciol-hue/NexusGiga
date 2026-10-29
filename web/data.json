@@ -13465,7 +13465,7 @@
     },
     {
       "code": "BLYT9",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Notebook",
       "marca": "Lenovo",
       "modelo": "15 Gris",
@@ -13531,6 +13531,14 @@
       "code": "4G87C",
       "status": "Recibida",
       "equipment": "Pc Escritorio",
+      "marca": "Ninguno",
+      "modelo": "Ninguno",
+      "date": "2026-10-29"
+    },
+    {
+      "code": "HCDDW",
+      "status": "Recibida",
+      "equipment": "Pc Escitorio",
       "marca": "Ninguno",
       "modelo": "Ninguno",
       "date": "2026-10-29"
