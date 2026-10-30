@@ -13550,6 +13550,14 @@
       "marca": "Exo",
       "modelo": "13 Gris",
       "date": "2026-10-29"
+    },
+    {
+      "code": "RVJ9V",
+      "status": "Recibida",
+      "equipment": "Pc Escritorio",
+      "marca": "Varios Equipos",
+      "modelo": "Ninguno",
+      "date": "2026-10-30"
     }
   ]
 }
