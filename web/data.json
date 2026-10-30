@@ -13558,6 +13558,14 @@
       "marca": "Varios Equipos",
       "modelo": "Ninguno",
       "date": "2026-10-30"
+    },
+    {
+      "code": "9DVXJ",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Gobierno",
+      "modelo": "Sarmiento",
+      "date": "2026-10-30"
     }
   ]
 }
