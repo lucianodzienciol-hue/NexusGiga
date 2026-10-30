@@ -13582,7 +13582,7 @@
     },
     {
       "code": "9DVXJ",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Notebook",
       "marca": "Gobierno",
       "modelo": "Sarmiento",
@@ -13594,6 +13594,14 @@
       "equipment": "tvbox",
       "marca": "caja cuadrada",
       "modelo": "d9",
+      "date": "2026-10-30"
+    },
+    {
+      "code": "QCJE7",
+      "status": "Recibida",
+      "equipment": "Proyector",
+      "marca": "4K",
+      "modelo": "Ultra",
       "date": "2026-10-30"
     }
   ]
