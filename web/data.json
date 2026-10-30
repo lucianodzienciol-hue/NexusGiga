@@ -13567,6 +13567,14 @@
       "marca": "Gobierno",
       "modelo": "Sarmiento",
       "date": "2026-10-30"
+    },
+    {
+      "code": "DX2MW",
+      "status": "Recibida",
+      "equipment": "tvbox",
+      "marca": "caja cuadrada",
+      "modelo": "d9",
+      "date": "2026-10-30"
     }
   ]
 }
