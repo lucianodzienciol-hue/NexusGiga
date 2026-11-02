@@ -13619,6 +13619,14 @@
       "marca": "Hp",
       "modelo": "15 Gris",
       "date": "2026-11-02"
+    },
+    {
+      "code": "F4CMU",
+      "status": "Recibida",
+      "equipment": "Pc Escritorio",
+      "marca": "Ninguno",
+      "modelo": "Ninguno",
+      "date": "2026-11-02"
     }
   ]
 }
