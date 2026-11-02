@@ -13611,6 +13611,14 @@
       "marca": "Lenovo",
       "modelo": "15 negra",
       "date": "2026-11-02"
+    },
+    {
+      "code": "NHEE7",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Hp",
+      "modelo": "15 Gris",
+      "date": "2026-11-02"
     }
   ]
 }
