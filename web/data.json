@@ -13606,7 +13606,7 @@
     },
     {
       "code": "FECCQ",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Notebook",
       "marca": "Lenovo",
       "modelo": "15 negra",
@@ -13622,7 +13622,7 @@
     },
     {
       "code": "F4CMU",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Pc Escritorio",
       "marca": "Ninguno",
       "modelo": "Ninguno",
