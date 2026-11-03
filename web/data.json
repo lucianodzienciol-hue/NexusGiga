@@ -13643,6 +13643,14 @@
       "marca": "starvision",
       "modelo": "caja cuadradra",
       "date": "2026-11-03"
+    },
+    {
+      "code": "C3JCK",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "HP",
+      "modelo": "15 Marron",
+      "date": "2026-11-03"
     }
   ]
 }
