@@ -13574,7 +13574,7 @@
     },
     {
       "code": "RVJ9V",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Pc Escritorio",
       "marca": "Varios Equipos",
       "modelo": "Ninguno",
@@ -13630,7 +13630,7 @@
     },
     {
       "code": "RPWU8",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Notebook",
       "marca": "Dell",
       "modelo": "15 Gris",
