@@ -13635,6 +13635,14 @@
       "marca": "Dell",
       "modelo": "15 Gris",
       "date": "2026-11-03"
+    },
+    {
+      "code": "XQEKD",
+      "status": "Recibida",
+      "equipment": "tvbox",
+      "marca": "starvision",
+      "modelo": "caja cuadradra",
+      "date": "2026-11-03"
     }
   ]
 }
