@@ -13598,7 +13598,7 @@
     },
     {
       "code": "QCJE7",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Proyector",
       "marca": "4K",
       "modelo": "Ultra",
@@ -13627,6 +13627,14 @@
       "marca": "Ninguno",
       "modelo": "Ninguno",
       "date": "2026-11-02"
+    },
+    {
+      "code": "RPWU8",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Dell",
+      "modelo": "15 Gris",
+      "date": "2026-11-03"
     }
   ]
 }
