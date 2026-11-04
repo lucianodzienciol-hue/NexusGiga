@@ -13659,6 +13659,14 @@
       "marca": "Dell",
       "modelo": "15 Negra",
       "date": "2026-11-04"
+    },
+    {
+      "code": "5MH9K",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Lenovo",
+      "modelo": "14 Marron",
+      "date": "2026-11-04"
     }
   ]
 }
