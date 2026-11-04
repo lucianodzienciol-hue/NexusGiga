@@ -13651,6 +13651,14 @@
       "marca": "HP",
       "modelo": "15 Marron",
       "date": "2026-11-03"
+    },
+    {
+      "code": "AJDM2",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Dell",
+      "modelo": "15 Negra",
+      "date": "2026-11-04"
     }
   ]
 }
