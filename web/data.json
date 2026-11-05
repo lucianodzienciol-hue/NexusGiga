@@ -13707,6 +13707,14 @@
       "marca": "Lenovo",
       "modelo": "14 Marron",
       "date": "2026-11-04"
+    },
+    {
+      "code": "FKMKM",
+      "status": "Recibida",
+      "equipment": "Pc Escritorio",
+      "marca": "Ninguno",
+      "modelo": "Ninguno",
+      "date": "2026-11-05"
     }
   ]
 }
