@@ -13678,7 +13678,7 @@
     },
     {
       "code": "XQEKD",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "tvbox",
       "marca": "starvision",
       "modelo": "caja cuadradra",
@@ -13722,6 +13722,14 @@
       "equipment": "Tv Box",
       "marca": "Mx",
       "modelo": "Mx",
+      "date": "2026-11-05"
+    },
+    {
+      "code": "2DXH2",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "HP",
+      "modelo": "14 Gris",
       "date": "2026-11-05"
     }
   ]
