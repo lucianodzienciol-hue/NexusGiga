@@ -13598,7 +13598,7 @@
     },
     {
       "code": "HCDDW",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Pc Escitorio",
       "marca": "Ninguno",
       "modelo": "Ninguno",
@@ -13686,7 +13686,7 @@
     },
     {
       "code": "C3JCK",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Notebook",
       "marca": "HP",
       "modelo": "15 Marron",
@@ -13718,7 +13718,7 @@
     },
     {
       "code": "UP3YT",
-      "status": "Recibida",
+      "status": "Entregada",
       "equipment": "Tv Box",
       "marca": "Mx",
       "modelo": "Mx",
