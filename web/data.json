@@ -13710,10 +13710,18 @@
     },
     {
       "code": "FKMKM",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Pc Escritorio",
       "marca": "Ninguno",
       "modelo": "Ninguno",
+      "date": "2026-11-05"
+    },
+    {
+      "code": "UP3YT",
+      "status": "Recibida",
+      "equipment": "Tv Box",
+      "marca": "Mx",
+      "modelo": "Mx",
       "date": "2026-11-05"
     }
   ]
