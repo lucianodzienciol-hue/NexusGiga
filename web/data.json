@@ -13739,6 +13739,14 @@
       "marca": "Lenovo",
       "modelo": "15 Gris",
       "date": "2026-11-06"
+    },
+    {
+      "code": "N5RPB",
+      "status": "Recibida",
+      "equipment": "notebook",
+      "marca": "acer",
+      "modelo": "15 gris",
+      "date": "2026-11-06"
     }
   ]
 }
