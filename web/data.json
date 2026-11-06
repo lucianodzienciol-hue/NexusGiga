@@ -13731,6 +13731,14 @@
       "marca": "HP",
       "modelo": "14 Gris",
       "date": "2026-11-05"
+    },
+    {
+      "code": "LVA46",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Lenovo",
+      "modelo": "15 Gris",
+      "date": "2026-11-06"
     }
   ]
 }
