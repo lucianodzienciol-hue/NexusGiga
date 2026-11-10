@@ -13694,7 +13694,7 @@
     },
     {
       "code": "AJDM2",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Notebook",
       "marca": "Dell",
       "modelo": "15 Negra",
@@ -13702,7 +13702,7 @@
     },
     {
       "code": "5MH9K",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Notebook",
       "marca": "Lenovo",
       "modelo": "14 Marron",
@@ -13742,7 +13742,7 @@
     },
     {
       "code": "N5RPB",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "notebook",
       "marca": "acer",
       "modelo": "15 gris",
@@ -13750,7 +13750,7 @@
     },
     {
       "code": "YAGXC",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "All In One",
       "marca": "Hp",
       "modelo": "22",
