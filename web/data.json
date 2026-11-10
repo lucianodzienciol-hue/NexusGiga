@@ -13702,7 +13702,7 @@
     },
     {
       "code": "5MH9K",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Notebook",
       "marca": "Lenovo",
       "modelo": "14 Marron",
@@ -13726,7 +13726,7 @@
     },
     {
       "code": "2DXH2",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Notebook",
       "marca": "HP",
       "modelo": "14 Gris",
@@ -13754,6 +13754,14 @@
       "equipment": "All In One",
       "marca": "Hp",
       "modelo": "22",
+      "date": "2026-11-10"
+    },
+    {
+      "code": "FNTYX",
+      "status": "Recibida",
+      "equipment": "PC Escritorio",
+      "marca": "Ninguno",
+      "modelo": "Ninguno",
       "date": "2026-11-10"
     }
   ]
