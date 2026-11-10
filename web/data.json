@@ -13747,6 +13747,14 @@
       "marca": "acer",
       "modelo": "15 gris",
       "date": "2026-11-06"
+    },
+    {
+      "code": "YAGXC",
+      "status": "Recibida",
+      "equipment": "All In One",
+      "marca": "Hp",
+      "modelo": "22",
+      "date": "2026-11-10"
     }
   ]
 }
