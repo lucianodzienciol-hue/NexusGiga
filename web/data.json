@@ -13787,6 +13787,14 @@
       "marca": "Ninguno",
       "modelo": "Ninguno",
       "date": "2026-11-11"
+    },
+    {
+      "code": "V4PZH",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Dell",
+      "modelo": "15 Negra",
+      "date": "2026-11-12"
     }
   ]
 }
