@@ -13802,7 +13802,7 @@
     },
     {
       "code": "HXDVX",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Pc Escritorio",
       "marca": "Ninguno",
       "modelo": "Ninguno",
@@ -13810,6 +13810,14 @@
     },
     {
       "code": "V4PZH",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Dell",
+      "modelo": "15 Negra",
+      "date": "2026-11-12"
+    },
+    {
+      "code": "64L5U",
       "status": "Recibida",
       "equipment": "Notebook",
       "marca": "Dell",
