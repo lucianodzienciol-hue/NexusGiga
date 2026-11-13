@@ -13823,6 +13823,14 @@
       "marca": "Dell",
       "modelo": "15 Negra",
       "date": "2026-11-12"
+    },
+    {
+      "code": "JPRHE",
+      "status": "Recibida",
+      "equipment": "notebook",
+      "marca": "asus",
+      "modelo": "15 gris",
+      "date": "2026-11-13"
     }
   ]
 }
