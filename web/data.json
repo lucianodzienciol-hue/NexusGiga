@@ -13831,6 +13831,14 @@
       "marca": "asus",
       "modelo": "15 gris",
       "date": "2026-11-13"
+    },
+    {
+      "code": "G7X74",
+      "status": "Recibida",
+      "equipment": "tvbox",
+      "marca": "caja negra",
+      "modelo": "cuadrado",
+      "date": "2026-11-13"
     }
   ]
 }
