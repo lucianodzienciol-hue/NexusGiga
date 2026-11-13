@@ -13834,10 +13834,18 @@
     },
     {
       "code": "G7X74",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "tvbox",
       "marca": "caja negra",
       "modelo": "cuadrado",
+      "date": "2026-11-13"
+    },
+    {
+      "code": "V9H5S",
+      "status": "Recibida",
+      "equipment": "Tv Box",
+      "marca": "MXQ",
+      "modelo": "2 Equipo",
       "date": "2026-11-13"
     }
   ]
