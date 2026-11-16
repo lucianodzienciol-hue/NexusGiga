@@ -13886,7 +13886,7 @@
     },
     {
       "code": "JPRHE",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "notebook",
       "marca": "asus",
       "modelo": "15 gris",
@@ -13922,6 +13922,14 @@
       "equipment": "pc",
       "marca": "bangho",
       "modelo": "caja negra",
+      "date": "2026-11-16"
+    },
+    {
+      "code": "WFLN3",
+      "status": "Recibida",
+      "equipment": "Tv Stick",
+      "marca": "Android",
+      "modelo": "Verde",
       "date": "2026-11-16"
     }
   ]
