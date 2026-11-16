@@ -13907,6 +13907,14 @@
       "marca": "MXQ",
       "modelo": "2 Equipo",
       "date": "2026-11-13"
+    },
+    {
+      "code": "M3BRN",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Acer",
+      "modelo": "Gamer",
+      "date": "2026-11-16"
     }
   ]
 }
