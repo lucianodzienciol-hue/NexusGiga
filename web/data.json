@@ -13902,7 +13902,7 @@
     },
     {
       "code": "V9H5S",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Tv Box",
       "marca": "MXQ",
       "modelo": "2 Equipo",
@@ -13910,10 +13910,18 @@
     },
     {
       "code": "M3BRN",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Notebook",
       "marca": "Acer",
       "modelo": "Gamer",
+      "date": "2026-11-16"
+    },
+    {
+      "code": "SQ9ET",
+      "status": "Recibida",
+      "equipment": "pc",
+      "marca": "bangho",
+      "modelo": "caja negra",
       "date": "2026-11-16"
     }
   ]
