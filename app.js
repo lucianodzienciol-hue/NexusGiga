@@ -499,12 +499,22 @@ const Stats = {
 const UI = {
     updateConfig() {
         const config = DB.getConfig();
+        // Carrito on/off desde el Panel Web: si está desactivado se ocultan los
+        // botones de carrito y queda solo "Consultar" por WhatsApp.
+        document.documentElement.classList.toggle('cart-disabled', config.cartEnabled === false);
         // Actualizar título de la ventana
         document.title = config.companyName || 'Catálogo de Ventas';
-        // Actualizar el logo en la barra de navegación
+        // Botón "Ofertas" del menú (Panel Web > Mostrar botón "Ofertas")
+        document.querySelectorAll('.nav-link[data-route="/ofertas"]').forEach(a => {
+            a.style.display = config.showOffersButton === false ? 'none' : '';
+        });
+        // Actualizar el logo en la barra de navegación (Panel Web > Logo del header)
         const brand = document.querySelector('.nav-brand');
         if (brand) {
-            brand.innerHTML = `<i class="ph ph-cpu"></i> ${config.companyName}`;
+            const logo = cfgImg(config.headerLogo);
+            brand.innerHTML = logo
+                ? `<img src="${esc(logo)}" alt="${esc(config.companyName || '')}" class="nav-logo"><span>${esc(config.companyName || '')}</span>`
+                : `<i class="ph ph-cpu"></i> ${esc(config.companyName || '')}`;
         }
         
         // Actualizar Footer
@@ -523,11 +533,15 @@ const UI = {
         const footerHours = document.querySelector('#footer-hours span');
         if (footerHours) footerHours.textContent = config.hours;
         
-        const footerIG = document.getElementById('footer-ig');
-        if (footerIG) footerIG.href = config.instagram || '#';
-        
-        const footerFB = document.getElementById('footer-fb');
-        if (footerFB) footerFB.href = config.facebook || '#';
+        // Redes sociales del footer (Panel Web > Empresa)
+        [['footer-ig', 'instagram'], ['footer-fb', 'facebook'], ['footer-tiktok', 'tiktok'],
+         ['footer-yt', 'youtube'], ['footer-x', 'twitter'], ['footer-in', 'linkedin']].forEach(([id, key]) => {
+            const a = document.getElementById(id);
+            if (!a) return;
+            const url = String(config[key] || '').trim();
+            a.style.display = url ? '' : 'none';
+            if (url) a.href = url;
+        });
         
         const footerBottom = document.getElementById('footer-company-name-bottom');
         if (footerBottom) footerBottom.textContent = config.companyName;
@@ -579,11 +593,15 @@ const Pages = {
         }
 
         // Aplicar límite si está configurado y no hay highlightId
-        if (config.homeProductLimit && config.homeProductLimit > 0 && !filterOfertas && !highlightId) {
-            products = products.slice(0, config.homeProductLimit);
+        const homeLimit = Number(config.homeProductLimit ?? config.maxHomeProducts) || 0;
+        if (homeLimit > 0 && !filterOfertas && !highlightId) {
+            products = products.slice(0, homeLimit);
         }
 
         const categories = DB.get('categories');
+        // Fotos de categorías (Panel Web > Categorías): solo se muestra la foto
+        // si fue asignada explícitamente; sin foto no se dibuja miniatura.
+        const categoryImages = config.categoryImages || {};
 
         // Si viene un highlightId, nos aseguramos de que el producto esté en la lista (incluso si no es oferta)
         if (highlightId) {
@@ -618,7 +636,10 @@ const Pages = {
                 <aside class="catalog-sidebar glass">
                     <h3 class="sidebar-title">Categorías</h3>
                     <ul class="category-list">
-                        ${categories.map((cat, i) => `<li class="category-item${i === 0 ? ' active' : ''}" data-category="${cat.name}">${cat.name}</li>`).join('')}
+                        ${categories.map((cat, i) => {
+                            const img = cfgImg(categoryImages[cat.name]);
+                            return `<li class="category-item${i === 0 ? ' active' : ''}" data-category="${esc(cat.name)}">${img ? `<img class="category-thumb" src="${esc(img)}" alt="" loading="lazy">` : ''}<span>${esc(cat.name)}</span></li>`;
+                        }).join('')}
                     </ul>
                 </aside>
                 <div class="catalog-main">
@@ -3804,6 +3825,16 @@ const Router = {
 // Escape HTML global (usado por carrito, vistas públicas y formularios admin).
 function esc(v) {
     return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Resuelve rutas de imágenes configuradas en el Panel Web (logo, categorías).
+// Acepta URL absoluta/data URI o rutas relativas dentro de /web/.
+function cfgImg(path) {
+    const s = String(path || '').trim();
+    if (!s) return '';
+    if (/^(https?:|data:)/i.test(s)) return s;
+    const clean = s.replace(/^\/+/, '');
+    return clean.startsWith('web/') ? '/' + clean : '/web/' + clean;
 }
 
 const Cart = {
