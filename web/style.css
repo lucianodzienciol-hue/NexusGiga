@@ -1517,3 +1517,15 @@ tbody tr {
     .pd-grid { grid-template-columns: 1fr; gap: 1.25rem; }
     .pd-media { min-height: 260px; }
 }
+
+/* Carrito deshabilitado desde el Panel Web (config.cartEnabled === false) */
+html.cart-disabled .nav-cart,
+html.cart-disabled .btn-cart,
+html.cart-disabled #cart-overlay { display: none !important; }
+
+/* Logo del header configurable (Panel Web > Logo del header) */
+.nav-logo { height: 34px; width: auto; max-width: 160px; object-fit: contain; display: block; }
+
+/* Fotos de categorías en la barra lateral (Panel Web > Categorías) */
+.category-item { display: flex; align-items: center; gap: .5rem; }
+.category-thumb { width: 28px; height: 28px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
