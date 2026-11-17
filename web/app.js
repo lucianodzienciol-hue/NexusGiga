@@ -599,13 +599,9 @@ const Pages = {
         }
 
         const categories = DB.get('categories');
-        // Fotos de categorías (Panel Web > Categorías); si la categoría no tiene
-        // foto propia se usa la primera imagen de un producto de esa categoría.
+        // Fotos de categorías (Panel Web > Categorías): solo se muestra la foto
+        // si fue asignada explícitamente; sin foto no se dibuja miniatura.
         const categoryImages = config.categoryImages || {};
-        const firstProductImage = {};
-        allProducts.forEach(p => {
-            if (p.category && p.image && !firstProductImage[p.category]) firstProductImage[p.category] = p.image;
-        });
 
         // Si viene un highlightId, nos aseguramos de que el producto esté en la lista (incluso si no es oferta)
         if (highlightId) {
@@ -641,7 +637,7 @@ const Pages = {
                     <h3 class="sidebar-title">Categorías</h3>
                     <ul class="category-list">
                         ${categories.map((cat, i) => {
-                            const img = cfgImg(categoryImages[cat.name] || firstProductImage[cat.name]);
+                            const img = cfgImg(categoryImages[cat.name]);
                             return `<li class="category-item${i === 0 ? ' active' : ''}" data-category="${esc(cat.name)}">${img ? `<img class="category-thumb" src="${esc(img)}" alt="" loading="lazy">` : ''}<span>${esc(cat.name)}</span></li>`;
                         }).join('')}
                     </ul>
