@@ -13995,6 +13995,14 @@
       "marca": "Ninguno",
       "modelo": "Ninguno",
       "date": "2026-11-20"
+    },
+    {
+      "code": "JACHJ",
+      "status": "Finalizada",
+      "equipment": "Celular",
+      "marca": "Motorola",
+      "modelo": "x",
+      "date": "2026-11-20"
     }
   ]
 }
