@@ -14011,6 +14011,22 @@
       "marca": "Motorola",
       "modelo": "Varios",
       "date": "2026-11-24"
+    },
+    {
+      "code": "XCYAM",
+      "status": "Recibida",
+      "equipment": "Pc Escritorio",
+      "marca": "Ninguno",
+      "modelo": "Ninguno",
+      "date": "2026-11-24"
+    },
+    {
+      "code": "HSU9J",
+      "status": "Recibida",
+      "equipment": "Pc Escritorio",
+      "marca": "Ninguno",
+      "modelo": "Ninguno",
+      "date": "2026-11-24"
     }
   ]
 }
