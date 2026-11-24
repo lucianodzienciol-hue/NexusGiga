@@ -14003,6 +14003,14 @@
       "marca": "Motorola",
       "modelo": "x",
       "date": "2026-11-20"
+    },
+    {
+      "code": "VUYKC",
+      "status": "Recibida",
+      "equipment": "Telefono Celular",
+      "marca": "Motorola",
+      "modelo": "Varios",
+      "date": "2026-11-24"
     }
   ]
 }
