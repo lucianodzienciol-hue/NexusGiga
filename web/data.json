@@ -14030,7 +14030,7 @@
     },
     {
       "code": "YKC83",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Pc Escritorio",
       "marca": "Ninguno",
       "modelo": "Ninguno",
@@ -14043,6 +14043,14 @@
       "marca": "Ninguno",
       "modelo": "Ninguno",
       "date": "2026-11-25"
+    },
+    {
+      "code": "CQXUW",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Sky",
+      "modelo": "Nueva",
+      "date": "2026-11-26"
     }
   ]
 }
