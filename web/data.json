@@ -14014,7 +14014,7 @@
     },
     {
       "code": "XCYAM",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Pc Escritorio",
       "marca": "Ninguno",
       "modelo": "Ninguno",
@@ -14038,7 +14038,7 @@
     },
     {
       "code": "NF3XU",
-      "status": "Recibida",
+      "status": "Entregada",
       "equipment": "Pc Escritorio",
       "marca": "Ninguno",
       "modelo": "Ninguno",
@@ -14058,6 +14058,14 @@
       "equipment": "Notebook",
       "marca": "Hp",
       "modelo": "Negra 17",
+      "date": "2026-11-26"
+    },
+    {
+      "code": "AL4PH",
+      "status": "Recibida",
+      "equipment": "notebook",
+      "marca": "acer",
+      "modelo": "15 gris",
       "date": "2026-11-26"
     }
   ]
