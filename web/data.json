@@ -14046,10 +14046,18 @@
     },
     {
       "code": "CQXUW",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Notebook",
       "marca": "Sky",
       "modelo": "Nueva",
+      "date": "2026-11-26"
+    },
+    {
+      "code": "CSWJ4",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Hp",
+      "modelo": "Negra 17",
       "date": "2026-11-26"
     }
   ]
