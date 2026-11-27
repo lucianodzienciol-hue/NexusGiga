@@ -14067,6 +14067,14 @@
       "marca": "acer",
       "modelo": "15 gris",
       "date": "2026-11-26"
+    },
+    {
+      "code": "L57JE",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Dell",
+      "modelo": "17",
+      "date": "2026-11-27"
     }
   ]
 }
