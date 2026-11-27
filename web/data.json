@@ -14078,7 +14078,7 @@
     },
     {
       "code": "WSPCJ",
-      "status": "Recibida",
+      "status": "Finalizada",
       "equipment": "Notebook",
       "marca": "Acer",
       "modelo": "14 Gris",
@@ -14086,7 +14086,7 @@
     },
     {
       "code": "L3AQS",
-      "status": "Finalizada",
+      "status": "Entregada",
       "equipment": "Tv Box",
       "marca": "Xiaomi",
       "modelo": "Mi",
@@ -14098,6 +14098,14 @@
       "equipment": "Tv Box",
       "marca": "MXq",
       "modelo": "Mxq",
+      "date": "2026-11-27"
+    },
+    {
+      "code": "LAA8X",
+      "status": "Recibida",
+      "equipment": "notebook",
+      "marca": "sony",
+      "modelo": "14 gris",
       "date": "2026-11-27"
     }
   ]
