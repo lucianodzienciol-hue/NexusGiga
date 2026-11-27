@@ -14075,6 +14075,14 @@
       "marca": "Dell",
       "modelo": "17",
       "date": "2026-11-27"
+    },
+    {
+      "code": "WSPCJ",
+      "status": "Recibida",
+      "equipment": "Notebook",
+      "marca": "Acer",
+      "modelo": "14 Gris",
+      "date": "2026-11-27"
     }
   ]
 }
