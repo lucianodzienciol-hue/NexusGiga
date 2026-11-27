@@ -14083,6 +14083,22 @@
       "marca": "Acer",
       "modelo": "14 Gris",
       "date": "2026-11-27"
+    },
+    {
+      "code": "L3AQS",
+      "status": "Recibida",
+      "equipment": "Tv Box",
+      "marca": "Xiaomi",
+      "modelo": "Mi",
+      "date": "2026-11-27"
+    },
+    {
+      "code": "R4PXS",
+      "status": "Recibida",
+      "equipment": "Tv Box",
+      "marca": "MXq",
+      "modelo": "Mxq",
+      "date": "2026-11-27"
     }
   ]
 }
